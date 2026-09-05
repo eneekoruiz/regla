@@ -155,9 +155,9 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
   }
   if (!topic) return {
     mode: 'local', topicId: 'catalog',
-    text: /^(hola|buenas|hey|gracias)[!. ]*$/.test(text)
-      ? 'Hola. Puedes preguntarme por tu ciclo o elegir un tema. La orientación y los cinco chequeos funcionan en este dispositivo, también sin conexión.'
-      : 'No encuentro una respuesta específica en el catálogo local. Puedo ofrecer orientación general sobre estos temas y ayudarte a ordenar tus preguntas para consulta. No puedo diagnosticar, buscar en internet ni interpretar una situación clínica individual.',
+    text: /^(hola|buenas|hey|gracias|que tal|como estas)[!. ]*$/.test(text)
+      ? '¡Hola! Puedes preguntarme sobre tu ciclo, fertilidad, síntomas o elegir un tema de abajo. Mis funciones de bienestar están listas en tu dispositivo.'
+      : 'Esa es una buena pregunta. Actualmente funciono como un Confidente 100% offline para proteger tu privacidad, por lo que mi conocimiento se centra en tu salud menstrual, síntomas, y cuidados básicos. Puedes preguntarme sobre cólicos, alimentación, fase de tu ciclo o elegir uno de estos temas:',
     suggestions: LOCAL_CHAT_TOPICS.filter(item => ['pain', 'sleep', 'phase', 'privacy'].includes(item.id)).map(topicSuggestion)
   };
   const phaseNote = topic.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';

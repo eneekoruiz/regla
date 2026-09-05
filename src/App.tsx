@@ -69,7 +69,7 @@ function MainScreen() {
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
   const hasEntries = Boolean(log && (hasPeriod || hasIntimacy || log.symptoms.length || log.notes || log.bbt !== undefined || log.medications?.length || log.quizResults?.length));
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-  const title = view === 'diary' ? 'Mi diario' : view === 'calendar' ? 'Calendario' : 'Herramientas';
+  const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : 'Herramientas';
   const tools = [
     { id: 'analytics' as const, name: 'Tendencias del ciclo', description: 'Historial, duración y variaciones', icon: BarChart3 },
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
@@ -86,8 +86,8 @@ function MainScreen() {
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
-        <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'diary' ? `${settings.userName ? `${settings.userName}, este` : 'Este'} es tu espacio. A tu ritmo.` : view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
-          <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Diario local' : 'Sin conexión'}</span></span>
+        <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'diary' ? (settings.userName ? `¡Hola, ${settings.userName}!` : 'Bienvenida') : view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
+          <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
         </div>
         {view !== 'calendar' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}

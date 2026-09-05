@@ -29,9 +29,7 @@ export function HeroStatus({ onRecordPeriod, onOpenLegend }: { onRecordPeriod: (
     copy = elapsedDays === length ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
   }
   const progress = hasCycle ? Math.min(1, cycleDay / length) : 0;
-  const estimateSource = cycleStats.totalCyclesAnalyzed > 0
-    ? `Basado en ${cycleStats.totalCyclesAnalyzed} ${cycleStats.totalCyclesAnalyzed === 1 ? 'ciclo registrado' : 'ciclos registrados'}`
-    : 'Basado en tus ajustes iniciales';
+
   const circumference = 2 * Math.PI * 58;
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <div className="cycle-summary-top">
@@ -48,9 +46,6 @@ export function HeroStatus({ onRecordPeriod, onOpenLegend }: { onRecordPeriod: (
         <span className="cycle-ring-label"><span>DÍA</span><strong>{cycleDay}</strong><span>de ~{length} días</span></span>
       </div>}
     </div>
-    {hasCycle ? <>
-      <dl className="cycle-meta"><div><dt>Ciclo estimado</dt><dd>{length} días</dd></div><div><dt>Periodo habitual</dt><dd>{Math.round(cycleStats.estimatedPeriodLength || settings.averagePeriodLength)} días</dd></div></dl>
-      <p className="muted-note">{estimateSource}. Las fechas son orientativas y no sirven como método anticonceptivo.</p>
-    </> : <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>Registrar mi regla<ArrowRight size={17}/></button>}
+    {!hasCycle && <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>Registrar mi regla<ArrowRight size={17}/></button>}
   </section>;
 }
