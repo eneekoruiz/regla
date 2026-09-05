@@ -26,7 +26,9 @@ export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       onClose();
     } catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
   };
-  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro de sangrado" description={new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { dateStyle: 'long' })}
+  const dateObj = new Date(selectedDate + 'T12:00:00');
+  const dateDesc = isNaN(dateObj.getTime()) ? selectedDate : dateObj.toLocaleDateString('es-ES', { dateStyle: 'long' });
+  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro de sangrado" description={dateDesc}
     footer={<>
       {existing && <button type="button" onClick={() => save(true)} className={modalSecondaryButton}><Trash2 size={17} aria-hidden="true" /> Quitar</button>}
       <button type="button" onClick={() => save()} className="aura-button rose min-w-0"><Check size={17} aria-hidden="true" /> Guardar registro</button>

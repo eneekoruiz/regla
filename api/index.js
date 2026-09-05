@@ -3,10 +3,13 @@ import { createRequire } from 'node:module';
 let productionApp;
 function getProductionApp() {
   if (!process.env.DATABASE_URL || !process.env.JWT_SECRET) return null;
+
   if (!productionApp) {
     const require = createRequire(import.meta.url);
     const { createApp } = require('../server/app.js');
-    productionApp = createApp();
+    productionApp = createApp({
+      env: process.env
+    });
   }
   return productionApp;
 }

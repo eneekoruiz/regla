@@ -92,7 +92,7 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
   const secret = env.JWT_SECRET || '';
-  const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production/i.test(secret);
+  const secretReady = secret.length >= 32 && !/change_in_production/i.test(secret);
   let pool = suppliedPool;
   if (!pool && env.DATABASE_URL && secretReady) {
     try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch { /* Disabled until configured. */ }
@@ -127,7 +127,14 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     res.set({ 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY' });
     const origin = req.get('origin');
-    if (origin && origin !== `${req.protocol}://${req.get('host')}` && !allowedOrigins.has(origin)) {
+    const host = req.get('host');
+    const isSameHost = origin && host && (
+      origin === `${req.protocol}://${host}` ||
+      origin === `https://${host}` ||
+      origin === `http://${host}` ||
+      origin.replace(/^https?:\/\//, '') === host
+    );
+    if (origin && !isSameHost && !allowedOrigins.has(origin)) {
       return res.status(403).json({ error: 'Origen no permitido.' });
     }
     next();

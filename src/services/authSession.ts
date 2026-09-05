@@ -1,4 +1,5 @@
 import { isObject, parseDataJSON } from '../utils/dataValidation';
+import { getApiBase } from '../utils/apiBase';
 
 export interface AuthUser { id: string; email: string }
 export interface StoredSession { token: string; user: AuthUser }
@@ -29,7 +30,7 @@ export async function resolveStoredSession(signal?: AbortSignal): Promise<Stored
     return isAuthUser(cachedUser) ? { token, user: cachedUser } : null;
   }
   try {
-    const response = await fetch(`${import.meta.env?.VITE_API_BASE_URL || '/api'}/auth/me`, {
+    const response = await fetch(`${getApiBase()}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000)
     });

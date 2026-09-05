@@ -21,15 +21,16 @@ import { clearReportedStorageError, hasReportedStorageError } from './utils/stor
 import type { CyclePhase } from './types/cycle';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
 
+import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
+import { DailyLogBottomSheet } from './components/Modals/DailyLogBottomSheet';
+import { IntimacyModal } from './components/Modals/IntimacyModal';
+
 const AppleMonthlyCalendar = lazy(() => import('./components/Calendar/AppleMonthlyCalendar').then(m => ({ default: m.AppleMonthlyCalendar })));
-const DailyLogBottomSheet = lazy(() => import('./components/Modals/DailyLogBottomSheet').then(m => ({ default: m.DailyLogBottomSheet })));
 const SettingsDrawer = lazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
 const ColorLegendModal = lazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
 const ChatDrawer = lazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
 const InteractiveQuizModal = lazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
 const ModularOnboardingModal = lazy(() => import('./components/Modals/ModularOnboardingModal').then(m => ({ default: m.ModularOnboardingModal })));
-const PeriodFlowModal = lazy(() => import('./components/Modals/PeriodFlowModal').then(m => ({ default: m.PeriodFlowModal })));
-const IntimacyModal = lazy(() => import('./components/Modals/IntimacyModal').then(m => ({ default: m.IntimacyModal })));
 const CycleAnalyticsModal = lazy(() => import('./components/Modals/CycleAnalyticsModal').then(m => ({ default: m.CycleAnalyticsModal })));
 const SymptothermalModal = lazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
 const MedicationTrackerModal = lazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));

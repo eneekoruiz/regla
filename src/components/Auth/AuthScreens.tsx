@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, CircleAlert, Eye, EyeOff, Heart, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { hapticSelect, hapticTick, hapticError } from '../../utils/haptics';
 import { useAuth } from '../../hooks/useAuth';
+import { getApiBase } from '../../utils/apiBase';
 
 type AuthMode = 'login' | 'signup' | 'forgot_password' | 'reset_password';
 const fieldClass = 'min-h-12 w-full rounded-lg border border-[#A5B6B0] bg-white pl-11 pr-12 text-base text-[#22312F] placeholder:text-[#596B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60]';
@@ -65,7 +66,7 @@ export function AuthScreens() {
     hapticSelect();
     const timeout = window.setTimeout(() => controller.abort(), 8000);
     try {
-      const apiBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+      const apiBase = getApiBase();
       const body = mode === 'forgot_password' ? { email: email.trim() }
         : mode === 'reset_password' ? { token: resetToken, password }
         : { email: email.trim(), password };

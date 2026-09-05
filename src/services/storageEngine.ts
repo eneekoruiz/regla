@@ -1,8 +1,7 @@
 import type { DailyLog, UserSettings } from '../types/cycle';
 import { isObject, validateLogs, validateSettings } from '../utils/dataValidation';
 import { getDefaultSettings, loadLogs, loadSettings, saveLogs, saveSettings, SETTINGS_KEY, LOGS_KEY } from '../utils/storage';
-
-const API_BASE = import.meta.env?.VITE_API_BASE_URL || '/api';
+import { getApiBase } from '../utils/apiBase';
 
 export function getRemoteToken(): string | null {
   try {
@@ -15,7 +14,7 @@ export function getRemoteToken(): string | null {
 }
 
 async function remoteRequest(path: string, token: string, init: RequestInit = {}): Promise<Response> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${getApiBase()}${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     signal: AbortSignal.timeout(8000)
