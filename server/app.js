@@ -105,10 +105,16 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     if (ready) return true;
     if (!initialization) initialization = (async () => {
       try {
-        if (initialize) await pool.query(schema);
+        if (initialize) {
+          const check = await pool.query("SELECT 1 FROM information_schema.tables WHERE table_name = 'users'");
+          if (check.rows.length === 0) {
+            await pool.query(schema);
+          }
+        }
         ready = true;
         return true;
-      } catch {
+      } catch (err) {
+        console.error('ensureReady database error:', err.message || err);
         return false;
       } finally {
         initialization = null;
@@ -143,11 +149,22 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     allowedHeaders: ['Content-Type', 'Authorization'], maxAge: 600 }));
 
   const attempts = new Map();
+  function getClientIp(req) {
+    try {
+      const forwarded = req.headers?.['x-forwarded-for'];
+      if (typeof forwarded === 'string' && forwarded.length > 0) {
+        return forwarded.split(',')[0].trim();
+      }
+      return req.headers?.['x-real-ip'] || req.socket?.remoteAddress || req.ip || '127.0.0.1';
+    } catch {
+      return '127.0.0.1';
+    }
+  }
   app.use('/api/auth', (req, res, next) => {
     if (req.method !== 'POST') return next();
     const now = Date.now();
     for (const [key, entry] of attempts) if (entry.until <= now) attempts.delete(key);
-    const key = req.ip;
+    const key = getClientIp(req);
     let entry = attempts.get(key);
     if (!entry) {
       if (attempts.size >= 10000) return res.status(429).json({ error: 'Demasiados intentos. Inténtalo más tarde.' });
@@ -157,6 +174,12 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     if (++entry.count > authLimit) {
       res.set('Retry-After', String(Math.ceil((entry.until - now) / 1000)));
       return res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos antes de volver a probar.' });
+    }
+    next();
+  });
+  app.use((req, res, next) => {
+    if (req.body !== undefined && typeof req.body === 'object' && req.body !== null) {
+      req._body = true;
     }
     next();
   });

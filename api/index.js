@@ -11,15 +11,19 @@ function getProductionApp() {
   const jwtSecret = process.env.JWT_SECRET || DEFAULT_SECRET;
 
   if (!productionApp) {
-    const require = createRequire(import.meta.url);
-    const { createApp } = require('../server/app.js');
-    productionApp = createApp({
-      env: {
-        ...process.env,
-        DATABASE_URL: dbUrl,
-        JWT_SECRET: jwtSecret,
-      }
-    });
+    try {
+      const require = createRequire(import.meta.url);
+      const { createApp } = require('../server/app.js');
+      productionApp = createApp({
+        env: {
+          ...process.env,
+          DATABASE_URL: dbUrl,
+          JWT_SECRET: jwtSecret,
+        }
+      });
+    } catch (err) {
+      console.error('Error creating productionApp in api/index.js:', err);
+    }
   }
   return productionApp;
 }
