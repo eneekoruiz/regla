@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { containDialogFocus } from '../../utils/dialogFocus';
-import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Leaf, Loader2, Send, Trash2, X } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Leaf, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
 import { CHAT_QUIZ_SUGGESTIONS, detectChatQuiz, generateChatResponse, isUrgentChatMessage, LOCAL_CHAT_TOPICS, topicSuggestion } from '../../services/aiAgent';
@@ -205,8 +205,21 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
     event.preventDefault();
     void handleSend(conversation.draft);
   }
-  const welcome: ChatMessageWithQuiz = { id: 'welcome', role: 'assistant', timestamp: '',
-    content: 'Hola. Este es tu espacio para preguntar y ordenar cómo te encuentras. Puedes elegir un chequeo o consultar un tema sobre tu ciclo.', suggestions: CHAT_QUIZ_SUGGESTIONS };
+  const WELCOME_SUGGESTIONS: ChatSuggestion[] = [
+    { id: 'welcome_phase', label: 'Mi fase y cuidados hoy', action: 'ask', prompt: 'Consejos para mi fase de hoy' },
+    { id: 'welcome_cramps', label: 'Aliviar cólicos', action: 'ask', prompt: 'Dolor menstrual y cólicos' },
+    { id: 'welcome_sleep', label: 'Mejorar el sueño', action: 'ask', prompt: 'Mejorar el sueño y el descanso' },
+    { id: 'welcome_stress', label: 'Calmar el estrés', action: 'ask', prompt: 'Estrés y respiración tranquila' },
+    { id: 'welcome_quiz', label: 'Chequeo de bienestar', action: 'quiz', quizKey: 'stress' }
+  ];
+
+  const welcome: ChatMessageWithQuiz = {
+    id: 'welcome',
+    role: 'assistant',
+    timestamp: '',
+    content: 'Hola. Soy tu Confidente en Aura. Estoy aquí para acompañarte, resolver dudas sobre tus síntomas y darte calma en cualquier momento de tu ciclo.\n\nPuedes escribir lo que sientes o elegir una opción para empezar:',
+    suggestions: WELCOME_SUGGESTIONS
+  };
   const displayedMessages = conversation.messages.length ? conversation.messages : [welcome];
 
   return <dialog ref={dialogRef} aria-labelledby="chat-title" aria-describedby="chat-description" tabIndex={-1} onKeyDown={containDialogFocus}
@@ -231,14 +244,72 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
       </div>}
       {error && <p role="alert" className="shrink-0 border-b border-[var(--rose)] bg-[var(--rose-soft)] px-4 py-2 text-xs leading-relaxed text-[var(--rose)]">{error}</p>}
       <div ref={messagesRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
-        <section id="chat-catalog" aria-label="Catálogo local" hidden={!showCatalog} className="mb-5 border-b border-[var(--border-subtle)] pb-5">
-          <h3 className="mb-3 text-sm font-semibold">Temas disponibles</h3>
-          <div className="grid gap-2">{LOCAL_CHAT_TOPICS.map(topic => <button type="button" key={topic.id} disabled={isTyping} onClick={() => choose(topicSuggestion(topic))} className={control + ' flex items-center justify-between gap-2'}>
-            <span>{topic.label}</span><ChevronRight aria-hidden="true" className="size-4 shrink-0" />
-          </button>)}</div>
-          <h3 className="mt-5 mb-3 text-sm font-semibold">Chequeos</h3><div className="grid gap-2">{CHAT_QUIZ_SUGGESTIONS.map(suggestion => <button type="button" key={suggestion.id} disabled={isTyping} onClick={() => choose(suggestion)} className={control + ' flex items-center gap-2'}>
-            <ClipboardList aria-hidden="true" className="size-4 shrink-0" />{suggestion.label}
-          </button>)}</div>
+        <section
+          id="chat-catalog"
+          aria-label="Catálogo local"
+          hidden={!showCatalog}
+          className="mb-5 space-y-4 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)]/70 p-4 shadow-xs"
+        >
+          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--accent-soft)] text-[var(--accent)]">
+                <BookOpen className="size-4" />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">Guía de temas y dudas</h3>
+                <p className="text-[11px] text-[var(--text-secondary)]">Disponible de forma local e inmediata</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCatalog(false)}
+              className="rounded-lg px-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-card)] hover:text-[var(--text-primary)]"
+            >
+              Cerrar
+            </button>
+          </div>
+
+          <div>
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+              Preguntas y salud del ciclo
+            </span>
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              {LOCAL_CHAT_TOPICS.map(topic => (
+                <button
+                  type="button"
+                  key={topic.id}
+                  disabled={isTyping}
+                  onClick={() => choose(topicSuggestion(topic))}
+                  className="group flex items-center justify-between gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2.5 text-left text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/30 hover:text-[var(--accent)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--accent)] disabled:opacity-50"
+                >
+                  <span className="truncate">{topic.label}</span>
+                  <ChevronRight aria-hidden="true" className="size-3.5 shrink-0 opacity-40 transition-transform group-hover:translate-x-0.5 group-hover:opacity-100" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+              Chequeos interactivos
+            </span>
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+              {CHAT_QUIZ_SUGGESTIONS.map(suggestion => (
+                <button
+                  type="button"
+                  key={suggestion.id}
+                  disabled={isTyping}
+                  onClick={() => choose(suggestion)}
+                  className="flex items-center gap-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2.5 text-left text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/30 hover:text-[var(--accent)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[var(--accent)] disabled:opacity-50"
+                >
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--accent-soft)] text-[var(--accent)]">
+                    <Sparkles aria-hidden="true" className="size-3.5" />
+                  </span>
+                  <span className="truncate">{suggestion.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </section>
         <div role="log" aria-label="Conversación" aria-live="polite" aria-relevant="additions" className="space-y-4">
           {displayedMessages.map(message => {
@@ -266,12 +337,26 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
                   </a></li>)}</ul>
                 </details>}
               </div>
-              {message.suggestions && message.suggestions.length > 0 && <div className="mt-2 flex w-full flex-wrap gap-2">
-                {message.suggestions.map(suggestion => <button type="button" key={suggestion.id} disabled={isTyping} onClick={() => choose(suggestion)} className={control + ' flex max-w-full items-center gap-2 break-words'}>
-                  {suggestion.action === 'quiz' ? <ClipboardList aria-hidden="true" className="size-4 shrink-0" /> : <ChevronRight aria-hidden="true" className="size-4 shrink-0" />}
-                  <span className="min-w-0">{suggestion.label}</span>
-                </button>)}
-              </div>}
+              {message.suggestions && message.suggestions.length > 0 && (
+                <div className="mt-2.5 flex w-full flex-wrap gap-1.5 pt-0.5">
+                  {message.suggestions.map(suggestion => (
+                    <button
+                      type="button"
+                      key={suggestion.id}
+                      disabled={isTyping}
+                      onClick={() => choose(suggestion)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] disabled:opacity-50"
+                    >
+                      {suggestion.action === 'quiz' ? (
+                        <Sparkles aria-hidden="true" className="size-3.5 shrink-0 text-[var(--accent)]" />
+                      ) : (
+                        <span className="size-1.5 shrink-0 rounded-full bg-[var(--accent)] opacity-70" />
+                      )}
+                      <span className="truncate">{suggestion.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </article>;
           })}
           {isTyping && <p role="status" className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"><Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />Preparando respuesta…</p>}

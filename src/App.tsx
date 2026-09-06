@@ -92,27 +92,30 @@ function MainScreen() {
         {view !== 'diary' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
           <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
         </div>}
-        {view === 'diary' && <HorizontalTimeline/>}
         {view !== 'calendar' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
         </div></div>}
+        {view === 'diary' && <HorizontalTimeline/>}
         {view === 'diary' && <>
           {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
           <div className="diary-grid">
             <div className="diary-primary">
               <HeroStatus onRecordPeriod={() => openModal('period')} onOpenLegend={() => openModal('legend')}/>
-              <section className="diary-section" aria-labelledby="record-title">
-                <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
-                {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
-                  <div className="quick-log-grid">
-                    {hasCycle && <button type="button" className="quick-log period" aria-pressed={hasPeriod} onClick={() => openModal('period')}><Droplets size={21}/><span>{hasPeriod ? 'Editar regla' : 'Registrar regla'}</span></button>}
-                    <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={21}/><span>Síntomas y notas</span></button>
-                    <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={21}/><span>Intimidad</span></button>
+              {hasPeriod && <div className="period-registered-card">
+                <div className="period-registered-badge">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--rose-soft)] text-[var(--rose)]">
+                    <Droplets size={17} />
+                  </span>
+                  <div>
+                    <strong>Regla registrada</strong>
+                    <span>{log?.flow ? `Flujo ${log.flow === 'light' ? 'ligero' : log.flow === 'medium' ? 'medio' : log.flow === 'heavy' ? 'abundante' : 'muy abundante'}` : 'Sangrado activo'}</span>
                   </div>
-                  {hasEntries ? <div className="log-preview"><ul className="symptom-list">{hasPeriod && <li>Regla registrada</li>}{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}{hasIntimacy && <li>Intimidad registrada</li>}{log?.bbt !== undefined && <li>{log.bbt} °C</li>}{log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar registro<ArrowRight size={14}/></button></div> : <p className="empty-log"><ClipboardList size={21}/>Aún no hay anotaciones para este día.</p>}
-                </>}
-              </section>
+                </div>
+                <button type="button" className="aura-button sm" onClick={() => openModal('period')}>
+                  Editar flujo
+                </button>
+              </div>}
               <QuizHistory results={log?.quizResults || []}/>
               <BiomarkersCard/>
             </div>
@@ -121,13 +124,22 @@ function MainScreen() {
               <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
             </aside>
           </div>
+          <section className="diary-section" aria-labelledby="record-title" style={{ marginTop: 24 }}>
+            <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
+            {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
+              <div className="quick-log-grid">
+                <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={21}/><span>Síntomas y notas</span></button>
+                <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={21}/><span>Intimidad</span></button>
+              </div>
+              {hasEntries && (log?.symptoms.length || log?.notes || log?.bbt !== undefined || log?.medications?.length) ? <div className="log-preview"><ul className="symptom-list">{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}{hasIntimacy && <li>Intimidad registrada</li>}{log?.bbt !== undefined && <li>{log.bbt} °C</li>}{log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar síntomas<ArrowRight size={14}/></button></div> : !hasPeriod ? <p className="empty-log"><ClipboardList size={21}/>Aún no hay anotaciones de síntomas para este día.</p> : null}
+            </>}
+          </section>
         </>}
-        {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare}/></Suspense></section>}
+        {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare} onInstall={() => openModal('install')}/></Suspense></section>}
         {view === 'tools' && <>
           {[
             { title: 'Conoce tu ciclo', description: 'Observa tus patrones y entiende tus registros.', ids: ['analytics', 'symptothermal', 'legend'] },
             { title: 'Cuídate a tu manera', description: 'Un poco de apoyo para tu día a día.', ids: ['medication', 'care', 'chat'] },
-            { title: 'Tu historia, bajo tu control', description: 'Personaliza, conserva y comparte lo que tú elijas.', ids: ['profile', 'import', 'export'] },
           ].map(group => <section className="tool-group" key={group.title} aria-label={group.title}><div className="tool-group-heading"><h2>{group.title}</h2><p>{group.description}</p></div><div className="tool-grid">{group.ids.map(id => tools.find(tool => tool.id === id)!).map(tool => <button type="button" key={tool.id} className="tool-card" onClick={() => tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)}><tool.icon size={24}/><strong>{tool.name}</strong><span>{tool.description}</span><ArrowRight className="tool-arrow" size={17} aria-hidden="true"/></button>)}</div></section>)}
           <h2 className="tool-section-title">Cuestionarios de bienestar</h2>
           <div className="tool-grid">{Object.values(HEALTH_QUIZZES).map(quiz => <button type="button" key={quiz.id} className="tool-card" onClick={() => { setQuizId(quiz.id); openModal('quiz'); }}><ClipboardList size={24}/><strong>{quiz.title}</strong><span>{quiz.questions.length} preguntas</span></button>)}</div>
