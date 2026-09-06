@@ -57,7 +57,7 @@ export function InteractiveQuizModal({ quiz, isOpen, onClose, onComplete }: { qu
 
   const close = () => { if (!submitted.current) onClose(); };
 
-  return <ModalFrame isOpen={isOpen} onClose={close} closeDisabled={pending} title={quiz.title}
+  return <ModalFrame isOpen={isOpen} onClose={close} closeDisabled={pending} title={quiz.title} errorMessage={error} onClearError={() => setError('')}
     description={question ? `Pregunta ${step + 1} de ${quiz.questions.length}` : undefined}
     footer={!question ? <button type="button" onClick={close} className={modalPrimaryButton}>Cerrar</button> : <>
       {step > 0 && <button type="button" disabled={pending} onClick={() => { if (!submitted.current) changeStep(step - 1); }} className={modalSecondaryButton}><ChevronLeft size={18} aria-hidden="true" /> Anterior</button>}

@@ -13,6 +13,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
+import { useToast } from '../../context/ToastContext';
 import type { IntimacyLog } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import {
@@ -106,15 +107,17 @@ const LIBIDO_LEVELS = [
 
 export function IntimacyModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { selectedDate, logs, logIntimacyForDate } = useCycle();
-  const existing = logs[selectedDate]?.intimacyLog;
+  const toast = useToast();
+  const log = logs[selectedDate];
+  const existing = log?.intimacyLog;
 
-  const [activity, setActivity] = useState<IntimacyLog['activity']>(existing?.activity || 'none');
-  const [hadEmergencyPill, setHadEmergencyPill] = useState(Boolean(existing?.hadEmergencyPill));
-  const [hadOrgasm, setHadOrgasm] = useState(Boolean(existing?.hadOrgasm));
-  const [hadPain, setHadPain] = useState(Boolean(existing?.hadPain));
-  const [libido, setLibido] = useState<IntimacyLog['libido']>(existing?.libido || 'normal');
-  const [notes, setNotes] = useState(existing?.notes || '');
-  const [error, setError] = useState('');
+  const [activity, setActivity] = useState<IntimacyLog['activity']>(existing?.activity ?? 'unprotected');
+  const [hadEmergencyPill, setHadEmergencyPill] = useState<boolean>(existing?.hadEmergencyPill ?? false);
+  const [hadOrgasm, setHadOrgasm] = useState<boolean>(existing?.hadOrgasm ?? false);
+  const [hadPain, setHadPain] = useState<boolean>(existing?.hadPain ?? false);
+  const [libido, setLibido] = useState<IntimacyLog['libido']>(existing?.libido);
+  const [notes, setNotes] = useState<string>(existing?.notes ?? '');
+  const [error, setError] = useState<string>('');
 
   const save = (remove = false) => {
     try {
@@ -131,6 +134,7 @@ export function IntimacyModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
               notes: notes.trim() || undefined,
             }
       );
+      toast.success(remove ? 'Registro íntimo eliminado' : 'Registro íntimo guardado');
       onClose();
     } catch {
       setError('No se ha guardado el registro. Vuelve a intentarlo.');
@@ -148,6 +152,8 @@ export function IntimacyModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
       onClose={onClose}
       title="Intimidad y bienestar sexual"
       description={dateFormatted}
+      errorMessage={error}
+      onClearError={() => setError('')}
       footer={
         <>
           {existing && (
@@ -379,6 +385,9 @@ export function IntimacyModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
             onChange={event => setNotes(event.target.value)}
             maxLength={4000}
             rows={2}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="Sensaciones, lubricación, estado de ánimo o notas para tu consulta..."
             className={`${modalField} rounded-xl text-sm`}
           />

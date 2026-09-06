@@ -1,6 +1,7 @@
 import { ModalFrame } from './ModalFrame';
 import { useState, useMemo } from 'react';
 import { useCycle } from '../../hooks/useCycle';
+import { useToast } from '../../context/ToastContext';
 import { generateMedicalReportData, generateMedicalReportPDF, generateMedicalReportText } from '../../services/medicalReportGenerator';
 import { shareOrCopyText, shareOrDownloadPDF } from '../../services/shareService';
 import { Share2, Copy, Check, Activity } from 'lucide-react';
@@ -12,6 +13,7 @@ interface MedicalExportModalProps {
 
 export function MedicalExportModal({ isOpen, onClose }: MedicalExportModalProps) {
   const { logs, settings, cycleStats } = useCycle();
+  const toast = useToast();
   const [monthsBack, setMonthsBack] = useState<3 | 6>(6);
   const [patientName, setPatientName] = useState(settings.userName || '');
   const [copied, setCopied] = useState(false);
@@ -36,6 +38,7 @@ export function MedicalExportModal({ isOpen, onClose }: MedicalExportModalProps)
         doc,
         `reporte-medico-ciclos-${monthsBack}m-${new Date().toISOString().split('T')[0]}.pdf`
       );
+      toast.success('Informe médico preparado');
     } catch { setError('No se ha podido exportar el informe. Vuelve a intentarlo.'); } finally {
       setDownloading(false);
     }
@@ -47,12 +50,13 @@ export function MedicalExportModal({ isOpen, onClose }: MedicalExportModalProps)
     try {
       const result = await shareOrCopyText(generateMedicalReportText(reportData));
       setCopied(result.copied);
+      if (result.copied) toast.success('Resumen médico copiado');
       if (!result.copied && !result.shared) setError('No se ha compartido el texto. Puedes exportar el PDF.');
     } catch { setError('No se ha podido compartir el resumen.'); }
     finally { setDownloading(false); }
   };
 
-  return <ModalFrame isOpen={isOpen} onClose={onClose} closeDisabled={downloading} title="Informe de salud"
+  return <ModalFrame isOpen={isOpen} onClose={onClose} closeDisabled={downloading} title="Informe de salud" errorMessage={error} onClearError={() => setError('')}
     footer={<button type="button" onClick={onClose} disabled={downloading} className="aura-button">Cerrar</button>}>
     {/* Timeframe Selector */}
     <div className="space-y-1.5">

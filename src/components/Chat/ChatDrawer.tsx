@@ -301,7 +301,7 @@ function ChatSession({
     id: 'welcome',
     role: 'assistant',
     timestamp: '',
-    content: 'Hola. Soy tu Confidente en Aura. Estoy aquí para acompañarte, resolver dudas sobre tus síntomas y darte calma en cualquier momento de tu ciclo.\n\nPuedes escribir lo que sientes o elegir una opción para empezar:',
+    content: 'Hola. Soy tu asistente en el Chat de Aura. Estoy aquí para acompañarte, resolver dudas sobre tus síntomas y darte calma en cualquier momento de tu ciclo.\n\nPuedes escribir lo que sientes o elegir una opción para empezar:',
     suggestions: WELCOME_SUGGESTIONS
   };
   const displayedMessages = conversation.messages.length ? conversation.messages : [welcome];
@@ -314,7 +314,7 @@ function ChatSession({
       <header className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 pt-[max(env(safe-area-inset-top),12px)] pb-3">
         <div className="flex items-center gap-2">
           <Leaf aria-hidden="true" className="size-5 shrink-0 text-[var(--accent)]" />
-          <h2 id="chat-title" className="min-w-0 flex-1 text-base font-semibold">Confidente</h2>
+          <h2 id="chat-title" className="min-w-0 flex-1 text-base font-semibold">Chat</h2>
           <button type="button" onClick={() => setShowCatalog(value => !value)} className={iconControl} aria-label="Catálogo de temas" title="Catálogo de temas" aria-expanded={showCatalog} aria-controls="chat-catalog"><BookOpen className="size-5" /></button>
           <button type="button" onClick={() => setConfirmClear(value => !value)} className={iconControl} aria-label="Borrar historial" title="Borrar historial"><Trash2 className="size-5" /></button>
           <button type="button" onClick={onClose} className={iconControl} aria-label="Cerrar chat" title="Cerrar chat"><X className="size-5" /></button>

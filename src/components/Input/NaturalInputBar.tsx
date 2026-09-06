@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, ArrowUp, X } from 'lucide-react';
+import { AlertCircle, Mic, MicOff, ArrowUp, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
+import { useToast } from '../../context/ToastContext';
 
 interface SpeechSession {
   continuous: boolean;
@@ -23,6 +24,7 @@ const suggestions = [
 ];
 export function NaturalInputBar() {
   const { processDailyNote, selectedDate, lastChroniclerResponse, clearLastChroniclerResponse } = useCycle();
+  const toast = useToast();
   const [input, setInput] = useState('');
   const [listening, setListening] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -57,13 +59,53 @@ export function NaturalInputBar() {
     if (pending.current || !input.trim()) return;
     pending.current = true; setProcessing(true); setError('');
     const note = input.trim();
-    try { await processDailyNote(note, selectedDate); setInput(''); }
+    try {
+      await processDailyNote(note, selectedDate);
+      setInput('');
+      toast.success('Nota registrada');
+    }
     catch { setError('No se ha guardado la nota. El texto se conserva para que puedas reintentarlo.'); }
     finally { pending.current = false; setProcessing(false); }
   };
   return <section className="min-w-0 space-y-3 border-t border-[var(--border-subtle)] pt-4">
+    {error && (
+      <div
+        role="alert"
+        className="modal-error-banner flex items-center justify-between gap-2.5 rounded-xl border border-[var(--rose)]/30 bg-[var(--rose-soft)] px-3.5 py-2 text-xs sm:text-sm font-semibold text-[var(--rose)] animate-modal-shake"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <AlertCircle size={16} className="shrink-0 text-[var(--rose)]" />
+          <span id="daily-note-error" className="break-words leading-snug">{error}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setError('')}
+          aria-label="Cerrar aviso de error"
+          className="shrink-0 rounded p-0.5 text-[var(--rose)] hover:bg-[var(--rose)]/20 active:scale-95"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    )}
     <form onSubmit={event => { event.preventDefault(); void submit(); }} className="space-y-2">
-      <div className="space-y-2"><label htmlFor="daily-note-input" className="block text-sm font-semibold">Tu nota</label><textarea id="daily-note-input" ref={inputRef} rows={3} value={input} maxLength={4000} onChange={event => setInput(event.target.value)} disabled={processing} aria-describedby={error ? 'daily-note-error' : undefined} placeholder="¿Cómo te sientes?" className="aura-field resize-y" /></div>
+      <div className="space-y-2">
+        <label htmlFor="daily-note-input" className="block text-sm font-semibold">Tu nota</label>
+        <textarea
+          id="daily-note-input"
+          ref={inputRef}
+          rows={3}
+          value={input}
+          maxLength={4000}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          onChange={event => { setInput(event.target.value); if (error) setError(''); }}
+          disabled={processing}
+          aria-describedby={error ? 'daily-note-error' : undefined}
+          placeholder="¿Cómo te sientes?"
+          className={`aura-field resize-y ${error ? 'field-shake' : ''}`}
+        />
+      </div>
       <div className="flex items-center justify-between gap-2">
         <button type="button" disabled={processing} aria-pressed={listening} onClick={toggleSpeech} className="aura-button">{listening ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}{listening ? 'Detener dictado' : 'Dictar'}</button>
         <button type="submit" disabled={!input.trim() || processing || listening} className="aura-button primary"><ArrowUp size={18} aria-hidden="true" />{processing ? 'Guardando…' : 'Registrar'}</button>
@@ -83,7 +125,6 @@ export function NaturalInputBar() {
         </button>
       ))}
     </div>
-    {error && <p id="daily-note-error" role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
     {lastChroniclerResponse && <div className="flex items-start gap-3 border-t border-[var(--border-subtle)] pt-3">
       <div role="status" className="min-w-0 flex-1 space-y-2 text-sm text-[var(--text-primary)]"><p>{lastChroniclerResponse.empathyMessage}</p><ul className="space-y-1 text-[var(--text-secondary)]">{lastChroniclerResponse.data.extractedSummary.map((summary, index) => <li key={index}>{summary}</li>)}</ul></div>
       <button type="button" onClick={clearLastChroniclerResponse} aria-label="Cerrar confirmación" className="aura-icon-button"><X size={18} aria-hidden="true" /></button>

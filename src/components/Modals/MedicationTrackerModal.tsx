@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { AlertCircle, Check, Pill, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
+import { useToast } from '../../context/ToastContext';
 import type { MedicationItem } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalField, modalPrimaryButton, modalSecondaryButton } from './modalStyles';
@@ -16,6 +17,7 @@ const QUICK_MED_SUGGESTIONS = [
 
 export function MedicationTrackerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { selectedDate, logs, logMedicationsForDate } = useCycle();
+  const toast = useToast();
 
   // Buscar tomas previamente registradas en cualquier fecha para ofrecer continuidad
   const knownMedications = useMemo(() => {
@@ -89,6 +91,7 @@ export function MedicationTrackerModal({ isOpen, onClose }: { isOpen: boolean; o
   const save = () => {
     try {
       logMedicationsForDate(selectedDate, medications);
+      toast.success('Tomas de medicación guardadas');
       onClose();
     } catch {
       setSaveError('No se han guardado las tomas. Vuelve a intentarlo.');
@@ -105,6 +108,8 @@ export function MedicationTrackerModal({ isOpen, onClose }: { isOpen: boolean; o
       onClose={onClose}
       title="Pastillas y tomas"
       description={formattedDate}
+      errorMessage={saveError || (!showAddModal && error ? error : null)}
+      onClearError={() => { setSaveError(''); setError(''); }}
       footer={
         !hasMedications ? (
           <>
@@ -355,6 +360,26 @@ export function MedicationTrackerModal({ isOpen, onClose }: { isOpen: boolean; o
                 <X size={17} />
               </button>
             </div>
+
+            {error && (
+              <div
+                role="alert"
+                className="modal-error-banner flex items-center justify-between gap-2.5 rounded-xl border border-[var(--rose)]/30 bg-[var(--rose-soft)] px-3.5 py-2 text-xs font-semibold text-[var(--rose)] animate-modal-shake"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertCircle size={16} className="shrink-0 text-[var(--rose)]" />
+                  <span className="break-words leading-snug">{error}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setError('')}
+                  aria-label="Cerrar aviso de error"
+                  className="shrink-0 rounded p-0.5 text-[var(--rose)] hover:bg-[var(--rose)]/20 active:scale-95"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
 
             <div>
               <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">

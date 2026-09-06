@@ -40,7 +40,7 @@ export function ModularOnboardingModal({ isOpen, onClose, initialCategory = null
       setSaved(titles[category] + ': cambios guardados.'); setCategory(null);
     } catch { setError('No se ha guardado el perfil. Vuelve a intentarlo.'); }
   };
-  return <ModalFrame isOpen={isOpen} onClose={onClose} title={category ? titles[category] : 'Tu perfil'}
+  return <ModalFrame isOpen={isOpen} onClose={onClose} title={category ? titles[category] : 'Tu perfil'} errorMessage={error} onClearError={() => setError('')}
     footer={category ? <><button type="button" onClick={() => { setCategory(null); setError(''); }} className={modalSecondaryButton}><ArrowLeft size={17} aria-hidden="true" />Volver</button><button type="button" onClick={save} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button></> : <button type="button" onClick={onClose} className={modalPrimaryButton}>Listo</button>}>
     {!category && <div className="space-y-2">{(['cycle', 'body', 'lifestyle'] as const).map(value => <button key={value} type="button" onClick={() => { setCategory(value); setSaved(''); }} className="aura-button w-full justify-between"><span>{titles[value]}</span>{settings.completedOnboardingCategories?.includes(value) ? <Check size={18} aria-label="Completado" /> : <ChevronRight size={18} aria-hidden="true" />}</button>)}</div>}
     {category === 'cycle' && <div className="space-y-4">

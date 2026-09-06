@@ -25,12 +25,12 @@ export function PassphraseModal({ isOpen, onClose, title, description, submitLab
     catch (cause) { setError(cause instanceof Error ? cause.message : 'No se ha podido completar la operación.'); }
     finally { setBusy(false); }
   };
-  return <ModalFrame isOpen={isOpen} onClose={() => { if (!busy) onClose(); }} title={title}
+  return <ModalFrame isOpen={isOpen} onClose={() => { if (!busy) onClose(); }} title={title} errorMessage={error} onClearError={() => setError('')}
     footer={<><button type="button" disabled={busy} onClick={onClose} className={modalSecondaryButton}>Cancelar</button><button type="submit" form="passphrase-form" disabled={busy} className={modalPrimaryButton}><LockKeyhole size={17} aria-hidden="true" />{busy ? 'Procesando…' : submitLabel}</button></>}>
     <form id="passphrase-form" onSubmit={submit} className="space-y-4">
       <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
-      <label className="block space-y-2 text-sm">Frase secreta<input autoFocus type="password" minLength={12} autoComplete={confirmation ? 'new-password' : 'current-password'} value={passphrase} onChange={event => setPassphrase(event.target.value)} className={modalField} /></label>
-      {confirmation && <label className="block space-y-2 text-sm">Repite la frase<input type="password" minLength={12} autoComplete="new-password" value={repeat} onChange={event => setRepeat(event.target.value)} className={modalField} /></label>}
+      <label className="block space-y-2 text-sm">Frase secreta<input autoFocus type="password" minLength={12} autoComplete={confirmation ? 'new-password' : 'current-password'} value={passphrase} onChange={event => { setPassphrase(event.target.value); setError(''); }} className={`${modalField} ${error ? 'field-shake' : ''}`} /></label>
+      {confirmation && <label className="block space-y-2 text-sm">Repite la frase<input type="password" minLength={12} autoComplete="new-password" value={repeat} onChange={event => { setRepeat(event.target.value); setError(''); }} className={`${modalField} ${error ? 'field-shake' : ''}`} /></label>}
       <p className="text-xs leading-relaxed text-[var(--text-secondary)]">Aura no puede recuperar esta frase. Guárdala en un lugar seguro separado de la copia.</p>
       {error && <p role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
     </form>

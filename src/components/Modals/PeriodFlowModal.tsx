@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
+import { useToast } from '../../context/ToastContext';
 import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalSecondaryButton, modalUnselected } from './modalStyles';
@@ -22,6 +23,7 @@ export function PeriodFlowModal({
   initialType?: 'period' | 'irregular';
 }) {
   const { selectedDate, logBleedingForDate, denyPeriodOnDate, logs, settings } = useCycle();
+  const toast = useToast();
   const log = logs[selectedDate];
   const existing = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const [hasBleeding, setHasBleeding] = useState(existing || Boolean(initialType));
@@ -36,12 +38,13 @@ export function PeriodFlowModal({
     try {
       if (hasBleeding && !remove) logBleedingForDate(selectedDate, { flow, isCycleStart: bleedingType === 'period' && isCycleStart, isIrregular: bleedingType === 'irregular' });
       else denyPeriodOnDate(selectedDate);
+      toast.success(remove ? 'Registro de sangrado eliminado' : 'Sangrado registrado');
       onClose();
     } catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
   };
   const dateObj = new Date(selectedDate + 'T12:00:00');
   const dateDesc = isNaN(dateObj.getTime()) ? selectedDate : dateObj.toLocaleDateString('es-ES', { dateStyle: 'long' });
-  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro de sangrado" description={dateDesc}
+  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro de sangrado" description={dateDesc} errorMessage={error} onClearError={() => setError('')}
     footer={<>
       {existing && <button type="button" onClick={() => save(true)} className={modalSecondaryButton}><Trash2 size={17} aria-hidden="true" /> Quitar</button>}
       <button type="button" onClick={() => save()} className="aura-button rose min-w-0"><Check size={17} aria-hidden="true" /> Guardar registro</button>

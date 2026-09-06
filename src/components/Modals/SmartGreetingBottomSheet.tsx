@@ -23,7 +23,7 @@ export function SmartGreetingBottomSheet({ isOpen, onClose }: { isOpen: boolean;
       dismiss();
     } catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
   };
-  return <ModalFrame isOpen={isOpen} onClose={dismiss} title="¿Cómo te encuentras hoy?"
+  return <ModalFrame isOpen={isOpen} onClose={dismiss} title="¿Cómo te encuentras hoy?" errorMessage={error} onClearError={() => setError('')}
     footer={<><button type="button" onClick={() => save(true)} className={modalSecondaryButton}>Me siento bien</button><button type="button" disabled={!selected.length && bleeding === 'none'} onClick={() => save()} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar</button></>}>
     <fieldset><legend className="mb-2 text-sm font-semibold">Sangrado</legend><div className="grid grid-cols-1 gap-2 sm:grid-cols-3">{([['none', 'Sin registrar'], ['spotting', 'Manchado'], ['medium', 'Regla']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={bleeding === value} onClick={() => setBleeding(value)} className={`${modalChoice} ${bleeding === value ? modalSelected : modalUnselected}`}>{label}</button>)}</div></fieldset>
     {bleeding === 'medium' && <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={cycleStart} onChange={event => setCycleStart(event.target.checked)} className="h-5 w-5 accent-[var(--accent)]" />Es el primer día de un nuevo ciclo</label>}

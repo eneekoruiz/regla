@@ -3,6 +3,8 @@ import { MotionConfig } from 'framer-motion';
 import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
+import { ToastProvider, useToast } from './context/ToastContext';
+import { ToastContainer } from './components/UI/ToastContainer';
 import { CycleProvider } from './context/CycleContext';
 import { useCycle } from './hooks/useCycle';
 import { usePwaInstall } from './hooks/usePwaInstall';
@@ -48,6 +50,7 @@ function resilientLazy<T extends React.ComponentType<any>>(factory: () => Promis
 }
 
 const SettingsDrawer = resilientLazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
+const SettingsSection = resilientLazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsSection })));
 const ColorLegendModal = resilientLazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
 const ChatDrawer = resilientLazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
 const InteractiveQuizModal = resilientLazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
@@ -85,14 +88,18 @@ function MainScreen() {
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
+  const toast = useToast();
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
-    const storageError = () => setStorageFailed(true);
+    const storageError = () => {
+      setStorageFailed(true);
+      toast.error('Atención: El almacenamiento local ha fallado. Comprueba el espacio de tu navegador.');
+    };
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
     window.addEventListener('aura:storage-error', storageError);
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); window.removeEventListener('aura:storage-error', storageError); };
-  }, []);
+  }, [toast]);
   const openModal = (next: ModalName) => { setIsSettingsOpen(false); setModal(next); };
   const closeModal = () => setModal(null);
   const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
@@ -127,7 +134,7 @@ function MainScreen() {
     return list.sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
   }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-  const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : 'Herramientas';
+  const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : view === 'tools' ? 'Herramientas' : 'Ajustes';
   const hasCycle = Boolean(hasEnoughData && currentDayInfo.dayOfCycle > 0);
   const isFuture = selectedDate > todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
@@ -187,8 +194,39 @@ function MainScreen() {
             </div>
           </aside>
         )}
+        <div className="page-topline">
+          <div>
+            <h1 className="page-title">
+              {view === 'diary' ? 'Mi diario' : view === 'calendar' ? 'Calendario' : view === 'tools' ? 'Herramientas' : 'Ajustes'}
+            </h1>
+            <p className="page-subtitle">
+              {view === 'diary'
+                ? (settings.userName ? `¡Hola, ${settings.userName}!` : 'Tu espacio de salud y bienestar.')
+                : view === 'calendar'
+                  ? 'Tus registros y las fechas que vienen.'
+                  : view === 'tools'
+                    ? 'Todo lo que necesitas para cuidar de ti.'
+                    : 'Personaliza tu ciclo, avisos y privacidad.'}
+            </p>
+          </div>
+          <span className="connection-status" role="status">
+            {online ? <CheckCircle2 size={15} style={{ color: 'var(--accent)' }}/> : <WifiOff size={15} style={{ color: 'var(--rose)' }}/>}
+            <span>{online ? 'Conectado' : 'Sin conexión'}</span>
+          </span>
+        </div>
         {view === 'diary' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
-          {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}
+          {selectedDate !== todayDate && (
+            <button
+              type="button"
+              className="aura-button sm today-pill-button"
+              title="Volver a hoy"
+              aria-label="Volver a hoy"
+              onClick={() => setSelectedDate(todayDate)}
+            >
+              <RotateCcw size={14} aria-hidden="true"/>
+              <span>Hoy</span>
+            </button>
+          )}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
         </div></div>}
         {view === 'diary' && <HorizontalTimeline/>}
@@ -200,42 +238,63 @@ function MainScreen() {
                 onRecordPeriod={() => openBleedingModal('period')}
                 onOpenLegend={() => openModal('legend')}
                 onOpenDailyModal={() => openModal('daily')}
-              />
-              <section className="diary-section diary-record-section" aria-labelledby="record-title">
-                <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
-                {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
-                  <div className="quick-log-grid">
-                    {hasPeriod ? (
-                      <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal('period')} title="Editar registro de regla">
-                        <Droplets size={20}/>
-                        <span>Regla registrada</span>
-                      </button>
-                    ) : isApproachingPeriod ? (
-                      <button type="button" className="quick-log period" aria-pressed={false} onClick={() => openBleedingModal('period')} title="Confirmar si te ha bajado la regla hoy">
-                        <Droplets size={20}/>
-                        <span>{daysToNext > 3 ? '¿Se te adelantó hoy?' : '¿Te ha bajado hoy?'}</span>
-                      </button>
-                    ) : (
-                      <button type="button" className="quick-log period" aria-pressed={hasIrregularBleeding} onClick={() => openBleedingModal('irregular')} title="Anotar sangrado imprevisto o manchado">
-                        <Droplets size={20}/>
-                        <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Sangrado irregular'}</span>
+              >
+                <div className="diary-record-inner" aria-labelledby="record-title">
+                  <div className="section-heading">
+                    <div>
+                      <h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2>
+                      <p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p>
+                    </div>
+                    {!isFuture && (
+                      <button
+                        type="button"
+                        className="aura-icon-button sm hero-add-quick-btn"
+                        title="Abrir registro diario"
+                        aria-label="Abrir registro diario"
+                        onClick={() => openModal('daily')}
+                      >
+                        <Plus size={16}/>
                       </button>
                     )}
-                    <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length || log?.notes)} onClick={() => openModal('daily')}>
-                      <NotebookPen size={20}/>
-                      <span>Síntomas y notas</span>
-                    </button>
-                    <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}>
-                      <Heart size={20}/>
-                      <span>Intimidad</span>
-                    </button>
-                    <button type="button" className="quick-log" aria-pressed={hasMedications} onClick={() => openModal('medication')}>
-                      <Pill size={20}/>
-                      <span>{hasMedications ? 'Tomas registradas' : 'Pastillas y tomas'}</span>
-                    </button>
                   </div>
-                </>}
-              </section>
+                  {isFuture ? (
+                    <div className="future-day-card">
+                      <p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p>
+                    </div>
+                  ) : (
+                    <div className="quick-log-grid">
+                      {hasPeriod ? (
+                        <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal('period')} title="Editar registro de regla">
+                          <Droplets size={18}/>
+                          <span>Regla registrada</span>
+                        </button>
+                      ) : isApproachingPeriod ? (
+                        <button type="button" className="quick-log period" aria-pressed={false} onClick={() => openBleedingModal('period')} title="Confirmar si te ha bajado la regla hoy">
+                          <Droplets size={18}/>
+                          <span>{daysToNext > 1 ? 'Se me ha adelantado' : 'Me ha bajado hoy'}</span>
+                        </button>
+                      ) : (
+                        <button type="button" className="quick-log period" aria-pressed={hasIrregularBleeding} onClick={() => openBleedingModal('irregular')} title="Anotar sangrado imprevisto o manchado">
+                          <Droplets size={18}/>
+                          <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Sangrado irregular'}</span>
+                        </button>
+                      )}
+                      <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length || log?.notes)} onClick={() => openModal('daily')}>
+                        <NotebookPen size={18}/>
+                        <span>Síntomas y notas</span>
+                      </button>
+                      <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}>
+                        <Heart size={18}/>
+                        <span>Intimidad</span>
+                      </button>
+                      <button type="button" className="quick-log" aria-pressed={hasMedications} onClick={() => openModal('medication')}>
+                        <Pill size={18}/>
+                        <span>{hasMedications ? 'Tomas registradas' : 'Pastillas y tomas'}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </HeroStatus>
               <BiomarkersCard/>
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
@@ -370,6 +429,13 @@ function MainScreen() {
               </section>
             </div>
           )}
+          {view === 'settings' && (
+            <div className="settings-workspace max-w-2xl mx-auto py-1">
+              <Suspense fallback={<Loading/>}>
+                <SettingsSection onOpenModularProfile={() => openModal('profile')} />
+              </Suspense>
+            </div>
+          )}
         </ErrorBoundary>
       </div>
     </main>
@@ -407,6 +473,7 @@ function MainScreen() {
           onComplete={result => {
             saveQuizResult(result, selectedDate);
             closeModal();
+            toast.success('Chequeo guardado. Cuídate mucho 🌸');
             const key = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === result.quizId) || 'stress';
             openChatWithCompletedQuiz(key, result.answers);
           }}
@@ -425,5 +492,16 @@ function AuthenticatedApp() {
 }
 
 export default function App() {
-  return <ErrorBoundary><MotionConfig reducedMotion="user"><AuthProvider><AuthenticatedApp/></AuthProvider></MotionConfig></ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
+        <AuthProvider>
+          <ToastProvider>
+            <AuthenticatedApp />
+            <ToastContainer />
+          </ToastProvider>
+        </AuthProvider>
+      </MotionConfig>
+    </ErrorBoundary>
+  );
 }

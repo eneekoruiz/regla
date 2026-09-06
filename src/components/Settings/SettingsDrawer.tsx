@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Clock, Sparkles, Plus, ChevronRight, UserRound, Shield, Moon, FileText } from 'lucide-react';
+import { AlertCircle, Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Clock, Sparkles, Plus, ChevronRight, UserRound, Shield, Moon, FileText, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../context/ToastContext';
 import { ModalFrame } from '../Modals/ModalFrame';
 import { modalField, modalPrimaryButton, modalSecondaryButton } from '../Modals/modalStyles';
 import { MedicalExportModal } from '../Modals/MedicalExportModal';
@@ -16,7 +17,7 @@ import { requestNotificationPermission, getNotificationPermission } from '../../
 import type { UserSettings } from '../../types/cycle';
 
 type Category = 'cycle' | 'body' | 'lifestyle';
-type Props = { onOpenModularProfile?: (category?: Category) => void };
+type Props = { onOpenModularProfile?: (category?: Category) => void; inline?: boolean };
 type Tool = 'report' | 'import' | 'legal' | 'profile' | 'install' | null;
 type SettingsTab = 'account' | 'cycle' | 'privacy' | 'notifications';
 
@@ -25,9 +26,14 @@ export function SettingsDrawer(props: Props) {
   return isSettingsOpen ? <SettingsContent {...props} /> : null;
 }
 
-function SettingsContent({ onOpenModularProfile }: Props) {
+export function SettingsSection(props: Props) {
+  return <SettingsContent {...props} inline />;
+}
+
+function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
   const { setIsSettingsOpen, settings, updateSettings, exportData, destroyAllData, logs, todayDate, notificationPrefs, updateNotificationPrefs, sendTestNotification } = useCycle();
   const { signOut, user } = useAuth();
+  const toast = useToast();
   const [tab, setTab] = useState<SettingsTab>('cycle');
   const [tool, setTool] = useState<Tool>(null);
   const [profileCategory, setProfileCategory] = useState<Category>('cycle');
@@ -51,7 +57,16 @@ function SettingsContent({ onOpenModularProfile }: Props) {
       (startDate && (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || startDate > todayDate || Number.isNaN(new Date(startDate + 'T12:00:00').getTime())))) {
       setError('Revisa la duración del ciclo (15 a 90 días), el sangrado (1 a 15 días) y una fecha de inicio no futura.'); return;
     }
-    try { updateSettings({ averageCycleLength: length, averagePeriodLength: duration, lastPeriodStartDate: startDate, hasPCOS: pcos, worstDayOfPeriod: worstDay }); close(); }
+    try {
+      updateSettings({ averageCycleLength: length, averagePeriodLength: duration, lastPeriodStartDate: startDate, hasPCOS: pcos, worstDayOfPeriod: worstDay });
+      toast.success('Ajustes del ciclo guardados correctamente.');
+      if (inline) {
+        setMessage('Ajustes del ciclo guardados correctamente.');
+        setError('');
+      } else {
+        close();
+      }
+    }
     catch { setError('No se han guardado los ajustes. Vuelve a intentarlo.'); }
   };
   const download = () => {
@@ -60,16 +75,21 @@ function SettingsContent({ onOpenModularProfile }: Props) {
       const link = document.createElement('a');
       link.href = url; link.download = 'aura-copia-' + todayDate + '.json'; link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Copia de seguridad descargada.');
       setMessage('Copia de seguridad exportada.'); setError('');
     } catch { setError('No se ha podido exportar la copia.'); }
   };
   const downloadEncrypted = async (passphrase: string) => {
-    const payload = JSON.stringify({ version: 1, type: 'aura-encrypted-backup', payload: await encryptText(exportData(), passphrase) });
-    const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url; link.download = 'aura-copia-cifrada-' + todayDate + '.aura.json'; link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    setEncryptedBackupOpen(false); setMessage('Copia cifrada exportada.'); setError('');
+    try {
+      const payload = JSON.stringify({ version: 1, type: 'aura-encrypted-backup', payload: await encryptText(exportData(), passphrase) });
+      const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = 'aura-copia-cifrada-' + todayDate + '.aura.json'; link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setEncryptedBackupOpen(false);
+      toast.success('Copia cifrada descargada.');
+      setMessage('Copia cifrada exportada.'); setError('');
+    } catch { setError('No se ha podido cifrar o exportar la copia.'); }
   };
   const run = async (action: () => Promise<void>) => {
     if (busy) return;
@@ -81,9 +101,9 @@ function SettingsContent({ onOpenModularProfile }: Props) {
     if (onOpenModularProfile) { close(); onOpenModularProfile(category); }
     else { setProfileCategory(category); setTool('profile'); }
   };
-  return <>
-    <ModalFrame isOpen onClose={close} title="Ajustes"
-      footer={<><button type="button" onClick={close} className={modalSecondaryButton}>{tab === 'cycle' ? 'Cancelar' : 'Cerrar'}</button>{tab === 'cycle' && <button type="button" onClick={saveCycle} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button>}</>}>
+
+  const tabContent = (
+    <>
       <div className="flex rounded-xl bg-[var(--bg-root)] p-1 border border-[var(--border-subtle)]" aria-label="Secciones de ajustes">
         {([['cycle', 'Ciclo'], ['account', 'Cuenta'], ['privacy', 'Datos y copias'], ['notifications', 'Avisos']] as const).map(([value, label]) => (
           <button
@@ -456,7 +476,48 @@ function SettingsContent({ onOpenModularProfile }: Props) {
 
       {error && <p role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
       {message && <p role="status" className="text-sm text-[var(--accent)]">{message}</p>}
-    </ModalFrame>
+    </>
+  );
+
+  return (
+    <>
+      {inline ? (
+        <section className="settings-inline-panel rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 sm:p-6 space-y-5" aria-label="Ajustes de la aplicación">
+          {error && (
+            <div
+              role="alert"
+              className="modal-error-banner flex items-center justify-between gap-3 rounded-xl border border-[var(--rose)]/30 bg-[var(--rose-soft)] px-4 py-2.5 text-xs sm:text-sm font-semibold text-[var(--rose)] shadow-sm animate-modal-shake"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <AlertCircle size={18} className="shrink-0 text-[var(--rose)]" />
+                <span className="break-words leading-snug">{error}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setError('')}
+                aria-label="Cerrar aviso de error"
+                className="shrink-0 rounded-md p-1 text-[var(--rose)] hover:bg-[var(--rose)]/20 active:scale-95 transition-all"
+              >
+                <X size={15} />
+              </button>
+            </div>
+          )}
+          {tabContent}
+          {tab === 'cycle' && (
+            <div className="pt-3 border-t border-[var(--border-subtle)] flex justify-end">
+              <button type="button" onClick={saveCycle} className={modalPrimaryButton}>
+                <Check size={17} aria-hidden="true" />
+                Guardar cambios
+              </button>
+            </div>
+          )}
+        </section>
+      ) : (
+        <ModalFrame isOpen onClose={close} title="Ajustes" errorMessage={error} onClearError={() => setError('')}
+          footer={<><button type="button" onClick={close} className={modalSecondaryButton}>{tab === 'cycle' ? 'Cancelar' : 'Cerrar'}</button>{tab === 'cycle' && <button type="button" onClick={saveCycle} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button>}</>}>
+          {tabContent}
+        </ModalFrame>
+      )}
     {tool === 'report' && <MedicalExportModal isOpen onClose={closeTool} />}
     {tool === 'install' && <PwaInstallModal onClose={closeTool}/>}
     {tool === 'import' && <UniversalImportModal isOpen onClose={closeTool} />}
@@ -471,9 +532,9 @@ function SettingsContent({ onOpenModularProfile }: Props) {
       />
     )}
     <PassphraseModal isOpen={encryptedBackupOpen} onClose={() => setEncryptedBackupOpen(false)} title="Exportar copia cifrada" description="Protege tu copia con una frase secreta antes de guardarla o trasladarla. La copia se cifra en este dispositivo." submitLabel="Cifrar y descargar" onSubmit={downloadEncrypted} />
-    {confirmWipe && <ModalFrame isOpen onClose={() => { if (!busy) setConfirmWipe(false); }} title="¿Eliminar los datos locales?" footer={<><button type="button" disabled={busy} onClick={() => setConfirmWipe(false)} className={modalSecondaryButton}>Cancelar</button><button type="button" disabled={busy} onClick={() => void run(async () => { await destroyAllData(); setConfirmWipe(false); close(); })} className="aura-button rose"><Trash2 size={17} aria-hidden="true" />{busy ? 'Eliminando…' : 'Eliminar definitivamente'}</button></>}>
+    {confirmWipe && <ModalFrame isOpen onClose={() => { if (!busy) setConfirmWipe(false); }} title="¿Eliminar los datos locales?" errorMessage={error} onClearError={() => setError('')} footer={<><button type="button" disabled={busy} onClick={() => setConfirmWipe(false)} className={modalSecondaryButton}>Cancelar</button><button type="button" disabled={busy} onClick={() => void run(async () => { await destroyAllData(); setConfirmWipe(false); close(); })} className="aura-button rose"><Trash2 size={17} aria-hidden="true" />{busy ? 'Eliminando…' : 'Eliminar definitivamente'}</button></>}>
       <p className="text-sm text-[var(--text-secondary)]">Se borrarán los registros y ajustes de Aura de este dispositivo. Esta acción no se puede deshacer.</p>
       {error && <p role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
     </ModalFrame>}
-  </>;
+  </>);
 }

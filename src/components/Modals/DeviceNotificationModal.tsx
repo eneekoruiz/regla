@@ -79,6 +79,8 @@ export function DeviceNotificationModal({
       onClose={onClose}
       title="Notificaciones en este dispositivo"
       description="Avisos privados y locales para no perderte nada"
+      errorMessage={error}
+      onClearError={() => setError('')}
       footer={
         <button type="button" onClick={onClose} className={modalPrimaryButton}>
           <Check size={16} aria-hidden="true" /> Entendido

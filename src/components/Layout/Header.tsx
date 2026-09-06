@@ -3,7 +3,7 @@ import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useSyncExternalStore } from 'react';
 import { useCycle } from '../../hooks/useCycle';
 
-export type AppView = 'diary' | 'calendar' | 'tools';
+export type AppView = 'diary' | 'calendar' | 'tools' | 'settings';
 
 const systemTheme = typeof window !== 'undefined' && 'matchMedia' in window
   ? window.matchMedia('(prefers-color-scheme: dark)')
@@ -29,27 +29,33 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
   online?: boolean;
 }) {
   const { installed } = usePwaInstall();
-  const { setIsSettingsOpen, settings, updateSettings } = useCycle();
+  const { isSettingsOpen, setIsSettingsOpen, settings, updateSettings } = useCycle();
   const systemDark = useSyncExternalStore(subscribeTheme, () => systemTheme?.matches ?? false);
   const dark = settings.theme === 'dark' || settings.theme === 'refugio' || (settings.theme === 'system' && systemDark);
-  const items = [
-    { id: 'diary' as const, label: 'Mi diario', icon: BookOpen },
-    { id: 'calendar' as const, label: 'Calendario', icon: CalendarDays },
-    { id: 'tools' as const, label: 'Herramientas', icon: Grid2X2 },
-  ];
-  return <header className="app-navigation">
-    <a href="#main-content" className="skip-link">Ir al contenido</a>
-    <button className="brand" type="button" onClick={() => onChangeView('diary')} aria-label="Aura, ir a mi diario">
-      <span className="brand-symbol" aria-hidden="true">a</span>
-      <span>Aura<span className="brand-dot">.</span></span>
-    </button>
-    <span className="brand-caption">Tu espacio de salud</span>
-    <nav className="primary-navigation" aria-label="Navegación principal">
-      {items.map(({ id, label, icon: Icon }) => <button key={id} type="button" onClick={() => onChangeView(id)} className={`navigation-item ${view === id ? 'is-active' : ''}`} aria-current={view === id ? 'page' : undefined}>
-        <Icon size={20} aria-hidden="true"/><span>{label}</span>
-      </button>)}
-    </nav>
-    <div className="navigation-bottom">
+
+  return (
+    <header className="app-navigation">
+      <a href="#main-content" className="skip-link">Ir al contenido</a>
+
+      <div className="brand-header-area">
+        <div className="brand-row">
+          <button className="brand" type="button" onClick={() => onChangeView('diary')} aria-label="Aura, ir a mi diario">
+            <span className="brand-symbol" aria-hidden="true">a</span>
+            <span>Aura<span className="brand-dot">.</span></span>
+          </button>
+          <button
+            type="button"
+            className="brand-theme-toggle"
+            title={dark ? 'Tema claro' : 'Tema oscuro'}
+            aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'}
+            onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+          >
+            {dark ? <Sun size={18} aria-hidden="true"/> : <Moon size={18} aria-hidden="true"/>}
+          </button>
+        </div>
+        <span className="brand-caption">Tu espacio de salud</span>
+      </div>
+
       {!installed && (
         <button
           type="button"
@@ -66,7 +72,60 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
           </div>
         </button>
       )}
-      <button type="button" className="navigation-item desktop-chat" onClick={onOpenChat}><MessageCircle size={20}/><span>Confidente</span></button>
+
+      <nav className="primary-navigation" aria-label="Navegación principal">
+        <button
+          type="button"
+          onClick={() => onChangeView('diary')}
+          className={`navigation-item ${view === 'diary' ? 'is-active' : ''}`}
+          aria-current={view === 'diary' ? 'page' : undefined}
+        >
+          <BookOpen size={20} aria-hidden="true"/>
+          <span>Mi diario</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onChangeView('calendar')}
+          className={`navigation-item ${view === 'calendar' ? 'is-active' : ''}`}
+          aria-current={view === 'calendar' ? 'page' : undefined}
+        >
+          <CalendarDays size={20} aria-hidden="true"/>
+          <span>Calendario</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onChangeView('tools')}
+          className={`navigation-item ${view === 'tools' ? 'is-active' : ''}`}
+          aria-current={view === 'tools' ? 'page' : undefined}
+        >
+          <Grid2X2 size={20} aria-hidden="true"/>
+          <span>Herramientas</span>
+        </button>
+
+        <button
+          type="button"
+          className="navigation-item desktop-only-nav"
+          onClick={onOpenChat}
+          aria-label="Abrir Chat"
+        >
+          <MessageCircle size={20} aria-hidden="true"/>
+          <span>Chat</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onChangeView('settings')}
+          className={`navigation-item ${view === 'settings' ? 'is-active' : ''}`}
+          aria-current={view === 'settings' ? 'page' : undefined}
+          aria-label="Ajustes de la aplicación"
+        >
+          <Settings size={20} aria-hidden="true"/>
+          <span>Ajustes</span>
+        </button>
+      </nav>
+
       <div className="navigation-utilities">
         {!installed && (
           <button
@@ -79,16 +138,26 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
             <span>Instalar app</span>
           </button>
         )}
-        <button type="button" className="aura-icon-button" title={dark ? 'Tema claro' : 'Tema oscuro'} aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'} onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>
-        <button type="button" className="aura-icon-button" title="Ajustes" aria-label="Ajustes" onClick={() => setIsSettingsOpen(true)}><Settings size={20}/></button>
+        <button
+          type="button"
+          className="aura-icon-button"
+          title={dark ? 'Tema claro' : 'Tema oscuro'}
+          aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'}
+          onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+        >
+          {dark ? <Sun size={20}/> : <Moon size={20}/>}
+        </button>
       </div>
-      <div className="navigation-footer">
-        <p className="navigation-note"><ShieldCheck size={14}/>Tu salud, bajo tu control</p>
-        <span className="sidebar-connection-status" role="status">
-          {online ? <CheckCircle2 size={13} style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} style={{ color: 'var(--rose)' }}/>}
-          <span>{online ? 'Conectado' : 'Sin conexión'}</span>
-        </span>
+
+      <div className="navigation-bottom">
+        <div className="navigation-footer">
+          <p className="navigation-note"><ShieldCheck size={14}/>Tu salud, bajo tu control</p>
+          <span className="sidebar-connection-status" role="status">
+            {online ? <CheckCircle2 size={13} style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} style={{ color: 'var(--rose)' }}/>}
+            <span>{online ? 'Conectado' : 'Sin conexión'}</span>
+          </span>
+        </div>
       </div>
-    </div>
-  </header>;
+    </header>
+  );
 }

@@ -19,7 +19,7 @@ export function SymptomPickerModal({ isOpen, onClose, currentSymptoms, onToggleS
   const categories = groups.find(item => item.id === group)?.categories || [];
   const normalize = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
   const filtered = KNOWN_SYMPTOMS.filter(item => (!categories.length || categories.includes(item.category)) && normalize(item.name).includes(normalize(search.trim())));
-  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Síntomas y sensaciones" description={`${currentSymptoms.length} registrados`}
+  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Síntomas y sensaciones" description={`${currentSymptoms.length} registrados`} errorMessage={error} onClearError={() => setError('')}
     footer={<button type="button" onClick={onClose} className={modalPrimaryButton}><Check size={17} aria-hidden="true" /> Listo</button>}>
     <label className="block space-y-2 text-sm font-semibold"><span className="flex items-center gap-2"><Search size={16} aria-hidden="true" />Buscar síntomas</span><input type="search" value={search} onChange={event => setSearch(event.target.value)} className={modalField} /></label>
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Categorías">{groups.map(item => <button key={item.id} type="button" aria-pressed={group === item.id} onClick={() => setGroup(item.id)} className={`${modalChoice} ${group === item.id ? modalSelected : modalUnselected}`}>{item.label}</button>)}</div>
