@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, ChevronDown, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider, useToast } from './context/ToastContext';
@@ -88,6 +88,7 @@ function MainScreen() {
   const [chatQuizKey, setChatQuizKey] = useState<ChatQuizKey | null>(null);
   const [completedQuizFeedback, setCompletedQuizFeedback] = useState<{ quizKey: ChatQuizKey; answers: Record<string, QuizAnswer> } | null>(null);
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
+  const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   const toast = useToast();
@@ -331,107 +332,119 @@ function MainScreen() {
                   description: 'Un poco de apoyo para tu día a día.',
                   ids: ['medication', 'care', 'chat']
                 }
-              ].map(group => (
-                <section className="tool-group" key={group.title} aria-label={group.title}>
-                  <div className="tool-group-heading">
-                    <h2>{group.title}</h2>
-                    <p>{group.description}</p>
-                  </div>
-                  <div className="tool-grid">
-                    {group.ids
-                      .map(id => tools.find(tool => tool.id === id))
-                      .filter((tool): tool is (typeof tools)[number] => Boolean(tool))
-                      .map(tool => (
-                        <button
-                          type="button"
-                          key={tool.id}
-                          className="tool-card"
-                          onClick={() =>
-                            tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
-                          }
-                        >
-                          <div className="tool-card-top">
-                            <div className="tool-card-icon">
-                              <tool.icon size={20} aria-hidden="true" />
-                            </div>
-                            <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
-                          </div>
-                          <div className="tool-card-body">
-                            <strong>{tool.name}</strong>
-                            <span>{tool.description}</span>
-                          </div>
-                        </button>
-                      ))}
-                  </div>
-                </section>
-              ))}
-
-              <section className="tool-group" aria-label="Cuestionarios de bienestar">
-                <div className="tool-group-heading">
-                  <h2>Cuestionarios de bienestar</h2>
-                  <p>Chequeos interactivos guiados por Confidente con feedback clínico y recomendaciones.</p>
-                </div>
-                <div className="tool-grid">
-                  {Object.values(HEALTH_QUIZZES).map(quiz => {
-                    if (!quiz || !quiz.id) return null;
-                    const questionsCount = quiz.questions?.length ?? 0;
-                    const quizKey = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === quiz.id) || 'stress';
-                    return (
-                      <div
-                        key={quiz.id}
-                        className="tool-card flex flex-col justify-between"
-                        style={{ textAlign: 'left' }}
-                      >
-                        <div
-                          onClick={() => openChatWithQuiz(quizKey)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChatWithQuiz(quizKey); } }}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <div className="tool-card-top">
-                            <div className="tool-card-icon">
-                              <ClipboardList size={20} aria-hidden="true" />
-                            </div>
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
-                              En el chat
-                            </span>
-                          </div>
-                          <div className="tool-card-body">
-                            <strong>{quiz.title}</strong>
-                            <span>{questionsCount} preguntas · Chequeo guiado</span>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs">
-                          <button
-                            type="button"
-                            onClick={() => openChatWithQuiz(quizKey)}
-                            className="text-[var(--accent)] font-medium flex items-center gap-1 hover:underline"
-                          >
-                            <MessageCircle size={13} /> Iniciar en Confidente
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setQuizId(quiz.id);
-                              openModal('quiz');
-                            }}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline text-[11px]"
-                            title="Abrir en ventana grande"
-                          >
-                            Ventana amplia
-                          </button>
+              ].map(group => {
+                const isOpen = openToolGroup === group.title;
+                return (
+                  <section className={`tool-group ${isOpen ? 'is-open' : ''}`} key={group.title} aria-label={group.title}>
+                    <button type="button" className="tool-group-heading" onClick={() => setOpenToolGroup(isOpen ? '' : group.title)} aria-expanded={isOpen}>
+                      <div className="tool-group-heading-text">
+                        <h2>{group.title}</h2>
+                        <p>{group.description}</p>
+                      </div>
+                      <ChevronDown className="tool-group-icon" size={20} />
+                    </button>
+                    {isOpen && (
+                      <div className="tool-group-content">
+                        <div className="tool-grid">
+                          {group.ids
+                            .map(id => tools.find(tool => tool.id === id))
+                            .filter((tool): tool is (typeof tools)[number] => Boolean(tool))
+                            .map(tool => (
+                              <button
+                                type="button"
+                                key={tool.id}
+                                className="tool-card"
+                                onClick={() =>
+                                  tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
+                                }
+                              >
+                                <div className="tool-card-top">
+                                  <div className="tool-card-icon">
+                                    <tool.icon size={20} aria-hidden="true" />
+                                  </div>
+                                  <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
+                                </div>
+                                <div className="tool-card-body">
+                                  <strong>{tool.name}</strong>
+                                  <span>{tool.description}</span>
+                                </div>
+                              </button>
+                            ))}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-                {allQuizResults.length > 0 && (
-                  <div className="mt-6 border-t border-[var(--border-subtle)] pt-4">
-                    <QuizHistory results={allQuizResults} />
-                  </div>
-                )}
-              </section>
+                    )}
+                  </section>
+                );
+              })}
+
+              {(() => {
+                const title = 'Cuestionarios de bienestar';
+                const isOpen = openToolGroup === title;
+                return (
+                  <section className={`tool-group ${isOpen ? 'is-open' : ''}`} aria-label={title}>
+                    <button type="button" className="tool-group-heading" onClick={() => setOpenToolGroup(isOpen ? '' : title)} aria-expanded={isOpen}>
+                      <div className="tool-group-heading-text">
+                        <h2>{title}</h2>
+                        <p>Chequeos interactivos guiados por Confidente con feedback y recomendaciones.</p>
+                      </div>
+                      <ChevronDown className="tool-group-icon" size={20} />
+                    </button>
+                    {isOpen && (
+                      <div className="tool-group-content">
+                        <div className="tool-grid">
+                          {Object.values(HEALTH_QUIZZES).map(quiz => {
+                            if (!quiz || !quiz.id) return null;
+                            const questionsCount = quiz.questions?.length ?? 0;
+                            const quizKey = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === quiz.id) || 'stress';
+                            return (
+                              <div
+                                key={quiz.id}
+                                className="tool-card flex flex-col justify-between"
+                                style={{ textAlign: 'left' }}
+                              >
+                                <div
+                                  onClick={() => openChatWithQuiz(quizKey)}
+                                  role="button"
+                                  tabIndex={0}
+                                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChatWithQuiz(quizKey); } }}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <div className="tool-card-top">
+                                    <div className="tool-card-icon">
+                                      <ClipboardList size={20} aria-hidden="true" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+                                      En el chat
+                                    </span>
+                                  </div>
+                                  <div className="tool-card-body">
+                                    <strong>{quiz.title}</strong>
+                                    <span>{questionsCount} preguntas · Chequeo guiado</span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() => openChatWithQuiz(quizKey)}
+                                    className="text-[var(--accent)] font-medium flex items-center gap-1 hover:underline"
+                                  >
+                                    <MessageCircle size={13} /> Iniciar en Confidente
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {allQuizResults.length > 0 && (
+                          <div className="mt-6 border-t border-[var(--border-subtle)] pt-4">
+                            <QuizHistory results={allQuizResults} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                );
+              })()}
             </div>
           )}
           {view === 'settings' && (

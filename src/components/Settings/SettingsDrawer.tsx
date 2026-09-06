@@ -105,7 +105,7 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
   const tabContent = (
     <>
       <div className="flex rounded-xl bg-[var(--bg-root)] p-1 border border-[var(--border-subtle)]" aria-label="Secciones de ajustes">
-        {([['cycle', 'Ciclo'], ['account', 'Cuenta'], ['privacy', 'Datos y copias'], ['notifications', 'Avisos']] as const).map(([value, label]) => (
+        {([['cycle', 'Mi ciclo'], ['account', 'Cuenta'], ['privacy', 'Privacidad'], ['notifications', 'Alertas']] as const).map(([value, label]) => (
           <button
             key={value}
             type="button"

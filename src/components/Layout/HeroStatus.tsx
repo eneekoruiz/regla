@@ -148,7 +148,6 @@ export function HeroStatus({
     copy = 'No hay un inicio de ciclo registrado para esta fecha. Tus anotaciones se guardan igualmente.';
   } else if (hasCycle) {
     if (isPast) {
-      // Día pasado: confirmación y edición clara sin círculo
       if (isRecorded) {
         title = 'Tuviste la regla este día';
         copy = `Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
@@ -163,19 +162,32 @@ export function HeroStatus({
         copy = `Fase ${day.phaseName.toLowerCase()}`;
       }
     } else if (isFuture) {
+      const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
       if (isPeriodDay) {
         title = 'Periodo estimado';
         copy = 'Previsión de sangrado según tus ciclos habituales.';
+      } else if (day.isOvulationDay) {
+        title = `Día ${cycleDay} · Máxima fertilidad`;
+        copy = 'Día estimado de ovulación';
+      } else if (day.isFertileWindow) {
+        title = `Día ${cycleDay} · Ventana fértil`;
+        copy = daysToOvu > 1 ? `La ovulación máxima se estima en ${daysToOvu} días` : daysToOvu === 1 ? 'La ovulación máxima se estima mañana' : 'Alta probabilidad de concepción';
+      } else if (daysToOvu > 0 && daysToOvu <= 5) {
+        title = `Día ${cycleDay} estimado`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ventana fértil se acerca`;
+      } else if (daysToNext > 1 && daysToNext <= 5) {
+        title = `Día ${cycleDay} estimado`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega en ${daysToNext} días`;
+      } else if (daysToNext === 1) {
+        title = `Día ${cycleDay} estimado`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega mañana`;
       } else {
         title = `Día ${cycleDay} estimado`;
-        copy = daysToNext > 1
-          ? `Fase ${day.phaseName.toLowerCase()} · Quedarán ${daysToNext} días para la regla`
-          : daysToNext === 1
-            ? `Fase ${day.phaseName.toLowerCase()} · Quedará 1 día para la regla`
-            : `Fase ${day.phaseName.toLowerCase()}`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Quedarán ${daysToNext} días para la regla`;
       }
     } else {
       // Hoy
+      const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
       if (isRecorded) {
         title = 'En tu periodo';
         copy = `Ve a tu ritmo · Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
@@ -188,18 +200,27 @@ export function HeroStatus({
       } else if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
         copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
-      } else if (daysToNext > 1) {
+      } else if (day.isOvulationDay) {
+        title = `Día ${cycleDay} · Máxima fertilidad`;
+        copy = 'Día de ovulación estimado';
+      } else if (day.isFertileWindow) {
+        title = `Día ${cycleDay} · Ventana fértil`;
+        copy = daysToOvu > 1 ? `La ovulación máxima se estima en ${daysToOvu} días` : daysToOvu === 1 ? 'La ovulación máxima se estima mañana' : 'Alta probabilidad de concepción';
+      } else if (daysToOvu > 0 && daysToOvu <= 5) {
         title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Te quedan ${daysToNext} días para la regla`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ventana fértil empieza pronto`;
+      } else if (daysToNext > 1 && daysToNext <= 5) {
+        title = `Día ${cycleDay} de tu ciclo`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega en ${daysToNext} días`;
       } else if (daysToNext === 1) {
         title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Te queda 1 día para la regla`;
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega mañana, prepárate`;
       } else if (daysToNext === 0) {
         title = 'Fecha estimada de regla: hoy';
         copy = `Día ${cycleDay} del ciclo · Confirma si te ha bajado la regla`;
       } else {
         title = `Día ${cycleDay} de tu ciclo`;
-        copy = 'Tu ciclo tiene su ritmo';
+        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ciclo tiene su ritmo`;
       }
     }
   }
@@ -597,8 +618,8 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Aviso para HOY si ayer quedó sin registrar */}
-      {isToday && hasCycle && !yesterdayHasLog && (
+      {/* Aviso para HOY si ayer quedó sin registrar (solo se muestra si hoy ya está registrado) */}
+      {isToday && hasCycle && !yesterdayHasLog && hasAnyAnnotation && (
         <div className="yesterday-reminder-bar">
           <span className="yesterday-reminder-text">
             <Clock size={13} aria-hidden="true" />
