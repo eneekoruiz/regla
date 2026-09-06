@@ -5,9 +5,12 @@ import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalSecondaryButton, modalUnselected } from './modalStyles';
 
-const FLOW_LEVELS: { id: FlowIntensity; label: string }[] = [
-  { id: 'spotting', label: 'Manchado' }, { id: 'light', label: 'Ligero' }, { id: 'medium', label: 'Medio' },
-  { id: 'heavy', label: 'Abundante' }, { id: 'very_heavy', label: 'Muy abundante' }
+const FLOW_LEVELS: { id: FlowIntensity; label: string; count: number }[] = [
+  { id: 'spotting', label: 'Manchado', count: 1 },
+  { id: 'light', label: 'Ligero', count: 1 },
+  { id: 'medium', label: 'Medio', count: 2 },
+  { id: 'heavy', label: 'Abundante', count: 3 },
+  { id: 'very_heavy', label: 'Muy abundante', count: 4 }
 ];
 export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { selectedDate, logBleedingForDate, denyPeriodOnDate, logs, settings } = useCycle();
@@ -43,7 +46,26 @@ export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       {bleedingType === 'period' ? <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={isCycleStart} onChange={event => setIsCycleStart(event.target.checked)} className="h-5 w-5 shrink-0 accent-[var(--rose)]" />Es el primer día de un nuevo ciclo</label>
         : <p className="text-sm text-[var(--text-secondary)]">El sangrado irregular no iniciará un nuevo ciclo.</p>}
       <fieldset><legend className="mb-2 text-sm font-semibold">Intensidad del flujo</legend>
-        <div className="grid grid-cols-2 gap-2">{FLOW_LEVELS.map(item => <button key={item.id} type="button" aria-pressed={flow === item.id} onClick={() => setFlow(item.id)} className={`${modalChoice} ${flow === item.id ? selected : modalUnselected}`}>{item.label}</button>)}</div>
+        <div className="grid grid-cols-2 gap-2">{FLOW_LEVELS.map(item => (
+          <button
+            key={item.id}
+            type="button"
+            aria-pressed={flow === item.id}
+            onClick={() => setFlow(item.id)}
+            className={`${modalChoice} flex items-center justify-between ${flow === item.id ? selected : modalUnselected}`}
+          >
+            <span>{item.label}</span>
+            <span className="flex items-center gap-0.5 text-xs opacity-75" aria-hidden="true">
+              {item.id === 'spotting' ? (
+                <span className="size-1.5 rounded-full bg-current" />
+              ) : (
+                Array.from({ length: item.count }).map((_, i) => (
+                  <span key={i} className="size-1.5 rounded-full bg-current" />
+                ))
+              )}
+            </span>
+          </button>
+        ))}</div>
       </fieldset>
     </>}
     {error && <p role="alert" className="text-sm text-[var(--rose)]">{error}</p>}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, Leaf, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCycle } from '../../hooks/useCycle';
 import { generateDailyWellnessCarousel } from '../../services/wellnessAgent';
 
@@ -45,23 +46,44 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
 
   if (!card) return null;
   return <section className="wellness-section" aria-labelledby="wellness-title">
-    <div className="section-heading"><h2 id="wellness-title">Un momento para ti</h2><div className="wellness-controls">
-      <button type="button" className="aura-icon-button" aria-label="Consejo anterior" title="Consejo anterior" disabled={index === 0} onClick={() => setActiveIndex(index - 1)}><ChevronLeft size={18}/></button>
-      <span className="wellness-count">{index + 1}/{cards.length}</span>
-      <button type="button" className="aura-icon-button" aria-label="Siguiente consejo" title="Siguiente consejo" disabled={index === cards.length - 1} onClick={() => setActiveIndex(index + 1)}><ChevronRight size={18}/></button>
-    </div></div>
-    <article
-      className="advice-card touch-pan-y select-none"
-      aria-live="polite"
-      aria-atomic="true"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="advice-category"><Leaf size={18}/>{card.categoryTitle || card.category}</div>
-      <h3>{card.headline}</h3><p>{card.advice}</p>
-      {card.focusTip && <p className="advice-tip">{card.focusTip}</p>}
-      {onOpenChat && <button type="button" className="text-action" onClick={() => onOpenChat(`Cuéntame más sobre ${card.categoryTitle?.toLowerCase() || 'este consejo'}: ${card.headline}`)}><MessageCircle size={16}/>Consultar con Confidente</button>}
-    </article>
+    <div className="section-heading">
+      <h2 id="wellness-title">Un momento para ti</h2>
+      <div className="wellness-controls flex items-center gap-1.5">
+        <button type="button" className="aura-icon-button" aria-label="Consejo anterior" title="Consejo anterior" disabled={index === 0} onClick={() => setActiveIndex(index - 1)}><ChevronLeft size={18}/></button>
+        <div className="flex items-center gap-1 px-1" aria-label={`Consejo ${index + 1} de ${cards.length}`}>
+          {cards.map((_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                i === index ? 'w-4 bg-[var(--accent)]' : 'w-1.5 bg-[var(--border-subtle)]'
+              }`}
+            />
+          ))}
+        </div>
+        <button type="button" className="aura-icon-button" aria-label="Siguiente consejo" title="Siguiente consejo" disabled={index === cards.length - 1} onClick={() => setActiveIndex(index + 1)}><ChevronRight size={18}/></button>
+      </div>
+    </div>
+    <div className="overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.article
+          key={card.id || index}
+          initial={{ opacity: 0, x: 8 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -8 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          className="advice-card touch-pan-y select-none"
+          aria-live="polite"
+          aria-atomic="true"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="advice-category"><Leaf size={18}/>{card.categoryTitle || card.category}</div>
+          <h3>{card.headline}</h3><p>{card.advice}</p>
+          {card.focusTip && <p className="advice-tip">{card.focusTip}</p>}
+          {onOpenChat && <button type="button" className="text-action" onClick={() => onOpenChat(`Cuéntame más sobre ${card.categoryTitle?.toLowerCase() || 'este consejo'}: ${card.headline}`)}><MessageCircle size={16}/>Consultar con Confidente</button>}
+        </motion.article>
+      </AnimatePresence>
+    </div>
   </section>;
 }

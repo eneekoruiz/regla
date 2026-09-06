@@ -69,7 +69,20 @@ export function NaturalInputBar() {
         <button type="submit" disabled={!input.trim() || processing || listening} className="aura-button primary"><ArrowUp size={18} aria-hidden="true" />{processing ? 'Guardando…' : 'Registrar'}</button>
       </div>
     </form>
-    <div className="flex flex-wrap gap-2">{suggestions.map(([label, note]) => <button type="button" key={label} disabled={processing} onClick={() => { setInput(note); inputRef.current?.focus(); }} className="aura-button">{label}</button>)}</div>
+    <div className="flex flex-wrap gap-1.5 pt-1">
+      {suggestions.map(([label, note]) => (
+        <button
+          type="button"
+          key={label}
+          disabled={processing}
+          onClick={() => { setInput(note); inputRef.current?.focus(); }}
+          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-[var(--accent)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)] active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-[var(--accent)] disabled:opacity-50"
+        >
+          <span className="size-1.5 shrink-0 rounded-full bg-[var(--accent)] opacity-70" />
+          <span>{label}</span>
+        </button>
+      ))}
+    </div>
     {error && <p id="daily-note-error" role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
     {lastChroniclerResponse && <div className="flex items-start gap-3 border-t border-[var(--border-subtle)] pt-3">
       <div role="status" className="min-w-0 flex-1 space-y-2 text-sm text-[var(--text-primary)]"><p>{lastChroniclerResponse.empathyMessage}</p><ul className="space-y-1 text-[var(--text-secondary)]">{lastChroniclerResponse.data.extractedSummary.map((summary, index) => <li key={index}>{summary}</li>)}</ul></div>
