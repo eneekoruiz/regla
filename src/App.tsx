@@ -98,10 +98,10 @@ function MainScreen() {
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
-        {view !== 'diary' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
+        {view !== 'diary' && view !== 'tools' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
           <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
         </div>}
-        {view !== 'calendar' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
+        {view === 'diary' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
         </div></div>}
@@ -114,9 +114,9 @@ function MainScreen() {
               {hasPeriod && <div className="period-registered-card">
                 <div className="period-registered-badge">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--rose-soft)] text-[var(--rose)]">
-                    <Droplets size={17} />
+                    <Droplets size={16} />
                   </span>
-                  <div>
+                  <div className="flex flex-col">
                     <strong>Regla registrada</strong>
                     <span>{log?.flow ? `Flujo ${log.flow === 'light' ? 'ligero' : log.flow === 'medium' ? 'medio' : log.flow === 'heavy' ? 'abundante' : 'muy abundante'}` : 'Sangrado activo'}</span>
                   </div>
@@ -186,14 +186,85 @@ function MainScreen() {
           </div>
         </>}
         {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare} onInstall={() => openModal('install')}/></Suspense></section>}
-        {view === 'tools' && <>
-          {[
-            { title: 'Conoce tu ciclo', description: 'Observa tus patrones y entiende tus registros.', ids: ['analytics', 'symptothermal', 'legend'] },
-            { title: 'Cuídate a tu manera', description: 'Un poco de apoyo para tu día a día.', ids: ['medication', 'care', 'chat'] },
-          ].map(group => <section className="tool-group" key={group.title} aria-label={group.title}><div className="tool-group-heading"><h2>{group.title}</h2><p>{group.description}</p></div><div className="tool-grid">{group.ids.map(id => tools.find(tool => tool.id === id)!).map(tool => <button type="button" key={tool.id} className="tool-card" onClick={() => tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)}><tool.icon size={24}/><strong>{tool.name}</strong><span>{tool.description}</span><ArrowRight className="tool-arrow" size={17} aria-hidden="true"/></button>)}</div></section>)}
-          <h2 className="tool-section-title">Cuestionarios de bienestar</h2>
-          <div className="tool-grid">{Object.values(HEALTH_QUIZZES).map(quiz => <button type="button" key={quiz.id} className="tool-card" onClick={() => { setQuizId(quiz.id); openModal('quiz'); }}><ClipboardList size={24}/><strong>{quiz.title}</strong><span>{quiz.questions.length} preguntas</span></button>)}</div>
-        </>}
+        {view === 'tools' && (
+          <div className="tools-workspace">
+            {[
+              {
+                title: 'Conoce tu ciclo',
+                description: 'Observa tus patrones y entiende tus registros.',
+                ids: ['analytics', 'symptothermal', 'legend']
+              },
+              {
+                title: 'Cuídate a tu manera',
+                description: 'Un poco de apoyo para tu día a día.',
+                ids: ['medication', 'care', 'chat']
+              }
+            ].map(group => (
+              <section className="tool-group" key={group.title} aria-label={group.title}>
+                <div className="tool-group-heading">
+                  <h2>{group.title}</h2>
+                  <p>{group.description}</p>
+                </div>
+                <div className="tool-grid">
+                  {group.ids
+                    .map(id => tools.find(tool => tool.id === id)!)
+                    .map(tool => (
+                      <button
+                        type="button"
+                        key={tool.id}
+                        className="tool-card"
+                        onClick={() =>
+                          tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
+                        }
+                      >
+                        <div className="tool-card-top">
+                          <div className="tool-card-icon">
+                            <tool.icon size={22} aria-hidden="true" />
+                          </div>
+                          <ArrowRight className="tool-arrow" size={18} aria-hidden="true" />
+                        </div>
+                        <div className="tool-card-body">
+                          <strong>{tool.name}</strong>
+                          <span>{tool.description}</span>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </section>
+            ))}
+
+            <section className="tool-group" aria-label="Cuestionarios de bienestar">
+              <div className="tool-group-heading">
+                <h2>Cuestionarios de bienestar</h2>
+                <p>Chequeos guiados para evaluar tu descanso, estrés y cólicos.</p>
+              </div>
+              <div className="tool-grid">
+                {Object.values(HEALTH_QUIZZES).map(quiz => (
+                  <button
+                    type="button"
+                    key={quiz.id}
+                    className="tool-card"
+                    onClick={() => {
+                      setQuizId(quiz.id);
+                      openModal('quiz');
+                    }}
+                  >
+                    <div className="tool-card-top">
+                      <div className="tool-card-icon">
+                        <ClipboardList size={22} aria-hidden="true" />
+                      </div>
+                      <ArrowRight className="tool-arrow" size={18} aria-hidden="true" />
+                    </div>
+                    <div className="tool-card-body">
+                      <strong>{quiz.title}</strong>
+                      <span>{quiz.questions.length} preguntas · Chequeo guiado</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
     </main>
     <Suspense fallback={<Loading/>}>

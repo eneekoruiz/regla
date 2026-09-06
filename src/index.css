@@ -185,18 +185,23 @@
 .confidente-link strong { display: block; font-size: 15px; font-weight: 600; }
 .confidente-link small { display: block; margin-top: 3px; color: var(--text-secondary); font-size: 12px; }
 .confidente-link > svg { margin-left: auto; color: var(--accent); flex-shrink: 0; }
-.tool-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-.tool-card { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 24px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; min-height: 170px; text-align: left; transition: background .16s, border-color .16s; }
-.tool-card:hover { border-color: var(--accent); background: var(--bg-card-inner); }
-.tool-card > svg { color: var(--accent); }
-.tool-card strong { font-size: 16px; font-weight: 600; }
-.tool-card span { font-size: 13px; color: var(--text-secondary); }
-.tool-card .tool-arrow { position: absolute; top: 25px; right: 20px; color: var(--text-tertiary); }
-.tool-group { margin-bottom: 28px; }
-.tool-group-heading { margin-bottom: 14px; }
-.tool-group-heading h2 { font-size: 17px; font-weight: 600; margin: 0; }
-.tool-group-heading p { margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }
-.tool-section-title { font-size: 18px; font-weight: 600; margin: 32px 0 16px; }
+.tools-workspace { padding-top: 4px; }
+.tool-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.tool-card { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; padding: 18px 20px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; min-height: 126px; text-align: left; transition: all .18s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.tool-card:hover { border-color: var(--accent); background: var(--bg-card-inner); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.04); }
+.tool-card-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+.tool-card-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); flex-shrink: 0; transition: background .18s ease, color .18s ease; }
+.tool-card:hover .tool-card-icon { background: var(--accent); color: var(--accent-on); }
+.tool-card .tool-arrow { color: var(--text-tertiary); transition: transform .18s ease, color .18s ease; flex-shrink: 0; }
+.tool-card:hover .tool-arrow { color: var(--accent); transform: translateX(3px); }
+.tool-card-body { display: flex; flex-direction: column; gap: 3px; }
+.tool-card strong { font-size: 15.5px; font-weight: 650; color: var(--text-primary); letter-spacing: -0.2px; }
+.tool-card span { font-size: 13px; color: var(--text-secondary); line-height: 1.45; }
+.tool-group { margin-bottom: 24px; }
+.tool-group-heading { margin-bottom: 12px; }
+.tool-group-heading h2 { font-size: 16px; font-weight: 650; margin: 0; }
+.tool-group-heading p { margin: 3px 0 0; color: var(--text-secondary); font-size: 13px; }
+.tool-section-title { font-size: 16px; font-weight: 650; margin: 24px 0 12px; }
 .biomarker-list { margin: 0; }
 .quiz-history { padding: 0 0 24px; }
 .quiz-history h3 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
@@ -289,10 +294,10 @@
   .advice-card { padding: 18px; min-height: 240px; }
   .quick-log-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .quick-log { padding: 10px 14px; min-height: 52px; font-size: 12.5px; }
-  .tool-grid { gap: 10px; }
-  .tool-card { padding: 18px; min-height: 154px; gap: 10px; }
-  .tool-card strong { font-size: 14px; }
-  .tool-card span { font-size: 12px; }
+  .tool-grid { gap: 12px; }
+  .tool-card { padding: 16px 18px; min-height: 118px; gap: 10px; }
+  .tool-card strong { font-size: 15px; }
+  .tool-card span { font-size: 12.5px; }
   .calendar-workspace { min-height: 480px; }
 }
 @media (max-width: 370px) {
@@ -302,7 +307,7 @@
   .cycle-ring { width: 80px; height: 80px; }
   .cycle-headline { font-size: 28px; }
   .tool-grid { grid-template-columns: minmax(0, 1fr); }
-  .tool-card { min-height: 142px; }
+  .tool-card { min-height: 70px; padding: 12px 14px; }
 }
 
 .first-record-button { margin-top: 20px; }
@@ -372,11 +377,14 @@
   .modal-heading { padding: 16px; }
   .modal-footer { padding: 12px 16px max(12px, env(safe-area-inset-bottom)); }
   .aura-dialog { border-radius: 24px; scroll-padding-bottom: 100px; }
-  .tool-group .tool-grid { grid-template-columns: minmax(0, 1fr); }
-  .tool-group .tool-card { min-height: 92px; padding: 18px 44px 18px 68px; justify-content: center; gap: 5px; }
-  .tool-group .tool-card > svg:first-child { position: absolute; top: 30px; left: 22px; }
-  .tool-group .tool-card .tool-arrow { top: 36px; right: 16px; }
-  .tool-group { margin-bottom: 24px; }
+  .tool-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .tool-card { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; min-height: 72px; border-radius: 16px; }
+  .tool-card:hover { transform: none; }
+  .tool-card-top { width: auto; display: contents; }
+  .tool-card-icon { width: 40px; height: 40px; }
+  .tool-card-body { flex: 1; min-width: 0; }
+  .tool-card .tool-arrow { margin-left: auto; flex-shrink: 0; }
+  .tool-group { margin-bottom: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
