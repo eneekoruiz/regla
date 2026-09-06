@@ -5,11 +5,21 @@ import { useCycle } from '../../hooks/useCycle';
 
 export type AppView = 'diary' | 'calendar' | 'tools';
 
-const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+const systemTheme = typeof window !== 'undefined' && 'matchMedia' in window
+  ? window.matchMedia('(prefers-color-scheme: dark)')
+  : null;
 const subscribeTheme = (onChange: () => void) => {
-  systemTheme.addEventListener('change', onChange);
-  return () => systemTheme.removeEventListener('change', onChange);
+  if (!systemTheme) return () => {};
+  if (typeof systemTheme.addEventListener === 'function') {
+    systemTheme.addEventListener('change', onChange);
+    return () => systemTheme.removeEventListener('change', onChange);
+  } else if (typeof (systemTheme as any).addListener === 'function') {
+    (systemTheme as any).addListener(onChange);
+    return () => (systemTheme as any).removeListener(onChange);
+  }
+  return () => {};
 };
+
 
 export function Header({ view, onChangeView, onOpenChat, onInstall }: {
   view: AppView;
@@ -19,7 +29,7 @@ export function Header({ view, onChangeView, onOpenChat, onInstall }: {
 }) {
   const { installed } = usePwaInstall();
   const { setIsSettingsOpen, settings, updateSettings } = useCycle();
-  const systemDark = useSyncExternalStore(subscribeTheme, () => systemTheme.matches);
+  const systemDark = useSyncExternalStore(subscribeTheme, () => systemTheme?.matches ?? false);
   const dark = settings.theme === 'dark' || settings.theme === 'refugio' || (settings.theme === 'system' && systemDark);
   const items = [
     { id: 'diary' as const, label: 'Mi diario', icon: BookOpen },

@@ -26,26 +26,45 @@ import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
 import { DailyLogBottomSheet } from './components/Modals/DailyLogBottomSheet';
 import { IntimacyModal } from './components/Modals/IntimacyModal';
 
-const AppleMonthlyCalendar = lazy(() => import('./components/Calendar/AppleMonthlyCalendar').then(m => ({ default: m.AppleMonthlyCalendar })));
-const SettingsDrawer = lazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
-const ColorLegendModal = lazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
-const ChatDrawer = lazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
-const InteractiveQuizModal = lazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
-const ModularOnboardingModal = lazy(() => import('./components/Modals/ModularOnboardingModal').then(m => ({ default: m.ModularOnboardingModal })));
-const CycleAnalyticsModal = lazy(() => import('./components/Modals/CycleAnalyticsModal').then(m => ({ default: m.CycleAnalyticsModal })));
-const SymptothermalModal = lazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
-const MedicationTrackerModal = lazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
-const CycleSyncingModal = lazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
-const UniversalImportModal = lazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
-const MedicalExportModal = lazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
-const PwaInstallModal = lazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
+import { AppleMonthlyCalendar } from './components/Calendar/AppleMonthlyCalendar';
+
+function resilientLazy<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (error) {
+      const key = 'aura_chunk_reload_attempt';
+      const lastReload = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
+      if (!lastReload || Date.now() - Number(lastReload) > 10000) {
+        try { sessionStorage.setItem(key, String(Date.now())); } catch {}
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+}
+
+const SettingsDrawer = resilientLazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
+const ColorLegendModal = resilientLazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
+const ChatDrawer = resilientLazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
+const InteractiveQuizModal = resilientLazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
+const ModularOnboardingModal = resilientLazy(() => import('./components/Modals/ModularOnboardingModal').then(m => ({ default: m.ModularOnboardingModal })));
+const CycleAnalyticsModal = resilientLazy(() => import('./components/Modals/CycleAnalyticsModal').then(m => ({ default: m.CycleAnalyticsModal })));
+const SymptothermalModal = resilientLazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
+const MedicationTrackerModal = resilientLazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
+const CycleSyncingModal = resilientLazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
+const UniversalImportModal = resilientLazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
+const MedicalExportModal = resilientLazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
+const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
 
 type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
+
 function MainScreen() {
   const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData, cycleStats, upcomingMilestones } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
+  const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
       return !sessionStorage.getItem('aura_dismiss_install_banner');
@@ -118,7 +137,7 @@ function MainScreen() {
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
-        {!installed && showInstallBanner && (
+        {!installed && isMobile && showInstallBanner && (
           <aside className="install-banner" aria-label="Instalar aplicación">
             <div className="install-banner-content">
               <div className="install-banner-icon">
@@ -239,86 +258,102 @@ function MainScreen() {
             </aside>
           </div>
         </>}
-        {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare} onInstall={handleInstall}/></Suspense></section>}
-        {view === 'tools' && (
-          <div className="tools-workspace">
-            {[
-              {
-                title: 'Conoce tu ciclo',
-                description: 'Observa tus patrones y entiende tus registros.',
-                ids: ['analytics', 'symptothermal', 'legend']
-              },
-              {
-                title: 'Cuídate a tu manera',
-                description: 'Un poco de apoyo para tu día a día.',
-                ids: ['medication', 'care', 'chat']
-              }
-            ].map(group => (
-              <section className="tool-group" key={group.title} aria-label={group.title}>
+        <ErrorBoundary fallbackTitle="No pudimos cargar esta sección" onReset={() => setView('diary')}>
+          {view === 'calendar' && (
+            <section className="calendar-workspace" aria-label="Calendario del ciclo">
+              <AppleMonthlyCalendar
+                onSelectDate={date => { setSelectedDate(date); openModal('daily'); }}
+                onOpenLegendModal={() => openModal('legend')}
+                onOpenCycleSyncing={openCare}
+                onInstall={handleInstall}
+              />
+            </section>
+          )}
+          {view === 'tools' && (
+            <div className="tools-workspace">
+              {[
+                {
+                  title: 'Conoce tu ciclo',
+                  description: 'Observa tus patrones y entiende tus registros.',
+                  ids: ['analytics', 'symptothermal', 'legend']
+                },
+                {
+                  title: 'Cuídate a tu manera',
+                  description: 'Un poco de apoyo para tu día a día.',
+                  ids: ['medication', 'care', 'chat']
+                }
+              ].map(group => (
+                <section className="tool-group" key={group.title} aria-label={group.title}>
+                  <div className="tool-group-heading">
+                    <h2>{group.title}</h2>
+                    <p>{group.description}</p>
+                  </div>
+                  <div className="tool-grid">
+                    {group.ids
+                      .map(id => tools.find(tool => tool.id === id))
+                      .filter((tool): tool is (typeof tools)[number] => Boolean(tool))
+                      .map(tool => (
+                        <button
+                          type="button"
+                          key={tool.id}
+                          className="tool-card"
+                          onClick={() =>
+                            tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
+                          }
+                        >
+                          <div className="tool-card-top">
+                            <div className="tool-card-icon">
+                              <tool.icon size={20} aria-hidden="true" />
+                            </div>
+                            <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
+                          </div>
+                          <div className="tool-card-body">
+                            <strong>{tool.name}</strong>
+                            <span>{tool.description}</span>
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                </section>
+              ))}
+
+              <section className="tool-group" aria-label="Cuestionarios de bienestar">
                 <div className="tool-group-heading">
-                  <h2>{group.title}</h2>
-                  <p>{group.description}</p>
+                  <h2>Cuestionarios de bienestar</h2>
+                  <p>Chequeos guiados para evaluar tu descanso, estrés y cólicos.</p>
                 </div>
                 <div className="tool-grid">
-                  {group.ids
-                    .map(id => tools.find(tool => tool.id === id)!)
-                    .map(tool => (
+                  {Object.values(HEALTH_QUIZZES).map(quiz => {
+                    if (!quiz || !quiz.id) return null;
+                    const questionsCount = quiz.questions?.length ?? 0;
+                    return (
                       <button
                         type="button"
-                        key={tool.id}
+                        key={quiz.id}
                         className="tool-card"
-                        onClick={() =>
-                          tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
-                        }
+                        onClick={() => {
+                          setQuizId(quiz.id);
+                          openModal('quiz');
+                        }}
                       >
                         <div className="tool-card-top">
                           <div className="tool-card-icon">
-                            <tool.icon size={22} aria-hidden="true" />
+                            <ClipboardList size={20} aria-hidden="true" />
                           </div>
-                          <ArrowRight className="tool-arrow" size={18} aria-hidden="true" />
+                          <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
                         </div>
                         <div className="tool-card-body">
-                          <strong>{tool.name}</strong>
-                          <span>{tool.description}</span>
+                          <strong>{quiz.title}</strong>
+                          <span>{questionsCount} preguntas · Chequeo guiado</span>
                         </div>
                       </button>
-                    ))}
+                    );
+                  })}
                 </div>
               </section>
-            ))}
-
-            <section className="tool-group" aria-label="Cuestionarios de bienestar">
-              <div className="tool-group-heading">
-                <h2>Cuestionarios de bienestar</h2>
-                <p>Chequeos guiados para evaluar tu descanso, estrés y cólicos.</p>
-              </div>
-              <div className="tool-grid">
-                {Object.values(HEALTH_QUIZZES).map(quiz => (
-                  <button
-                    type="button"
-                    key={quiz.id}
-                    className="tool-card"
-                    onClick={() => {
-                      setQuizId(quiz.id);
-                      openModal('quiz');
-                    }}
-                  >
-                    <div className="tool-card-top">
-                      <div className="tool-card-icon">
-                        <ClipboardList size={22} aria-hidden="true" />
-                      </div>
-                      <ArrowRight className="tool-arrow" size={18} aria-hidden="true" />
-                    </div>
-                    <div className="tool-card-body">
-                      <strong>{quiz.title}</strong>
-                      <span>{quiz.questions.length} preguntas · Chequeo guiado</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
+            </div>
+          )}
+        </ErrorBoundary>
       </div>
     </main>
     <Suspense fallback={<Loading/>}>

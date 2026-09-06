@@ -129,9 +129,9 @@ export function YearViewCalendar({
                   const date = formatDateKey(new Date(year, month, index + 1));
                   const info = getDayInfo(date);
                   const recordedPeriod = Boolean(logs[date]?.isPeriod);
-                  const period = recordedPeriod || (hasEnoughData && info.isPeriod);
-                  const fertile = hasEnoughData && info.isFertileWindow;
-                  const ovulation = hasEnoughData && info.isOvulationDay;
+                  const period = recordedPeriod || (hasEnoughData && Boolean(info?.isPeriod));
+                  const fertile = hasEnoughData && Boolean(info?.isFertileWindow);
+                  const ovulation = hasEnoughData && Boolean(info?.isOvulationDay);
                   const isToday = date === todayDate;
 
                   const state = recordedPeriod

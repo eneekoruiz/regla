@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, ChevronDown, Droplets } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { diffDays, formatDateKey, parseDateKey } from '../../utils/dateKey';
+import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
+
 
 export function HeroStatus({
   onRecordPeriod,
@@ -21,21 +22,24 @@ export function HeroStatus({
   const isFuture = selectedDate > todayDate;
   const isPeriodDay = Boolean(day.isPeriod || isRecorded);
 
-  const elapsedDays = hasCycle && selectedDate === todayDate ? diffDays(parseDateKey(cycleStats.lastVerifiedPeriodStart), parseDateKey(todayDate)) : 0;
+  const hasValidPeriodStart = Boolean(cycleStats.lastVerifiedPeriodStart && isDateKey(cycleStats.lastVerifiedPeriodStart));
+  const elapsedDays = hasCycle && selectedDate === todayDate && hasValidPeriodStart
+    ? diffDays(parseDateKey(cycleStats.lastVerifiedPeriodStart), parseDateKey(todayDate))
+    : 0;
   const awaitingPeriod = hasCycle && elapsedDays >= cycleLength && !isRecorded && !isFuture;
   const cycleDay = hasCycle ? awaitingPeriod ? elapsedDays + 1 : day.dayOfCycle : 0;
   const daysNext = upcomingMilestones.daysUntilNextPeriod;
 
   // Find effective last period day in this cycle to accurately know when the period finished
   let lastRecordedPeriodDay = periodLength;
-  if (cycleStats.lastVerifiedPeriodStart) {
+  if (hasValidPeriodStart) {
     const start = parseDateKey(cycleStats.lastVerifiedPeriodStart);
     let maxRecorded = 0;
     for (let d = 0; d < cycleLength; d++) {
       const dt = new Date(start);
       dt.setDate(start.getDate() + d);
       const k = formatDateKey(dt);
-      if (logs[k]?.isPeriod) {
+      if (k && logs[k]?.isPeriod) {
         maxRecorded = d + 1;
       }
     }
@@ -99,7 +103,8 @@ export function HeroStatus({
 
   const activeDuration = isPeriodDay ? periodLength : cycleLength;
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
-  const progress = hasCycle ? Math.min(1, activeDay / activeDuration) : 0;
+  const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
+
 
   const circumference = 2 * Math.PI * 58;
 

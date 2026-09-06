@@ -18,5 +18,7 @@ export function parseDateKey(value: string): Date {
 }
 
 export function diffDays(a: Date, b: Date): number {
+  if (!a || !b || !Number.isFinite(a.getTime()) || !Number.isFinite(b.getTime())) return 0;
   return Math.round((Date.UTC(b.getFullYear(), b.getMonth(), b.getDate()) - Date.UTC(a.getFullYear(), a.getMonth(), a.getDate())) / 86400000);
 }
+

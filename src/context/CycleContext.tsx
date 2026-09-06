@@ -190,18 +190,29 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
 
-    const now = Date.now();
-    for (const notif of scheduledNotifications) {
-      // Check if trigger time has passed (within past 36 hours) and not yet sent
-      const isDue = now >= notif.triggerTimestamp && (now - notif.triggerTimestamp) < 36 * 3600 * 1000;
-      const storageKey = `aura_notif_sent_${notif.id}`;
-      if (isDue && !localStorage.getItem(storageKey)) {
-        void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
-          if (sent) {
-            try { localStorage.setItem(storageKey, String(now)); } catch {}
-          }
-        });
+    try {
+      const now = Date.now();
+      for (const notif of scheduledNotifications) {
+        if (!notif || !notif.triggerTimestamp) continue;
+        // Check if trigger time has passed (within past 36 hours) and not yet sent
+        const isDue = now >= notif.triggerTimestamp && (now - notif.triggerTimestamp) < 36 * 3600 * 1000;
+        const storageKey = `aura_notif_sent_${notif.id}`;
+        let alreadySent = false;
+        try {
+          alreadySent = Boolean(localStorage.getItem(storageKey));
+        } catch {}
+        if (isDue && !alreadySent) {
+          void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
+            if (sent) {
+              try {
+                localStorage.setItem(storageKey, 'true');
+              } catch {}
+            }
+          });
+        }
       }
+    } catch (e) {
+      console.warn('Notification dispatch error', e);
     }
   }, [scheduledNotifications, notificationPrefs.enabled]);
 
