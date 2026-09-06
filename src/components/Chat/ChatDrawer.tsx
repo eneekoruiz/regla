@@ -20,6 +20,10 @@ interface ChatDrawerProps {
   initialMessage?: string | null;
   onInitialMessageConsumed?: () => void;
   onOpenQuizModal?: (quizId: string) => void;
+  initialQuizKey?: ChatQuizKey | null;
+  onInitialQuizConsumed?: () => void;
+  initialCompletedQuiz?: { quizKey: ChatQuizKey; answers: Record<string, QuizAnswer> } | null;
+  onInitialCompletedQuizConsumed?: () => void;
 }
 const control = 'min-h-11 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-root)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60';
 const iconControl = 'flex size-11 shrink-0 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-root)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]';
@@ -53,8 +57,19 @@ function QuizControls({ question, disabled, onAnswer }: { question: QuizQuestion
   )}</div>;
 }
 
-function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMessageConsumed, onOpenQuizModal }: ChatDrawerProps & { storageKey: string }) {
-  const { currentDayInfo, cycleStats, settings } = useCycle();
+function ChatSession({
+  storageKey,
+  isOpen,
+  onClose,
+  initialMessage,
+  onInitialMessageConsumed,
+  onOpenQuizModal,
+  initialQuizKey,
+  onInitialQuizConsumed,
+  initialCompletedQuiz,
+  onInitialCompletedQuizConsumed
+}: ChatDrawerProps & { storageKey: string }) {
+  const { currentDayInfo, cycleStats, settings, saveQuizResult, selectedDate } = useCycle();
   const [snapshot, setSnapshot] = useState(() => loadConversation(storageKey));
   const snapshotRef = useRef(snapshot);
   const [isTyping, setIsTyping] = useState(false);
@@ -143,6 +158,42 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
   }, [handleSend, initialMessage, isOpen, isTyping, onInitialMessageConsumed]);
 
   useEffect(() => {
+    if (!initialQuizKey || !isOpen) return;
+    const timer = window.setTimeout(() => {
+      startQuiz(initialQuizKey);
+      onInitialQuizConsumed?.();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialQuizKey, isOpen, onInitialQuizConsumed, startQuiz]);
+
+  useEffect(() => {
+    if (!initialCompletedQuiz || !isOpen) return;
+    const timer = window.setTimeout(() => {
+      const { quizKey, answers } = initialCompletedQuiz;
+      const quiz = HEALTH_QUIZZES[quizKey];
+      const topic = LOCAL_CHAT_TOPICS.find(t => t.quizKey === quizKey);
+      const current = snapshotRef.current.conversation;
+      const userMsg = newChatMessage('user', `He completado el chequeo de **${quiz?.title || quizKey}**.`);
+      const feedbackText = completeQuiz(quizKey, answers);
+      const assistantMsg: ChatMessageWithQuiz = {
+        ...newChatMessage('assistant', feedbackText),
+        suggestions: [
+          ...(topic ? [topicSuggestion(topic)] : []),
+          ...CHAT_QUIZ_SUGGESTIONS.filter(item => item.quizKey !== quizKey).slice(0, 2)
+        ]
+      };
+      commit({
+        ...current,
+        messages: [...current.messages, userMsg, assistantMsg],
+        activeQuiz: null
+      });
+      onInitialCompletedQuizConsumed?.();
+      hapticSuccess();
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [initialCompletedQuiz, isOpen, onInitialCompletedQuizConsumed, commit]);
+
+  useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     const previousFocus = document.activeElement;
@@ -182,10 +233,22 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
       hapticTick();
     } else {
       const topic = LOCAL_CHAT_TOPICS.find(topic => topic.quizKey === active.key);
-      messages.push({ ...newChatMessage('assistant', completeQuiz(active.key, answers)),
+      const feedbackText = completeQuiz(active.key, answers);
+      messages.push({ ...newChatMessage('assistant', feedbackText),
         suggestions: [...(topic ? [topicSuggestion(topic)] : []), ...CHAT_QUIZ_SUGGESTIONS.filter(item => item.quizKey !== active.key).slice(0, 2)] });
       commit({ ...current, messages, activeQuiz: null });
       hapticSuccess();
+      try {
+        if (quiz?.id) {
+          saveQuizResult({
+            quizId: quiz.id,
+            completedAt: new Date().toISOString(),
+            answers: answers as Record<string, string | number | boolean>
+          }, selectedDate);
+        }
+      } catch {
+        // fail silently if cannot persist
+      }
     }
   }
   function choose(suggestion: ChatSuggestion) {
@@ -237,6 +300,37 @@ function ChatSession({ storageKey, isOpen, onClose, initialMessage, onInitialMes
         </div>
         <p id="chat-description" className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">Orientación local. Disponible sin conexión.</p>
       </header>
+      {/* Barra de accesos directos a cuestionarios en el chat */}
+      <div className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2">
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5">
+            <ClipboardList size={13} className="text-[var(--accent)]" /> Cuestionarios en el chat
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowCatalog(v => !v)}
+            className="text-[11px] font-medium text-[var(--accent)] hover:underline"
+          >
+            {showCatalog ? 'Ocultar catálogo' : 'Ver todos'}
+          </button>
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+          {CHAT_QUIZ_SUGGESTIONS.map(s => (
+            <button
+              key={s.id}
+              type="button"
+              disabled={isTyping}
+              onClick={() => {
+                if (s.quizKey) startQuiz(s.quizKey);
+              }}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-root)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all active:scale-95"
+            >
+              <Sparkles size={11} className="text-[var(--accent)]" />
+              <span>{s.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {confirmClear && <div className="shrink-0 border-b border-[var(--rose)] bg-[var(--rose-soft)] px-4 py-3 text-sm text-[var(--rose)]">
         <p className="font-semibold">¿Borrar esta conversación?</p><p className="mt-1 text-xs">Se eliminarán los mensajes y chequeos de este usuario en este navegador. Se conservan como máximo los últimos 200 mensajes.</p>
         <div className="mt-3 flex gap-2"><button type="button" onClick={clearHistory} className={control + ' flex items-center gap-2'}><Trash2 className="size-4" />Borrar</button>

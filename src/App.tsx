@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
@@ -20,6 +20,9 @@ import { HEALTH_QUIZZES } from './data/healthQuizzes';
 import { parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
+import type { ChatQuizKey } from './services/aiAgent';
+import type { QuizAnswer } from './components/Chat/chatHistory';
+import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
 
 import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
@@ -77,6 +80,8 @@ function MainScreen() {
   const [online, setOnline] = useState(() => navigator.onLine);
   const [storageFailed, setStorageFailed] = useState(() => hasReportedStorageError());
   const [chatMessage, setChatMessage] = useState<string | null>(null);
+  const [chatQuizKey, setChatQuizKey] = useState<ChatQuizKey | null>(null);
+  const [completedQuizFeedback, setCompletedQuizFeedback] = useState<{ quizKey: ChatQuizKey; answers: Record<string, QuizAnswer> } | null>(null);
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
@@ -92,6 +97,8 @@ function MainScreen() {
   const closeModal = () => setModal(null);
   const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
   const openChat = (message?: string) => { setChatMessage(message || null); openModal('chat'); };
+  const openChatWithQuiz = (quizKey: ChatQuizKey) => { setChatQuizKey(quizKey); openModal('chat'); };
+  const openChatWithCompletedQuiz = (quizKey: ChatQuizKey, answers: Record<string, QuizAnswer>) => { setCompletedQuizFeedback({ quizKey, answers }); openModal('chat'); };
   const openCare = (phase?: CyclePhase) => { setCarePhase(phase || currentDayInfo.phase); openModal('care'); };
   const handleInstall = async () => {
     if (canPrompt && !installed) {
@@ -110,6 +117,15 @@ function MainScreen() {
   const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
   const hasEntries = Boolean(log && (hasPeriod || hasIntimacy || log.symptoms.length || log.notes || log.bbt !== undefined || log.medications?.length || log.quizResults?.length));
+  const allQuizResults = useMemo(() => {
+    const list: QuizResult[] = [];
+    for (const l of Object.values(logs)) {
+      if (l.quizResults && l.quizResults.length > 0) {
+        list.push(...l.quizResults);
+      }
+    }
+    return list.sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+  }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : 'Herramientas';
   const hasCycle = Boolean(hasEnoughData && currentDayInfo.dayOfCycle > 0);
@@ -220,7 +236,6 @@ function MainScreen() {
                   </div>
                 </>}
               </section>
-              <QuizHistory results={log?.quizResults || []}/>
               <BiomarkersCard/>
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
@@ -290,36 +305,68 @@ function MainScreen() {
               <section className="tool-group" aria-label="Cuestionarios de bienestar">
                 <div className="tool-group-heading">
                   <h2>Cuestionarios de bienestar</h2>
-                  <p>Chequeos guiados para evaluar tu descanso, estrés y cólicos.</p>
+                  <p>Chequeos interactivos guiados por Confidente con feedback clínico y recomendaciones.</p>
                 </div>
                 <div className="tool-grid">
                   {Object.values(HEALTH_QUIZZES).map(quiz => {
                     if (!quiz || !quiz.id) return null;
                     const questionsCount = quiz.questions?.length ?? 0;
+                    const quizKey = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === quiz.id) || 'stress';
                     return (
-                      <button
-                        type="button"
+                      <div
                         key={quiz.id}
-                        className="tool-card"
-                        onClick={() => {
-                          setQuizId(quiz.id);
-                          openModal('quiz');
-                        }}
+                        className="tool-card flex flex-col justify-between"
+                        style={{ textAlign: 'left' }}
                       >
-                        <div className="tool-card-top">
-                          <div className="tool-card-icon">
-                            <ClipboardList size={20} aria-hidden="true" />
+                        <div
+                          onClick={() => openChatWithQuiz(quizKey)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChatWithQuiz(quizKey); } }}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <div className="tool-card-top">
+                            <div className="tool-card-icon">
+                              <ClipboardList size={20} aria-hidden="true" />
+                            </div>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+                              En el chat
+                            </span>
                           </div>
-                          <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
+                          <div className="tool-card-body">
+                            <strong>{quiz.title}</strong>
+                            <span>{questionsCount} preguntas · Chequeo guiado</span>
+                          </div>
                         </div>
-                        <div className="tool-card-body">
-                          <strong>{quiz.title}</strong>
-                          <span>{questionsCount} preguntas · Chequeo guiado</span>
+                        <div className="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => openChatWithQuiz(quizKey)}
+                            className="text-[var(--accent)] font-medium flex items-center gap-1 hover:underline"
+                          >
+                            <MessageCircle size={13} /> Iniciar en Confidente
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuizId(quiz.id);
+                              openModal('quiz');
+                            }}
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:underline text-[11px]"
+                            title="Abrir en ventana grande"
+                          >
+                            Ventana amplia
+                          </button>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
+                {allQuizResults.length > 0 && (
+                  <div className="mt-6 border-t border-[var(--border-subtle)] pt-4">
+                    <QuizHistory results={allQuizResults} />
+                  </div>
+                )}
               </section>
             </div>
           )}
@@ -339,8 +386,32 @@ function MainScreen() {
       {modal === 'care' && <CycleSyncingModal isOpen initialPhase={carePhase} onClose={closeModal}/>}
       {modal === 'import' && <UniversalImportModal isOpen onClose={closeModal}/>}
       {modal === 'export' && <MedicalExportModal isOpen onClose={closeModal}/>}
-      {modal === 'chat' && <ChatDrawer isOpen onClose={closeModal} initialMessage={chatMessage} onInitialMessageConsumed={() => setChatMessage(null)} onOpenQuizModal={id => { setQuizId(id); openModal('quiz'); }}/>}
-      {modal === 'quiz' && <InteractiveQuizModal quiz={Object.values(HEALTH_QUIZZES).find(quiz => quiz.id === quizId) || HEALTH_QUIZZES.stress} isOpen onClose={closeModal} onComplete={result => { saveQuizResult(result, selectedDate); changeView('diary'); requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true })); }}/>}
+      {modal === 'chat' && (
+        <ChatDrawer
+          isOpen
+          onClose={closeModal}
+          initialMessage={chatMessage}
+          onInitialMessageConsumed={() => setChatMessage(null)}
+          onOpenQuizModal={id => { setQuizId(id); openModal('quiz'); }}
+          initialQuizKey={chatQuizKey}
+          onInitialQuizConsumed={() => setChatQuizKey(null)}
+          initialCompletedQuiz={completedQuizFeedback}
+          onInitialCompletedQuizConsumed={() => setCompletedQuizFeedback(null)}
+        />
+      )}
+      {modal === 'quiz' && (
+        <InteractiveQuizModal
+          quiz={Object.values(HEALTH_QUIZZES).find(quiz => quiz.id === quizId) || HEALTH_QUIZZES.stress}
+          isOpen
+          onClose={closeModal}
+          onComplete={result => {
+            saveQuizResult(result, selectedDate);
+            closeModal();
+            const key = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === result.quizId) || 'stress';
+            openChatWithCompletedQuiz(key, result.answers);
+          }}
+        />
+      )}
       {isSettingsOpen && <SettingsDrawer onOpenModularProfile={() => openModal('profile')}/>}
     </Suspense>
   </MobileContainer>;

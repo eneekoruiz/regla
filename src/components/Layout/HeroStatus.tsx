@@ -67,7 +67,8 @@ export function HeroStatus({
   const hasIntimacy = Boolean((log?.intimacyLog && log.intimacyLog.activity !== 'none') || (log?.intimacy && log.intimacy !== 'none'));
   const hasMeds = Boolean(log?.medications && log.medications.some(m => m.taken));
   const hasBbt = Boolean(log?.bbt !== undefined && Number.isFinite(log.bbt));
-  const hasAnyAnnotation = symptoms.length > 0 || Boolean(notes) || hasIntimacy || hasMeds || hasBbt;
+  const hasQuizResults = Boolean(log?.quizResults && log.quizResults.length > 0);
+  const hasAnyAnnotation = symptoms.length > 0 || Boolean(notes) || hasIntimacy || hasMeds || hasBbt || hasQuizResults;
 
   // Handler para confirmar fin de regla en el día de hoy y recalcular
   const handleConfirmPeriodEndToday = () => {
@@ -84,7 +85,7 @@ export function HeroStatus({
   };
 
   let title = hasCycle ? `Día ${cycleDay} de tu ciclo` : 'Tu primer registro';
-  let copy = hasCycle ? day.phaseName : 'Anota cuándo empezó tu regla. No necesitas conocer todavía la duración de tu ciclo.';
+  let copy = hasCycle ? `Día ${cycleDay} del ciclo` : 'Anota cuándo empezó tu regla. No necesitas conocer todavía la duración de tu ciclo.';
 
   if (hasEnoughData && !hasCycle) {
     title = 'Un día de tu historia';
@@ -94,16 +95,16 @@ export function HeroStatus({
       // Día pasado: confirmación y edición clara sin círculo
       if (isRecorded) {
         title = 'Tuviste la regla este día';
-        copy = `${day.phaseName} · Flujo ${flowName} registrado`;
+        copy = `Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
       } else if (isIrregular) {
         title = 'Sangrado irregular registrado';
-        copy = `${day.phaseName} · Flujo ${flowName}`;
+        copy = `Flujo ${flowName} · Día ${cycleDay} del ciclo`;
       } else if (day.isPeriod) {
         title = 'Previsión de regla no confirmada';
         copy = 'Había previsión de regla para esta fecha. Confirma si te bajó.';
       } else {
         title = `Día ${cycleDay} de tu ciclo`;
-        copy = `${day.phaseName} · Día pasado`;
+        copy = `Día ${cycleDay} de tu ciclo`;
       }
     } else if (isFuture) {
       if (isPeriodDay) {
@@ -115,34 +116,34 @@ export function HeroStatus({
           : daysToNext === 1
             ? 'Te queda 1 día para la regla'
             : `Día ${cycleDay} de tu ciclo`;
-        copy = `${day.phaseName} · Previsión del ciclo`;
+        copy = `Día ${cycleDay} del ciclo`;
       }
     } else {
       // Hoy
       if (isRecorded) {
         title = 'En tu periodo';
-        copy = `Ve a tu ritmo. Registro de regla activo · Flujo ${flowName}.`;
+        copy = `Ve a tu ritmo · Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
       } else if (isPeriodDay) {
         title = 'Periodo estimado para hoy';
         copy = 'Esta fecha es una previsión. Confirma o corrige el sangrado de hoy.';
       } else if (isJustFinishedPeriod) {
         title = 'Tu regla ha terminado';
-        copy = `Te faltan ~${daysToNext} días para tu próxima regla · ${day.phaseName}`;
+        copy = `Te faltan ${daysToNext} días para tu próxima regla · Día ${cycleDay} del ciclo`;
       } else if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
         copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
       } else if (daysToNext > 1) {
         title = `Te quedan ${daysToNext} días para la regla`;
-        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
+        copy = `Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 1) {
         title = 'Te queda 1 día para la regla';
-        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
+        copy = `Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 0) {
         title = 'Fecha estimada de regla: hoy';
-        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
+        copy = `Día ${cycleDay} del ciclo`;
       } else {
         title = 'Tu ciclo tiene su ritmo';
-        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
+        copy = `Día ${cycleDay} del ciclo`;
       }
     }
   }
@@ -317,17 +318,67 @@ export function HeroStatus({
           )}
         </div>
 
-        {/* El círculo solo se muestra en el día de hoy */}
+        {/* El círculo solo se muestra en el día de hoy con la cuenta atrás sincronizada */}
         {showRing && (
-          <div className="cycle-ring hero-prominent-ring" role="img" aria-label={`Día ${cycleDay} ${isPeriodDay ? 'del periodo' : 'del ciclo'}; duración estimada ${activeDuration} días`}>
+          <div
+            className="cycle-ring hero-prominent-ring"
+            role="img"
+            aria-label={
+              isPeriodDay
+                ? `Día ${cycleDay} de regla`
+                : daysToNext === 1
+                  ? 'Queda 1 día para la regla'
+                  : daysToNext > 0
+                    ? `Quedan ${daysToNext} días para la regla`
+                    : `Día ${cycleDay} del ciclo`
+            }
+          >
             <svg viewBox="0 0 140 140" aria-hidden="true">
               <circle cx="70" cy="70" r="58" fill="none" stroke="var(--border-subtle)" strokeWidth="8"/>
-              <circle cx="70" cy="70" r="58" fill="none" stroke="var(--phase-ink)" strokeWidth="8" strokeLinecap="round" strokeDasharray={`${progress * circumference} ${circumference}`} transform="rotate(-90 70 70)"/>
+              <circle
+                cx="70"
+                cy="70"
+                r="58"
+                fill="none"
+                stroke="var(--phase-ink)"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={`${progress * circumference} ${circumference}`}
+                transform="rotate(-90 70 70)"
+              />
             </svg>
             <span className="cycle-ring-label">
-              <span>DÍA</span>
-              <strong className="cycle-ring-day-number">{cycleDay}</strong>
-              <span>de ~{activeDuration} días</span>
+              {isPeriodDay ? (
+                <>
+                  <span>DÍA</span>
+                  <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                  <span>de regla</span>
+                </>
+              ) : awaitingPeriod ? (
+                <>
+                  <span>ESPERANDO</span>
+                  <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
+                  <span>días</span>
+                </>
+              ) : daysToNext === 1 ? (
+                <>
+                  <span>QUEDA</span>
+                  <strong className="cycle-ring-day-number">1</strong>
+                  <span>día</span>
+                </>
+              ) : daysToNext > 1 ? (
+                <>
+                  <span>QUEDAN</span>
+                  <strong className="cycle-ring-day-number">{daysToNext}</strong>
+                  <span>días</span>
+                </>
+              ) : (
+                <>
+                  <span>PREVISIÓN</span>
+                  <strong className="cycle-ring-day-number" style={{ fontSize: '1.4rem' }}>Hoy</strong>
+                  <span>de regla</span>
+                </>
+              )}
             </span>
           </div>
         )}
@@ -346,6 +397,7 @@ export function HeroStatus({
                   {hasIntimacy && <li>Intimidad</li>}
                   {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
                   {hasBbt && <li>{log?.bbt} °C</li>}
+                  {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
                 </ul>
                 {notes && <p className="hero-notes-preview">“{notes}”</p>}
                 <button
@@ -389,6 +441,7 @@ export function HeroStatus({
                   {hasIntimacy && <li>Intimidad</li>}
                   {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
                   {hasBbt && <li>{log?.bbt} °C</li>}
+                  {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
                 </ul>
                 {notes && <span className="hero-today-notes-snippet">“{notes}”</span>}
               </div>
