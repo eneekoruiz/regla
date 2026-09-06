@@ -58,55 +58,55 @@ interface LocalTopic {
 export const LOCAL_CHAT_TOPICS: readonly LocalTopic[] = [
   { id: 'emergency', label: 'Anticoncepción de urgencia', prompt: 'Anticoncepción de urgencia',
     pattern: /emergencia|urgencia|dia despues|sin proteccion|riesgo sexual|preservativo.*rot|condon.*rot/,
-    text: 'Si hubo una relación sin protección o falló el método, consulta cuanto antes con una farmacia o un servicio sanitario. Según el método, hay opciones hasta 3 o 5 días después; conviene actuar pronto. El calendario de Aura no permite descartar un embarazo ni decidir que un día es seguro.', source: 'emergency' },
+    text: 'Si hubo una relación sin protección o falló el método, es importante que consultes cuanto antes en una farmacia o centro sanitario. Según el método elegido, hay opciones eficaces durante las primeras 72 o 120 horas (3 a 5 días), y cuanto antes se actúe, mejor. El calendario de Aura no permite descartar un embarazo ni calcular días seguros.', source: 'emergency' },
   { id: 'pregnancy', label: 'Retrasos y test de embarazo', prompt: 'Cuándo hacer un test de embarazo',
     pattern: /embaraz|retras|no me (baja|viene)|falta.*regla|gestacion/,
-    text: 'La mayoría de los test son fiables desde el primer día de falta. Si no sabes cuándo esperabas la regla, hazlo al menos 21 días después de la última relación sin protección. Sigue las instrucciones; si sale negativo y la regla no llega, repítelo unos días después y consulta si persiste la duda.', source: 'pregnancy' },
+    text: 'Entiendo que un retraso pueda inquietarte. La mayoría de los test de orina son muy fiables desde el primer día de falta de la regla. Si no sabes cuándo la esperabas, realízalo al menos 21 días después de la última relación sexual sin protección. Si sale negativo y sigue sin bajarte tras unos días, repítelo con calma y consúltalo con tu médica.', source: 'pregnancy' },
   { id: 'import', label: 'Importar y exportar', prompt: 'Importar y exportar mis datos',
     pattern: /import|export|copia|backup|apple|\bflo\b|archivo|\bcsv\b|\bpdf\b/,
-    text: 'La importación, exportación y las copias disponibles están en Ajustes. Revisa el formato admitido antes de seleccionar un archivo y comprueba las fechas tras importarlo. Este chat no abre archivos ni añade registros a tu calendario. El historial de esta conversación se guarda por separado en este navegador.' },
+    text: 'Puedes gestionar todas tus copias y traspasos de datos desde el menú de Ajustes (icono de engranaje). Allí puedes exportar una copia normal o cifrada con clave, e importar archivos compatibles. Este chat funciona de forma totalmente privada e independiente dentro de tu navegador.', source: 'periods' },
   { id: 'privacy', label: 'Privacidad y modo sin conexión', prompt: 'Privacidad del chat sin conexión',
     pattern: /privac|privad|offline|sin conexion|internet|borrar|historial|guardad|cifrad|segur.*datos/,
-    text: 'El chat responde con un catálogo incluido en la app: no envía tus mensajes a un modelo remoto y ofrece los mismos temas con y sin conexión. El historial queda en este navegador, separado por usuario, y puedes borrarlo desde la papelera del chat. No está cifrado con una contraseña. Los enlaces a fuentes externas necesitan conexión.' },
+    text: 'Tu privacidad es lo primero. Este chat funciona de forma completamente local en tu navegador con un catálogo integrado de bienestar. Tus conversaciones no se envían a ningún servidor externo ni se comparten con nadie. Puedes limpiar tu historial cuando quieras desde el icono de papelera.', source: 'periods' },
   { id: 'pcos', label: 'SOP e irregularidad', prompt: 'Información sobre SOP e irregularidad',
     pattern: /\bsop\b|\bpcos\b|poliqu|irregular|inositol/,
-    text: 'Los ciclos irregulares pueden tener distintas causas. Un chequeo breve no diagnostica SOP ni confirma que has ovulado. Registra fechas y cambios que quieras comentar en consulta; el diagnóstico y los tratamientos requieren valoración individual. No empieces suplementos ni cambies medicación basándote en este chat.', source: 'pcos', quizKey: 'pcos' },
+    text: 'Tener ciclos irregulares o sospecha de SOP es muy frecuente y no estás sola en esto. Los ciclos pueden variar por muchos factores hormonales y metabólicos. Anotar tus síntomas y cuándo aparecen te dará información valiosa para compartir con tu ginecóloga. Puedes hacer el chequeo rápido de SOP para ver qué áreas comentar en tu próxima visita.', source: 'pcos', quizKey: 'pcos' },
   { id: 'pms', label: 'Síntomas premenstruales', prompt: 'Síntomas premenstruales y SPM',
     pattern: /premenstrual|\bspm\b|\bpms\b|antojo|irritab|hincha|trist|animo/,
-    text: 'Los síntomas antes de la regla pueden variar entre ciclos. Anotar cuándo aparecen y cuánto afectan a tu día durante al menos dos ciclos puede ayudar en consulta. Descanso, actividad adaptada y comidas regulares pueden ser útiles. Si afectan a tus relaciones, trabajo o bienestar, pide ayuda profesional; un chequeo no establece un diagnóstico.', source: 'pms', quizKey: 'pms' },
-  { id: 'sleep', label: 'Sueño y cafeína', prompt: 'Mejorar el sueño y el descanso',
+    text: 'Los días previos a la regla pueden ser una auténtica montaña rusa emocional y física. La hinchazón, la sensibilidad y los cambios de humor son respuestas directas al cambio de estrógenos y progesterona. No te juzgues por sentirte vulnerable o con menos paciencia. Descansar, hidratarte y comer alimentos reconfortantes te ayudará a transitarlo mejor.', source: 'pms', quizKey: 'pms' },
+  { id: 'sleep', label: 'Sueño y descanso', prompt: 'Mejorar el sueño y el descanso',
     pattern: /sueno|dorm|descans|insomnio|cafe|cafeina|postura/,
-    text: 'Mantén una hora de levantarte regular, reserva un rato tranquilo antes de acostarte y procura un dormitorio oscuro y cómodo. Evita café o té durante las seis horas previas a dormir si afectan a tu descanso. Si las dificultades persisten o limitan tu día, consulta. Puedes completar el chequeo de sueño para ordenar cómo te encuentras.', source: 'sleep', quizKey: 'sleep' },
+    text: 'Un descanso reparador es fundamental para tu equilibrio hormonal. Procura atenuar las luces y alejar las pantallas una hora antes de dormir, y mantén tu habitación a una temperatura fresca y agradable. Si la mente no para de dar vueltas, dejar por escrito tus pensamientos en una libreta antes de meterte en la cama ayuda a desconectar. Tómate una infusión tibia y respira despacio.', source: 'sleep', quizKey: 'sleep' },
   { id: 'stress', label: 'Estrés y respiración', prompt: 'Estrés y respiración tranquila',
     pattern: /estres|ansiedad|respira|tension|agobio|4.?7.?8|calmar/,
-    text: 'Haz una pausa en una postura cómoda. Inspira por la nariz y suelta el aire suavemente, sin forzar ni retener la respiración. Puedes contar despacio si te ayuda. Si te mareas, vuelve a respirar con normalidad. Esta práctica puede acompañar el cuidado diario; si el malestar persiste, busca apoyo profesional.', source: 'stress', quizKey: 'stress' },
+    text: 'Respira hondo conmigo. Sé que a veces las cosas se acumulan y el cuerpo lo siente enseguida. Regálate tres respiraciones lentas: inspira por la nariz contando hasta 4, siente cómo se expande tu abdomen, y exhala suavemente por la boca contando hasta 6. Bajar los hombros y aflojar la mandíbula ya le envía a tu sistema nervioso una señal de calma. Estoy aquí contigo.', source: 'stress', quizKey: 'stress' },
   { id: 'nutrition', label: 'Alimentación y suplementos', prompt: 'Alimentación y suplementos',
     pattern: /nutric|aliment|comida|dieta|hierro|semilla|seed cycling|azucar|magnesio|suplement|infusion|jengibre|receta/,
-    text: 'Una alimentación variada y regular es una base de cuidado. No puedo indicarte una dieta clínica ni dosis de suplementos. No se puede prometer equilibrio hormonal con semillas o infusiones. Comenta cualquier suplemento con un profesional, especialmente si tomas medicación o podrías estar embarazada.', source: 'pms' },
+    text: 'Nutrir tu cuerpo según el momento de tu ciclo te ayuda a sentirte con más ligereza y vitalidad. Los alimentos ricos en magnesio (como frutos secos o chocolate negro), el hierro de legumbres y verduras de hoja, y una buena hidratación son grandes aliados contra la pesadez y los cólicos. Escucha lo que te pide tu cuerpo sin culpas.', source: 'pms' },
   { id: 'movement', label: 'Movimiento y ejercicio', prompt: 'Movimiento y ejercicio durante el ciclo',
     pattern: /movimiento|ejercicio|entren|deporte|fuerza|hiit|pilates|yoga|estira|camina/,
-    text: 'Ajusta la actividad a cómo te encuentras. Caminar o hacer movimiento suave puede ayudar con las molestias menstruales; no hay una intensidad obligatoria por fase. Reduce o para si aparece dolor. Si las molestias impiden tus actividades habituales, consulta en vez de forzar el entrenamiento.', source: 'pain' },
+    text: 'El movimiento no tiene que ser siempre exigente: caminar al aire libre, hacer estiramientos suaves o una sesión de yoga o pilates puede aliviar la congestión pélvica y mejorar tu estado de ánimo. Si en tus días de sangrado tu cuerpo te pide descansar, honra esa necesidad sin culpa; el descanso también es parte del entrenamiento.', source: 'pain' },
   { id: 'pain', label: 'Dolor y cólicos', prompt: 'Dolor menstrual y cólicos',
     pattern: /dolor|colico|calambre|calor|ibuprofeno|paracetamol|analges|endometriosis|prostaglandina/,
-    text: 'Para molestias leves, prueba calor templado envuelto en una tela o movimiento suave si te resulta cómodo. Evita el calor que queme. Si el dolor es intenso, distinto del habitual o no mejora, busca atención sanitaria. No puedo elegir un medicamento ni una dosis para ti; consulta el prospecto y a un profesional.', source: 'pain', quizKey: 'cramps' },
+    text: 'Siento mucho que estés sintiendo molestias. Para aliviar los cólicos, el calor suave es maravilloso: una bolsa de agua tibia o una mantita en el bajo vientre relaja los músculos en pocos minutos. También ayuda hacer respiraciones profundas aflojando la pelvis. Si sueles tomar algún antiinflamatorio habitual, tómalo con alimentos. Si el dolor es incapacitante, no dudes en consultar a un profesional.', source: 'pain', quizKey: 'cramps' },
   { id: 'bleeding', label: 'Sangrado y manchado', prompt: 'Sangrado y manchado menstrual',
     pattern: /sangrad|manchad|spotting|flujo abundante|hemorrag/,
-    text: 'Anota duración, cantidad aproximada y cambios respecto a tu patrón habitual. Si sangras entre reglas, después de relaciones o tras la menopausia, pide valoración. Si el sangrado es muy abundante y te encuentras débil o mareada, busca atención urgente. El chat no puede determinar la causa.', source: 'periods' },
+    text: 'Anota en tu diario la cantidad aproximada y los cambios de flujo que observes. Es normal que el flujo varíe entre los primeros días y el final de la regla. Si notas un sangrado entre reglas, tras las relaciones o si el sangrado es tan abundante que empapa una compresa por hora o te causa mareos, busca atención médica de inmediato.', source: 'periods' },
   { id: 'fertility', label: 'Ovulación y fertilidad', prompt: 'Ovulación y fertilidad',
     pattern: /ovul|fertil|moco|temperatura basal|\bbbt\b|concebir/,
-    text: 'La fecha de ovulación puede variar. El calendario y los síntomas dan estimaciones, no una confirmación de ovulación ni días seguros para evitar un embarazo. Con ciclos irregulares la incertidumbre puede ser mayor. Si buscas embarazo o necesitas anticoncepción, pide orientación adaptada a tu situación.', source: 'periods' },
+    text: 'La ventana fértil y la ovulación varían según cada cuerpo y cada ciclo. Los cambios en el flujo cervical (más elástico y transparente) y la temperatura basal son señales naturales preciosas. Recuerda que las estimaciones del calendario son orientativas y no sustituyen un método anticonceptivo ni confirman la ovulación médica.', source: 'periods' },
   { id: 'contraception', label: 'Anticonceptivos', prompt: 'Anticonceptivos y cambios del ciclo',
     pattern: /anticoncept|pildora|pastilla|\bdiu\b|implante|olvido|condon|preservativo/,
-    text: 'Los anticonceptivos pueden cambiar el patrón de sangrado y algunos suprimen la ovulación. Sigue las instrucciones de tu método; ante un olvido, consulta su prospecto o a una farmacia. Aura no puede indicar días sin riesgo ni sustituir un método anticonceptivo. Si hubo un fallo reciente, consulta sobre anticoncepción de urgencia.', source: 'emergency' },
+    text: 'Los anticonceptivos hormonales regulan o suprimen el ciclo ovulatorio natural, por lo que los sangrados suelen ser por deprivación. Si tomas la píldora y has tenido un olvido, revisa el prospecto de tu caja y actúa rápido. Ante cualquier duda imprevista, consulta en tu farmacia o centro de salud.', source: 'emergency' },
   { id: 'intimacy', label: 'Intimidad y deseo', prompt: 'Intimidad y deseo sexual',
     pattern: /intimidad|sexo|sexual|libido|deseo|orgasmo|relacion/,
-    text: 'El deseo puede variar y no tienes que ajustarte a un patrón de ciclo. Puedes registrar cómo te sientes sin sacar conclusiones a partir de un solo día. Si hay dolor durante las relaciones o sangrado después, pide valoración. El consentimiento, la comodidad y la protección siguen siendo lo principal.', source: 'periods' },
+    text: 'El deseo sexual es fluctuante y completamente natural que cambie según la fase hormonal, el estrés o tu nivel de energía. No tienes ninguna obligación de sentirte igual todos los días. La clave siempre está en tu propia comodidad, tus deseos y el consentimiento mutuo. Si experimentas dolor o molestias durante las relaciones, coméntalo con tu especialista.', source: 'periods' },
   { id: 'biomarkers', label: 'Analíticas y hormonas', prompt: 'Analíticas y hormonas',
     pattern: /analitic|hormona|progester|estradiol|\blh\b|\bfsh\b|\bamh\b|biomarc|laboratorio/,
-    text: 'Un valor aislado no permite confirmar una enfermedad, tu fertilidad ni que hayas ovulado. La interpretación depende de las unidades, los intervalos del laboratorio, la fecha y tu historia clínica. Guarda el informe original y revísalo con tu profesional. Este chat no interpreta analíticas de forma diagnóstica.' },
+    text: 'Los valores hormonales cambian según el día exacto del ciclo en que se extraiga la muestra sanguínea. Guarda siempre el informe original con sus rangos de referencia y llévalo a tu médica o ginecóloga para que lo interprete dentro de tu contexto personal y de salud general.', source: 'periods' },
   { id: 'phase', label: 'Mi fase y cuidados de hoy', prompt: 'Consejos para mi fase de hoy',
     pattern: /fase|ciclo|menstrual|regla|hoy|cuidarm|consejo/,
-    text: 'La fase mostrada en Aura es una estimación a partir de tus registros. Úsala para observar patrones y decide el descanso y la actividad según cómo te encuentres. El calendario no mide hormonas ni permite descartar problemas de salud.' }
+    text: 'Tu ciclo es un proceso dinámico con cuatro fases: menstrual, folicular, ovulatoria y lútea. Cada una trae cambios en tus niveles de energía, concentración y emociones. Conocer en qué fase estás te permite planificar tu ritmo diario y cuidarte con amabilidad sin exigirte lo mismo cada día.' }
 ];
 
 export const CHAT_QUIZ_SUGGESTIONS: ChatSuggestion[] = [
@@ -153,13 +153,16 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
     const previous = [...history].reverse().find(message => message.role === 'assistant' && message.topicId);
     topic = LOCAL_CHAT_TOPICS.find(item => item.id === previous?.topicId);
   }
-  if (!topic) return {
-    mode: 'local', topicId: 'catalog',
-    text: /^(hola|buenas|hey|gracias|que tal|como estas)[!. ]*$/.test(text)
-      ? '¡Hola! Puedes preguntarme sobre tu ciclo, fertilidad, síntomas o elegir un tema de abajo. Mis funciones de bienestar están listas en tu dispositivo.'
-      : 'Esa es una buena pregunta. Actualmente funciono como un Confidente 100% offline para proteger tu privacidad, por lo que mi conocimiento se centra en tu salud menstrual, síntomas, y cuidados básicos. Puedes preguntarme sobre cólicos, alimentación, fase de tu ciclo o elegir uno de estos temas:',
-    suggestions: LOCAL_CHAT_TOPICS.filter(item => ['pain', 'sleep', 'phase', 'privacy'].includes(item.id)).map(topicSuggestion)
-  };
+  if (!topic) {
+    const isGreeting = /^(hola|buenas|buenos dias|buenas tardes|buenas noches|hey|que tal|como estas|quien eres|como te llamas|gracias|muchas gracias)[!. ]*$/.test(text);
+    return {
+      mode: 'local', topicId: 'catalog',
+      text: isGreeting
+        ? '¡Hola! Qué alegría hablar contigo. Estoy aquí para acompañarte, resolver dudas sobre tu ciclo, entender lo que estás sintiendo o darte pautas de autocuidado suave. Puedes contarme cómo te encuentras o elegir uno de estos temas para empezar:'
+        : 'Te escucho con atención y cariño. Estoy aquí para cuidarte y acompañarte en todo lo relativo a tu ciclo, tus emociones, síntomas físicos y descanso diario. Cuéntame con confianza qué estás sintiendo en tu cuerpo o qué te preocupa hoy, o si lo prefieres, elige alguno de estos temas para explorar juntas:',
+      suggestions: LOCAL_CHAT_TOPICS.filter(item => ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).map(topicSuggestion)
+    };
+  }
   const phaseNote = topic.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';
   const suggested = LOCAL_CHAT_TOPICS.filter(item => item.id !== topic.id && ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).slice(0, 2).map(topicSuggestion);
   if (topic.quizKey) suggested.unshift(CHAT_QUIZ_SUGGESTIONS.find(item => item.quizKey === topic.quizKey)!);

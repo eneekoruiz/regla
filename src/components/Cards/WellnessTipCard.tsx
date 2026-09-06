@@ -6,6 +6,9 @@ import { generateDailyWellnessCarousel } from '../../services/wellnessAgent';
 export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string) => void }) {
   const { currentDayInfo, selectedDate, settings, hasEnoughData } = useCycle();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
   const hasCycle = hasEnoughData && currentDayInfo.dayOfCycle > 0;
   const cards = useMemo(() => hasCycle ? generateDailyWellnessCarousel({
     date: selectedDate, dayOfCycle: currentDayInfo.dayOfCycle, phase: currentDayInfo.phase,
@@ -21,6 +24,25 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
   ], [currentDayInfo, selectedDate, settings, hasCycle]);
   const index = Math.min(activeIndex, Math.max(0, cards.length - 1));
   const card = cards[index];
+
+  const minSwipeDistance = 40;
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = () => {
+    if (touchStart === null || touchEnd === null) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance && index < cards.length - 1) {
+      setActiveIndex(prev => prev + 1);
+    } else if (distance < -minSwipeDistance && index > 0) {
+      setActiveIndex(prev => prev - 1);
+    }
+  };
+
   if (!card) return null;
   return <section className="wellness-section" aria-labelledby="wellness-title">
     <div className="section-heading"><h2 id="wellness-title">Un momento para ti</h2><div className="wellness-controls">
@@ -28,7 +50,14 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
       <span className="wellness-count">{index + 1}/{cards.length}</span>
       <button type="button" className="aura-icon-button" aria-label="Siguiente consejo" title="Siguiente consejo" disabled={index === cards.length - 1} onClick={() => setActiveIndex(index + 1)}><ChevronRight size={18}/></button>
     </div></div>
-    <article className="advice-card" aria-live="polite" aria-atomic="true">
+    <article
+      className="advice-card touch-pan-y select-none"
+      aria-live="polite"
+      aria-atomic="true"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="advice-category"><Leaf size={18}/>{card.categoryTitle || card.category}</div>
       <h3>{card.headline}</h3><p>{card.advice}</p>
       {card.focusTip && <p className="advice-tip">{card.focusTip}</p>}

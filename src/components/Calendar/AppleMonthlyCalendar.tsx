@@ -56,18 +56,32 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
           const fertile = hasEnoughData && info.isFertileWindow;
           const ovulation = hasEnoughData && info.isOvulationDay;
           const state = recordedPeriod ? 'Regla registrada' : period ? 'Regla estimada' : ovulation ? 'Ovulación estimada' : fertile ? 'Ventana fértil estimada' : '';
-          const color = isRefugio ? 'bg-[var(--bg-chip)] text-[var(--text-primary)]' : recordedPeriod ? 'bg-[var(--rose)] text-[var(--accent-on)]' : period ? 'bg-[var(--rose-soft)] text-[var(--rose)]' : ovulation ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : fertile ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'text-[var(--text-primary)] hover:bg-[var(--bg-chip)]';
-          return <button type="button" key={date} id={'calendar-day-' + date} aria-label={`${parseDateKey(date).toLocaleDateString('es-ES', { dateStyle: 'full' })}${state ? ', ' + state : ''}${info.hasLog ? ', con registros' : ''}`} aria-current={date === todayDate ? 'date' : undefined} aria-pressed={date === selectedDate} onClick={() => select(date)} onKeyDown={event => moveFocus(event, date)}
-            className={`relative flex min-h-11 min-w-0 flex-col items-center justify-center rounded-lg border-2 text-sm ${color} ${date === selectedDate ? 'border-[var(--accent)] font-bold' : 'border-transparent'}`}>
-            <span className={date === todayDate ? 'underline decoration-2 underline-offset-4' : ''}>{index + 1}</span>
-            {info.hasLog && <span aria-hidden="true" className="absolute bottom-0.5 h-1 w-1 rounded-full bg-current" />}
-          </button>;
+          const isSelected = date === selectedDate;
+          const isToday = date === todayDate;
+          const color = isRefugio
+            ? 'bg-[var(--bg-chip)] text-[var(--text-primary)]'
+            : recordedPeriod
+            ? 'bg-[var(--rose)] text-[var(--accent-on)] font-semibold shadow-sm'
+            : period
+            ? 'bg-[var(--rose-soft)] text-[var(--rose)] font-semibold'
+            : ovulation
+            ? 'bg-[var(--accent-soft)] text-[var(--accent)] ring-1 ring-[var(--accent)] font-semibold'
+            : fertile
+            ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+            : 'text-[var(--text-primary)] hover:bg-[var(--bg-chip)]';
+          return <div key={date} className="flex items-center justify-center py-0.5">
+            <button type="button" id={'calendar-day-' + date} aria-label={`${parseDateKey(date).toLocaleDateString('es-ES', { dateStyle: 'full' })}${state ? ', ' + state : ''}${info.hasLog ? ', con registros' : ''}`} aria-current={isToday ? 'date' : undefined} aria-pressed={isSelected} onClick={() => select(date)} onKeyDown={event => moveFocus(event, date)}
+              className={`relative mx-auto flex h-10 w-10 sm:h-11 sm:w-11 flex-col items-center justify-center rounded-full text-sm transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${color} ${isSelected ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--bg-root)] font-bold scale-105' : ''}`}>
+              <span className={isToday && !recordedPeriod ? 'font-bold underline decoration-2 underline-offset-2' : ''}>{index + 1}</span>
+              {info.hasLog && <span aria-hidden="true" className="absolute bottom-1 h-1 w-1 rounded-full bg-current opacity-80" />}
+            </button>
+          </div>;
         })}
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--border-subtle)] pt-3 text-[13px] text-[var(--text-secondary)]">
-        <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-[var(--rose)]" />Regla registrada</span>
-        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />Regla estimada</span>}
-        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-[var(--accent)]" />Fertilidad estimada</span>}
+        <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--rose)]" />Regla registrada</span>
+        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />Regla estimada</span>}
+        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--accent)]" />Fertilidad estimada</span>}
         {onOpenLegendModal && <button type="button" onClick={onOpenLegendModal} className="aura-button min-h-11 text-sm"><Info size={17} aria-hidden="true" />Leyenda</button>}
         {onOpenCycleSyncing && <button type="button" onClick={() => onOpenCycleSyncing()} className="aura-button min-h-11 text-sm">Guía de fases</button>}
       </div>

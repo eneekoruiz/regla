@@ -43,7 +43,7 @@ type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile'
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData } = useCycle();
   const [view, setView] = useState<AppView>('diary');
   const [modal, setModal] = useState<ModalName | null>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -71,6 +71,8 @@ function MainScreen() {
   const hasEntries = Boolean(log && (hasPeriod || hasIntimacy || log.symptoms.length || log.notes || log.bbt !== undefined || log.medications?.length || log.quizResults?.length));
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : 'Herramientas';
+  const hasCycle = Boolean(hasEnoughData && currentDayInfo.dayOfCycle > 0);
+  const isFuture = selectedDate > todayDate;
   const tools = [
     { id: 'analytics' as const, name: 'Tendencias del ciclo', description: 'Historial, duración y variaciones', icon: BarChart3 },
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
@@ -87,27 +89,29 @@ function MainScreen() {
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
-        <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'diary' ? (settings.userName ? `¡Hola, ${settings.userName}!` : 'Bienvenida') : view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
+        {view !== 'diary' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
           <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
-        </div>
+        </div>}
+        {view === 'diary' && <HorizontalTimeline/>}
         {view !== 'calendar' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
         </div></div>}
         {view === 'diary' && <>
-          <HorizontalTimeline/>
           {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
           <div className="diary-grid">
             <div className="diary-primary">
               <HeroStatus onRecordPeriod={() => openModal('period')} onOpenLegend={() => openModal('legend')}/>
               <section className="diary-section" aria-labelledby="record-title">
-                <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : 'Tu registro del día'}</h2><p className="section-caption">Un pequeño momento para escucharte.</p></div><button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button></div>
-                <div className="quick-log-grid">
-                  <button type="button" className="quick-log period" aria-pressed={hasPeriod} onClick={() => openModal('period')}><Droplets size={21}/><span>{hasPeriod ? 'Editar regla' : 'Registrar regla'}</span></button>
-                  <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={21}/><span>Síntomas y notas</span></button>
-                  <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={21}/><span>Intimidad</span></button>
-                </div>
-                {hasEntries ? <div className="log-preview"><ul className="symptom-list">{hasPeriod && <li>Regla registrada</li>}{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}{hasIntimacy && <li>Intimidad registrada</li>}{log?.bbt !== undefined && <li>{log.bbt} °C</li>}{log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar registro<ArrowRight size={14}/></button></div> : <p className="empty-log"><ClipboardList size={21}/>Aún no hay anotaciones para este día.</p>}
+                <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
+                {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
+                  <div className="quick-log-grid">
+                    {hasCycle && <button type="button" className="quick-log period" aria-pressed={hasPeriod} onClick={() => openModal('period')}><Droplets size={21}/><span>{hasPeriod ? 'Editar regla' : 'Registrar regla'}</span></button>}
+                    <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={21}/><span>Síntomas y notas</span></button>
+                    <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={21}/><span>Intimidad</span></button>
+                  </div>
+                  {hasEntries ? <div className="log-preview"><ul className="symptom-list">{hasPeriod && <li>Regla registrada</li>}{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}{hasIntimacy && <li>Intimidad registrada</li>}{log?.bbt !== undefined && <li>{log.bbt} °C</li>}{log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar registro<ArrowRight size={14}/></button></div> : <p className="empty-log"><ClipboardList size={21}/>Aún no hay anotaciones para este día.</p>}
+                </>}
               </section>
               <QuizHistory results={log?.quizResults || []}/>
               <BiomarkersCard/>
