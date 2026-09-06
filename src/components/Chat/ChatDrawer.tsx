@@ -69,7 +69,17 @@ function ChatSession({
   initialCompletedQuiz,
   onInitialCompletedQuizConsumed
 }: ChatDrawerProps & { storageKey: string }) {
-  const { currentDayInfo, cycleStats, settings, saveQuizResult, selectedDate } = useCycle();
+  const {
+    currentDayInfo,
+    cycleStats,
+    settings,
+    saveQuizResult,
+    selectedDate,
+    todayDate,
+    logMultipleSymptoms,
+    startPeriodOnDate,
+    setPeriodFlowForDate
+  } = useCycle();
   const [snapshot, setSnapshot] = useState(() => loadConversation(storageKey));
   const snapshotRef = useRef(snapshot);
   const [isTyping, setIsTyping] = useState(false);
@@ -125,6 +135,17 @@ function ChatSession({
     try {
       const response = await generateChatResponse(text, history.messages, { dayInfo: currentDayInfo, stats: cycleStats, settings });
       if (!mounted.current || epoch !== requestEpoch.current) return true;
+
+      const targetDate = selectedDate || todayDate;
+      if (response.loggedSymptoms && response.loggedSymptoms.length > 0) {
+        logMultipleSymptoms(targetDate, response.loggedSymptoms);
+      }
+      if (response.periodAction === 'start') {
+        startPeriodOnDate(targetDate);
+      } else if (response.periodAction === 'stop') {
+        setPeriodFlowForDate(targetDate, 'spotting');
+      }
+
       const message = { ...newChatMessage('assistant', response.text), suggestions: response.suggestions, sources: response.sources, topicId: response.topicId };
       const current = snapshotRef.current.conversation;
       commit({ ...current, messages: [...current.messages, message] });
@@ -141,7 +162,7 @@ function ChatSession({
       }
     }
     return true;
-  }, [commit, currentDayInfo, cycleStats, settings, startQuiz]);
+  }, [commit, currentDayInfo, cycleStats, settings, startQuiz, selectedDate, todayDate, logMultipleSymptoms, startPeriodOnDate, setPeriodFlowForDate]);
 
   useEffect(() => {
     if (!initialMessage) { consumedInitial.current = null; return; }
@@ -443,9 +464,9 @@ function ChatSession({
                     >
                       {suggestion.action === 'quiz' ? (
                         <Sparkles aria-hidden="true" className="size-3.5 shrink-0 text-[var(--accent)]" />
-                      ) : (
+                      ) : !/^\p{Extended_Pictographic}/u.test(suggestion.label) ? (
                         <span className="size-1.5 shrink-0 rounded-full bg-[var(--accent)] opacity-70" />
-                      )}
+                      ) : null}
                       <span className="truncate">{suggestion.label}</span>
                     </button>
                   ))}

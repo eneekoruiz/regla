@@ -58,7 +58,9 @@ export function validateSettings(value: unknown, defaults: UserSettings): UserSe
   }, 'Estilo de vida');
   nested(value.notificationPreferences, {
     enabled: bool, alertTime: v => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v),
-    daysBeforePeriod: number(0, 30), notifyFertileWindow: bool, discreetMode: bool
+    daysBeforePeriod: number(0, 30), notifyFertileWindow: bool, discreetMode: bool,
+    repeatMonthly: bool,
+    periodReminders: v => Array.isArray(v) && v.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 30)
   }, 'Notificaciones');
   const result = { ...defaults, ...value } as UserSettings;
   if (result.averagePeriodLength > result.averageCycleLength || result.lutealPhaseLength >= result.averageCycleLength) {

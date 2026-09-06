@@ -7,6 +7,8 @@ export function getDefaultNotificationPreferences(): NotificationPreference {
     enabled: true,
     alertTime: '09:00',
     daysBeforePeriod: 7,
+    periodReminders: [7, 2],
+    repeatMonthly: true,
     notifyFertileWindow: true,
     discreetMode: true
   };
@@ -20,13 +22,13 @@ export function getCamouflagedMessage(
   discreetMode = true,
   daysBefore = 7
 ): { title: string; body: string } {
-  const timeText = daysBefore === 7 ? 'en 1 semana' : daysBefore === 1 ? 'mañana' : `en ${daysBefore} días`;
+  const timeText = daysBefore === 0 ? 'hoy' : daysBefore === 1 ? 'mañana' : daysBefore === 7 ? 'en 1 semana' : `en ${daysBefore} días`;
   if (!discreetMode) {
     switch (type) {
       case 'period_approaching':
         return {
           title: 'Aura',
-          body: `Tu periodo está previsto para comenzar ${timeText} 🩸`
+          body: daysBefore === 0 ? 'Tu periodo está previsto para comenzar hoy 🩸' : `Tu periodo está previsto para comenzar ${timeText} 🩸`
         };
       case 'fertile_window':
         return {
@@ -46,7 +48,13 @@ export function getCamouflagedMessage(
     case 'period_approaching':
       return {
         title: 'Aura',
-        body: daysBefore === 7 ? 'Un pequeño recordatorio para tu semana 🌸' : 'Un pequeño recordatorio para ti hoy 🌸'
+        body: daysBefore === 0
+          ? 'Un pequeño recordatorio para tu día hoy 🌸'
+          : daysBefore === 1
+            ? 'Un pequeño recordatorio para mañana 🌸'
+            : daysBefore === 7
+              ? 'Un pequeño recordatorio para tu semana 🌸'
+              : `Un pequeño recordatorio para tus próximos ${daysBefore} días 🌸`
       };
     case 'fertile_window':
       return {
@@ -141,26 +149,31 @@ export function scheduleLocalMilestones(
   const scheduled: ScheduledNotification[] = [];
   const [hours, minutes] = (prefs.alertTime || '09:00').split(':').map(Number);
 
-  // 1. Period approaching alert (e.g. 7 days before nextPeriodStartDate)
+  // 1. Period approaching alerts (múltiples recordatorios configurables)
   if (milestones.nextPeriodStartDate && /^\d{4}-\d{2}-\d{2}$/.test(milestones.nextPeriodStartDate)) {
-    const daysBefore = prefs.daysBeforePeriod ?? 7;
     const periodStartDate = parseDateKey(milestones.nextPeriodStartDate);
     if (Number.isFinite(periodStartDate.getTime())) {
-      const triggerDate = new Date(periodStartDate);
-      triggerDate.setDate(periodStartDate.getDate() - daysBefore);
-      triggerDate.setHours(hours, minutes, 0, 0);
+      const reminderDays = Array.isArray(prefs.periodReminders) && prefs.periodReminders.length > 0
+        ? prefs.periodReminders
+        : [prefs.daysBeforePeriod ?? 7];
 
-      const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode, daysBefore);
+      for (const daysBefore of reminderDays) {
+        const triggerDate = new Date(periodStartDate);
+        triggerDate.setDate(periodStartDate.getDate() - daysBefore);
+        triggerDate.setHours(hours, minutes, 0, 0);
 
-      scheduled.push({
-        id: `period_${milestones.nextPeriodStartDate}_${daysBefore}d`,
-        targetDate: milestones.nextPeriodStartDate,
-        triggerTimestamp: triggerDate.getTime(),
-        type: 'period_approaching',
-        title: msg.title,
-        body: msg.body,
-        isDiscreet: prefs.discreetMode
-      });
+        const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode, daysBefore);
+
+        scheduled.push({
+          id: `period_${milestones.nextPeriodStartDate}_${daysBefore}d`,
+          targetDate: milestones.nextPeriodStartDate,
+          triggerTimestamp: triggerDate.getTime(),
+          type: 'period_approaching',
+          title: msg.title,
+          body: msg.body,
+          isDiscreet: prefs.discreetMode
+        });
+      }
     }
   }
 

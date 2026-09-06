@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Upload, LogOut, Trash2, Check, Bell, ChevronRight, UserRound, Shield, Moon, FileText } from 'lucide-react';
+import { Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Clock, Sparkles, Plus, ChevronRight, UserRound, Shield, Moon, FileText } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
 import { ModalFrame } from '../Modals/ModalFrame';
@@ -10,8 +10,9 @@ import { LegalComplianceModal } from '../Modals/LegalComplianceModal';
 import { ModularOnboardingModal } from '../Modals/ModularOnboardingModal';
 import { PwaInstallModal } from '../Modals/PwaInstallModal';
 import { PassphraseModal } from '../Modals/PassphraseModal';
+import { DeviceNotificationModal } from '../Modals/DeviceNotificationModal';
 import { encryptText } from '../../services/cryptoVault';
-import { requestNotificationPermission } from '../../services/localNotificationEngine';
+import { requestNotificationPermission, getNotificationPermission } from '../../services/localNotificationEngine';
 import type { UserSettings } from '../../types/cycle';
 
 type Category = 'cycle' | 'body' | 'lifestyle';
@@ -40,6 +41,8 @@ function SettingsContent({ onOpenModularProfile }: Props) {
   const [busy, setBusy] = useState(false);
   const [encryptedBackupOpen, setEncryptedBackupOpen] = useState(false);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [customDayInput, setCustomDayInput] = useState('');
   const close = () => setIsSettingsOpen(false);
   const closeTool = () => setTool(null);
   const saveCycle = () => {
@@ -223,58 +226,233 @@ function SettingsContent({ onOpenModularProfile }: Props) {
         </div>
       </div>}
 
-      {tab === 'notifications' && <div className="space-y-4">
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3">
-          <label className="flex min-h-11 items-center gap-3 text-xs font-semibold cursor-pointer">
-            <input
-              type="checkbox"
-              checked={notificationPrefs.enabled}
-              onChange={async event => {
-                const willEnable = event.target.checked;
-                if (willEnable && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-                  const perm = await requestNotificationPermission();
-                  if (perm === 'granted') {
-                    updateNotificationPrefs({ enabled: true });
-                    setMessage('Recordatorios activados (1 semana antes de tu regla).');
-                  } else {
-                    updateNotificationPrefs({ enabled: false });
-                    setError('Se necesita permiso del navegador para mostrar recordatorios.');
-                  }
-                } else {
-                  updateNotificationPrefs({ enabled: willEnable });
-                }
-              }}
-              className="h-5 w-5 rounded accent-[var(--accent)]"
-            />
-            <span>Activar recordatorios del ciclo (1 semana antes)</span>
-          </label>
-          {notificationPrefs.enabled && <div className="space-y-3 border-t border-[var(--border-subtle)] pt-3">
-            <label className="flex min-h-11 items-center gap-3 text-xs cursor-pointer">
-              <input type="checkbox" checked={notificationPrefs.discreetMode} onChange={event => updateNotificationPrefs({ discreetMode: event.target.checked })} className="h-5 w-5 rounded accent-[var(--accent)]" />
-              <span>Mensajes discretos (sin detalles íntimos en pantalla de bloqueo)</span>
-            </label>
-            <label className="flex min-h-11 items-center gap-3 text-xs cursor-pointer">
-              <input type="checkbox" checked={notificationPrefs.notifyFertileWindow} onChange={event => updateNotificationPrefs({ notifyFertileWindow: event.target.checked })} className="h-5 w-5 rounded accent-[var(--accent)]" />
-              <span>Avisos de ventana de fertilidad estimada</span>
-            </label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block space-y-1.5 text-xs font-medium">
-                <span>Hora del aviso</span>
-                <input type="time" value={notificationPrefs.alertTime} onChange={event => { if (event.target.value) updateNotificationPrefs({ alertTime: event.target.value }); }} className={modalField} />
-              </label>
-              <label className="block space-y-1.5 text-xs font-medium">
-                <span>Antelación del aviso</span>
-                <select value={notificationPrefs.daysBeforePeriod} onChange={event => updateNotificationPrefs({ daysBeforePeriod: Number(event.target.value) })} className={modalField}>
-                  {[1, 2, 3, 5, 7].map(value => <option key={value} value={value}>{value === 7 ? '1 semana antes (7 días)' : `${value} días antes`}</option>)}
-                </select>
-              </label>
+      {tab === 'notifications' && (() => {
+        const activeReminders: number[] = Array.isArray(notificationPrefs.periodReminders) && notificationPrefs.periodReminders.length > 0
+          ? notificationPrefs.periodReminders
+          : [notificationPrefs.daysBeforePeriod ?? 7];
+
+        const toggleReminderDay = (days: number) => {
+          let next: number[];
+          if (activeReminders.includes(days)) {
+            next = activeReminders.filter(d => d !== days);
+            if (next.length === 0) next = [7];
+          } else {
+            next = [...activeReminders, days].sort((a, b) => b - a);
+          }
+          updateNotificationPrefs({ periodReminders: next, daysBeforePeriod: next[0] });
+        };
+
+        const handleAddCustomDay = () => {
+          const num = parseInt(customDayInput.trim(), 10);
+          if (!isNaN(num) && num >= 0 && num <= 30 && !activeReminders.includes(num)) {
+            const next = [...activeReminders, num].sort((a, b) => b - a);
+            updateNotificationPrefs({ periodReminders: next, daysBeforePeriod: next[0] });
+            setCustomDayInput('');
+          }
+        };
+
+        const permission = typeof window !== 'undefined' ? getNotificationPermission() : 'default';
+        const isDeviceActive = permission === 'granted';
+
+        return (
+          <div className="space-y-4">
+            {/* Detección de notificaciones en este dispositivo */}
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3">
+              <div className="flex items-start gap-2.5">
+                <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${isDeviceActive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300'}`}>
+                  {isDeviceActive ? <BellRing size={18} /> : <Bell size={18} />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs font-bold text-[var(--text-primary)]">
+                      {isDeviceActive ? 'Notificaciones activadas en este dispositivo' : 'Permiso no activado en este dispositivo'}
+                    </span>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isDeviceActive ? 'bg-emerald-200/80 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-amber-200/80 text-amber-800 dark:bg-amber-900 dark:text-amber-200'}`}>
+                      {isDeviceActive ? 'Listo' : 'Pendiente'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-snug mt-0.5">
+                    {isDeviceActive
+                      ? 'Este dispositivo puede recibir alertas locales de tu ciclo.'
+                      : 'Actívalas para que tu navegador pueda avisarte en este móvil o PC.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDeviceModal(true)}
+                className={`aura-button sm w-full flex items-center justify-center gap-2 ${isDeviceActive ? '' : 'primary'}`}
+              >
+                {isDeviceActive ? (
+                  <>
+                    <BellRing size={15} />
+                    Probar notificación en este dispositivo
+                  </>
+                ) : (
+                  <>
+                    <Bell size={15} />
+                    Activar notificaciones en este dispositivo
+                  </>
+                )}
+              </button>
             </div>
-            <button type="button" disabled={busy} onClick={() => void run(async () => { const success = await sendTestNotification(); if (success) setMessage('Notificación enviada.'); else setError('No se pudo enviar. Comprueba el permiso de notificaciones del navegador.'); })} className={modalSecondaryButton}>
-              <Bell size={16} aria-hidden="true" />Probar notificación en este dispositivo
-            </button>
-          </div>}
-        </div>
-      </div>}
+
+            {/* Configuración completamente personalizable de recordatorios */}
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3.5">
+              <label className="flex min-h-10 items-center justify-between cursor-pointer">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-primary)] block">
+                    Activar recordatorios del ciclo
+                  </span>
+                  <span className="text-[11px] text-[var(--text-secondary)]">Avisos personalizados previos a tu regla</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={notificationPrefs.enabled}
+                  onChange={event => updateNotificationPrefs({ enabled: event.target.checked })}
+                  className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer"
+                />
+              </label>
+
+              {notificationPrefs.enabled && (
+                <div className="space-y-3.5 border-t border-[var(--border-subtle)] pt-3">
+                  {/* Antelación y cantidad de avisos personalizables */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">
+                        Avisos antes de tu regla
+                      </span>
+                      <span className="text-[11px] text-[var(--text-secondary)] font-medium">
+                        {activeReminders.length} {activeReminders.length === 1 ? 'aviso programado' : 'avisos programados'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { days: 7, label: '7 días antes' },
+                        { days: 5, label: '5 días antes' },
+                        { days: 3, label: '3 días antes' },
+                        { days: 2, label: '2 días antes' },
+                        { days: 1, label: '1 día antes' },
+                        { days: 0, label: 'El mismo día' }
+                      ].map(preset => {
+                        const isSelected = activeReminders.includes(preset.days);
+                        return (
+                          <button
+                            type="button"
+                            key={preset.days}
+                            onClick={() => toggleReminderDay(preset.days)}
+                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border transition-all active:scale-95 ${
+                              isSelected
+                                ? 'bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent)] shadow-2xs'
+                                : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:bg-[var(--bg-card-inner)]'
+                            }`}
+                          >
+                            {isSelected && <Check size={12} strokeWidth={3} />}
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Añadir día a medida */}
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={30}
+                        placeholder="Otro día (0 a 30)..."
+                        value={customDayInput}
+                        onChange={e => setCustomDayInput(e.target.value)}
+                        className="w-36 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] px-2.5 py-1 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomDay}
+                        disabled={!customDayInput.trim()}
+                        className="aura-button sm text-xs py-1 px-2.5 disabled:opacity-40"
+                      >
+                        <Plus size={13} /> Añadir
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Repetición mensual / por ciclo */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-xs font-semibold text-[var(--text-primary)] block">
+                      Repetición de los recordatorios
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateNotificationPrefs({ repeatMonthly: true })}
+                        className={`flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-semibold border transition-all ${
+                          notificationPrefs.repeatMonthly !== false
+                            ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+                            : 'border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]'
+                        }`}
+                      >
+                        <Check size={13} />
+                        Todos los meses
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateNotificationPrefs({ repeatMonthly: false })}
+                        className={`flex items-center justify-center gap-1.5 p-2 rounded-xl text-xs font-semibold border transition-all ${
+                          notificationPrefs.repeatMonthly === false
+                            ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]'
+                            : 'border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]'
+                        }`}
+                      >
+                        <Calendar size={13} />
+                        Solo este ciclo
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Hora del aviso */}
+                  <div className="pt-1">
+                    <label className="block space-y-1 text-xs font-semibold text-[var(--text-primary)]">
+                      <span>Hora del aviso</span>
+                      <input
+                        type="time"
+                        value={notificationPrefs.alertTime}
+                        onChange={event => {
+                          if (event.target.value) updateNotificationPrefs({ alertTime: event.target.value });
+                        }}
+                        className={modalField}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Opciones adicionales */}
+                  <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">
+                    <label className="flex min-h-10 items-center gap-2.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notificationPrefs.discreetMode}
+                        onChange={event => updateNotificationPrefs({ discreetMode: event.target.checked })}
+                        className="h-4 w-4 rounded accent-[var(--accent)]"
+                      />
+                      <span>Modo discreto (frases neutras sin palabras íntimas)</span>
+                    </label>
+                    <label className="flex min-h-10 items-center gap-2.5 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notificationPrefs.notifyFertileWindow}
+                        onChange={event => updateNotificationPrefs({ notifyFertileWindow: event.target.checked })}
+                        className="h-4 w-4 rounded accent-[var(--accent)]"
+                      />
+                      <span>Avisos de ventana de fertilidad estimada</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {error && <p role="alert" className="text-sm text-[var(--rose)]">{error}</p>}
       {message && <p role="status" className="text-sm text-[var(--accent)]">{message}</p>}
@@ -284,6 +462,14 @@ function SettingsContent({ onOpenModularProfile }: Props) {
     {tool === 'import' && <UniversalImportModal isOpen onClose={closeTool} />}
     {tool === 'legal' && <LegalComplianceModal isOpen onClose={closeTool} />}
     {tool === 'profile' && <ModularOnboardingModal isOpen initialCategory={profileCategory} onClose={closeTool} />}
+    {showDeviceModal && (
+      <DeviceNotificationModal
+        isOpen
+        onClose={() => setShowDeviceModal(false)}
+        prefs={notificationPrefs}
+        onUpdatePrefs={updateNotificationPrefs}
+      />
+    )}
     <PassphraseModal isOpen={encryptedBackupOpen} onClose={() => setEncryptedBackupOpen(false)} title="Exportar copia cifrada" description="Protege tu copia con una frase secreta antes de guardarla o trasladarla. La copia se cifra en este dispositivo." submitLabel="Cifrar y descargar" onSubmit={downloadEncrypted} />
     {confirmWipe && <ModalFrame isOpen onClose={() => { if (!busy) setConfirmWipe(false); }} title="¿Eliminar los datos locales?" footer={<><button type="button" disabled={busy} onClick={() => setConfirmWipe(false)} className={modalSecondaryButton}>Cancelar</button><button type="button" disabled={busy} onClick={() => void run(async () => { await destroyAllData(); setConfirmWipe(false); close(); })} className="aura-button rose"><Trash2 size={17} aria-hidden="true" />{busy ? 'Eliminando…' : 'Eliminar definitivamente'}</button></>}>
       <p className="text-sm text-[var(--text-secondary)]">Se borrarán los registros y ajustes de Aura de este dispositivo. Esta acción no se puede deshacer.</p>

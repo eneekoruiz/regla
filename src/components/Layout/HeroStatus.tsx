@@ -13,7 +13,7 @@ export function HeroStatus({
   onOpenLegend: () => void;
   onOpenDailyModal: () => void;
 }) {
-  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate } = useCycle();
+  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate } = useCycle();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
 
   const hasCycle = hasEnoughData && day.dayOfCycle > 0;
@@ -74,11 +74,28 @@ export function HeroStatus({
   const handleConfirmPeriodEndToday = () => {
     if (isRecorded) {
       denyPeriodOnDate(todayDate);
-      const realDuration = Math.max(1, cycleDay - 1);
-      updateSettings({ averagePeriodLength: realDuration });
-      setConfirmedEndFeedback(`¡Fin de regla confirmado! Duró ${realDuration} días y se ha recalculado tu ciclo.`);
+    }
+    if (hasValidPeriodStart) {
+      const start = parseDateKey(cycleStats.lastVerifiedPeriodStart);
+      const today = parseDateKey(todayDate);
+      const daysCount = Math.max(1, diffDays(start, today));
+      // Asegurar que los días anteriores del periodo (desde el inicio hasta ayer) queden registrados
+      for (let d = 0; d < daysCount; d++) {
+        const dt = new Date(start);
+        dt.setDate(start.getDate() + d);
+        const k = formatDateKey(dt);
+        if (k && !logs[k]?.isPeriod) {
+          logBleedingForDate(k, {
+            flow: settings.typicalFlowIntensity || 'medium',
+            isCycleStart: d === 0,
+            isIrregular: false,
+          });
+        }
+      }
+      updateSettings({ averagePeriodLength: daysCount });
+      setConfirmedEndFeedback(`¡Fin de regla confirmado! Duró ${daysCount} días y se ha actualizado tu ciclo.`);
     } else {
-      const realDuration = lastRecordedPeriodDay > 0 ? lastRecordedPeriodDay : periodLength;
+      const realDuration = Math.max(1, cycleDay - 1);
       updateSettings({ averagePeriodLength: realDuration });
       setConfirmedEndFeedback(`¡Fin de regla confirmado! Registrado con ${realDuration} días de duración.`);
     }
@@ -178,7 +195,7 @@ export function HeroStatus({
           <p className="cycle-copy">{copy}</p>
 
           {/* Acciones para HOY */}
-          {isToday && (
+          {isToday && (isRecorded || day.isPeriod) && (
             <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               {isRecorded ? (
                 <>
@@ -202,27 +219,6 @@ export function HeroStatus({
                     No, hoy se me ha terminado
                   </button>
                 </>
-              ) : day.isPeriod ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm primary"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} />
-                    Sí, hoy me ha bajado la regla
-                  </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => denyPeriodOnDate(todayDate)}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <X size={14} />
-                    No, hoy no me ha bajado
-                  </button>
-                </>
               ) : (
                 <>
                   <button
@@ -232,20 +228,17 @@ export function HeroStatus({
                     style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                   >
                     <Droplets size={14} />
-                    Sí, hoy he tenido la regla
+                    {cycleDay > 1 ? 'Sí, sigo con la regla' : 'Sí, hoy me ha bajado la regla'}
                   </button>
-                  {daysSincePeriodEnd > 0 && daysSincePeriodEnd <= 7 && (
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={handleConfirmPeriodEndToday}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      title="Confirmar que la regla terminó y recalcular ciclo"
-                    >
-                      <Check size={14} style={{ color: 'var(--accent)' }} />
-                      {confirmedEndFeedback ? '¡Fin de regla confirmado!' : 'Confirmar fin de regla'}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={cycleDay > 1 ? handleConfirmPeriodEndToday : () => denyPeriodOnDate(todayDate)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {cycleDay > 1 ? <Check size={14} style={{ color: 'var(--accent)' }} /> : <X size={14} />}
+                    {cycleDay > 1 ? 'No, se me ha terminado' : 'No, hoy no me ha bajado'}
+                  </button>
                 </>
               )}
             </div>
@@ -426,44 +419,6 @@ export function HeroStatus({
           </div>
         )}
       </div>
-
-      {/* En Hoy: barra inferior con el resumen o aviso de síntomas para este día */}
-      {showRing && (
-        <div className="hero-today-symptoms-bar">
-          {hasAnyAnnotation ? (
-            <div className="hero-today-symptoms-content">
-              <div className="hero-today-symptoms-left">
-                <span className="hero-today-symptoms-label">
-                  <ClipboardList size={13}/> Tus anotaciones de hoy:
-                </span>
-                <ul className="hero-symptom-chips compact">
-                  {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
-                  {hasIntimacy && <li>Intimidad</li>}
-                  {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
-                  {hasBbt && <li>{log?.bbt} °C</li>}
-                  {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
-                </ul>
-                {notes && <span className="hero-today-notes-snippet">“{notes}”</span>}
-              </div>
-              <button type="button" className="hero-today-action-btn" onClick={onOpenDailyModal}>
-                <NotebookPen size={13} />
-                Editar
-              </button>
-            </div>
-          ) : (
-            <div className="hero-today-symptoms-empty">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <ClipboardList size={14} style={{ color: 'var(--text-secondary)' }} />
-                <span>Aún no hay anotaciones de síntomas para este día.</span>
-              </div>
-              <button type="button" className="hero-today-action-btn" onClick={onOpenDailyModal}>
-                <Plus size={13} />
-                Anotar síntomas
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {!hasCycle && (
         <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>
