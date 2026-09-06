@@ -183,7 +183,11 @@ function MainScreen() {
           {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
           <div className="diary-grid">
             <div className="diary-primary">
-              <HeroStatus onRecordPeriod={() => openBleedingModal('period')} onOpenLegend={() => openModal('legend')}/>
+              <HeroStatus
+                onRecordPeriod={() => openBleedingModal('period')}
+                onOpenLegend={() => openModal('legend')}
+                onOpenDailyModal={() => openModal('daily')}
+              />
               <section className="diary-section diary-record-section" aria-labelledby="record-title">
                 <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
                 {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
@@ -217,22 +221,6 @@ function MainScreen() {
                       <span>{hasMedications ? 'Tomas registradas' : 'Pastillas y tomas'}</span>
                     </button>
                   </div>
-                  {hasEntries && (log?.symptoms.length || log?.notes || log?.bbt !== undefined || log?.medications?.length || log?.isIrregularBleeding) ? (
-                    <div className="log-preview">
-                      <ul className="symptom-list">
-                        {hasPeriod && <li>Regla registrada</li>}
-                        {hasIrregularBleeding && <li>Sangrado irregular</li>}
-                        {log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}
-                        {hasIntimacy && <li>Intimidad registrada</li>}
-                        {log?.bbt !== undefined && <li>{log.bbt} °C</li>}
-                        {log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}
-                      </ul>
-                      {log?.notes && <p>{log.notes}</p>}
-                      <button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar síntomas<ArrowRight size={14}/></button>
-                    </div>
-                  ) : (
-                    <p className="empty-log"><ClipboardList size={18}/>Aún no hay anotaciones de síntomas para este día.</p>
-                  )}
                 </>}
               </section>
               <QuizHistory results={log?.quizResults || []}/>

@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, Droplets, X } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Droplets, NotebookPen, Plus, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 
 export function HeroStatus({
   onRecordPeriod,
-  onOpenLegend
+  onOpenLegend,
+  onOpenDailyModal
 }: {
   onRecordPeriod: () => void;
   onOpenLegend: () => void;
+  onOpenDailyModal: () => void;
 }) {
-  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, logs, hasEnoughData, denyPeriodOnDate } = useCycle();
-  const [confirmedEnd, setConfirmedEnd] = useState<string | null>(null);
+  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate } = useCycle();
+  const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
 
   const hasCycle = hasEnoughData && day.dayOfCycle > 0;
   const log = logs[selectedDate];
@@ -58,6 +60,28 @@ export function HeroStatus({
   const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(1, cycleLength - cycleDay + 1);
 
   const flowName = log?.flow === 'light' ? 'ligero' : log?.flow === 'medium' ? 'medio' : log?.flow === 'heavy' ? 'abundante' : log?.flow === 'very_heavy' ? 'muy abundante' : log?.flow === 'spotting' ? 'manchado' : 'activo';
+
+  // Anotaciones y síntomas para la fecha seleccionada
+  const symptoms = log?.symptoms || [];
+  const notes = log?.notes;
+  const hasIntimacy = Boolean((log?.intimacyLog && log.intimacyLog.activity !== 'none') || (log?.intimacy && log.intimacy !== 'none'));
+  const hasMeds = Boolean(log?.medications && log.medications.some(m => m.taken));
+  const hasBbt = Boolean(log?.bbt !== undefined && Number.isFinite(log.bbt));
+  const hasAnyAnnotation = symptoms.length > 0 || Boolean(notes) || hasIntimacy || hasMeds || hasBbt;
+
+  // Handler para confirmar fin de regla en el día de hoy y recalcular
+  const handleConfirmPeriodEndToday = () => {
+    if (isRecorded) {
+      denyPeriodOnDate(todayDate);
+      const realDuration = Math.max(1, cycleDay - 1);
+      updateSettings({ averagePeriodLength: realDuration });
+      setConfirmedEndFeedback(`¡Fin de regla confirmado! Duró ${realDuration} días y se ha recalculado tu ciclo.`);
+    } else {
+      const realDuration = lastRecordedPeriodDay > 0 ? lastRecordedPeriodDay : periodLength;
+      updateSettings({ averagePeriodLength: realDuration });
+      setConfirmedEndFeedback(`¡Fin de regla confirmado! Registrado con ${realDuration} días de duración.`);
+    }
+  };
 
   let title = hasCycle ? `Día ${cycleDay} de tu ciclo` : 'Tu primer registro';
   let copy = hasCycle ? day.phaseName : 'Anota cuándo empezó tu regla. No necesitas conocer todavía la duración de tu ciclo.';
@@ -152,107 +176,144 @@ export function HeroStatus({
           <h2 id="cycle-title" className="cycle-headline">{title}</h2>
           <p className="cycle-copy">{copy}</p>
 
-          {/* Acciones para día pasado con sangrado registrado */}
-          {isPast && (isRecorded || isIrregular) && (
-            <div className="post-period-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                Editar flujo
-              </button>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={() => denyPeriodOnDate(selectedDate)}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                title="Quitar registro de regla para esta fecha"
-              >
-                <X size={14} />
-                No tuve regla este día
-              </button>
+          {/* Acciones para HOY */}
+          {isToday && (
+            <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {isRecorded ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                    Editar flujo
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={handleConfirmPeriodEndToday}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
+                  >
+                    <Check size={14} style={{ color: 'var(--accent)' }} />
+                    No, hoy se me ha terminado
+                  </button>
+                </>
+              ) : day.isPeriod ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm primary"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} />
+                    Sí, hoy me ha bajado la regla
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => denyPeriodOnDate(todayDate)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <X size={14} />
+                    No, hoy no me ha bajado
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm primary"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} />
+                    Sí, hoy he tenido la regla
+                  </button>
+                  {daysSincePeriodEnd > 0 && daysSincePeriodEnd <= 7 && (
+                    <button
+                      type="button"
+                      className="aura-button sm"
+                      onClick={handleConfirmPeriodEndToday}
+                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      title="Confirmar que la regla terminó y recalcular ciclo"
+                    >
+                      <Check size={14} style={{ color: 'var(--accent)' }} />
+                      {confirmedEndFeedback ? '¡Fin de regla confirmado!' : 'Confirmar fin de regla'}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
 
-          {/* Acciones para día pasado con previsión no confirmada */}
-          {isPast && !isRecorded && !isIrregular && day.isPeriod && (
-            <div className="post-period-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="aura-button sm primary"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} />
-                Sí, me bajó la regla
-              </button>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={() => denyPeriodOnDate(selectedDate)}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Check size={14} />
-                No me bajó
-              </button>
+          {/* Acciones para DÍA PASADO */}
+          {isPast && (
+            <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {isRecorded || isIrregular ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                    Editar flujo
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => denyPeriodOnDate(selectedDate)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    title="Quitar registro de regla para esta fecha"
+                  >
+                    <X size={14} />
+                    No tuve regla este día
+                  </button>
+                </>
+              ) : day.isPeriod ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm primary"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} />
+                    Sí, me bajó la regla
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => denyPeriodOnDate(selectedDate)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Check size={14} />
+                    No me bajó
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                  ¿Tuviste regla este día?
+                </button>
+              )}
             </div>
           )}
 
-          {/* Acciones para día pasado sin sangrado */}
-          {isPast && !isRecorded && !isIrregular && !day.isPeriod && (
-            <div className="post-period-actions" style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                ¿Tuviste regla este día?
-              </button>
-            </div>
-          )}
-
-          {/* Botón de editar flujo para hoy con periodo registrado */}
-          {isToday && isRecorded && (
-            <div className="post-period-actions" style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                Editar flujo
-              </button>
-            </div>
-          )}
-
-          {/* Fin de regla (1 o 2 días posteriores en el presente) */}
-          {isJustFinishedPeriod && (
-            <div className="post-period-actions" style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                ¿Aún sangras? Alargar 1 día
-              </button>
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={() => setConfirmedEnd(selectedDate)}
-                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Check size={14} style={{ color: 'var(--accent)' }} />
-                {confirmedEnd === selectedDate ? '¡Fin confirmado!' : 'Confirmar fin de regla'}
-              </button>
-            </div>
+          {confirmedEndFeedback && (
+            <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Check size={14} /> {confirmedEndFeedback}
+            </p>
           )}
         </div>
 
@@ -270,8 +331,92 @@ export function HeroStatus({
             </span>
           </div>
         )}
+
+        {/* En días pasados / sin anillo: se aprovecha el espacio derecho para las anotaciones y síntomas */}
+        {!showRing && (
+          <div className="hero-side-panel">
+            <div className="hero-panel-header">
+              <ClipboardList size={15} />
+              <span>Anotaciones del día</span>
+            </div>
+            {hasAnyAnnotation ? (
+              <div className="hero-panel-body">
+                <ul className="hero-symptom-chips">
+                  {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
+                  {hasIntimacy && <li>Intimidad</li>}
+                  {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
+                  {hasBbt && <li>{log?.bbt} °C</li>}
+                </ul>
+                {notes && <p className="hero-notes-preview">“{notes}”</p>}
+                <button
+                  type="button"
+                  className="hero-panel-action-btn"
+                  onClick={onOpenDailyModal}
+                >
+                  <NotebookPen size={13} />
+                  Ver o editar síntomas
+                  <ArrowRight size={12} />
+                </button>
+              </div>
+            ) : (
+              <div className="hero-panel-empty">
+                <p className="hero-empty-text">Aún no hay anotaciones de síntomas para este día.</p>
+                <button
+                  type="button"
+                  className="aura-button sm hero-add-symptom-btn"
+                  onClick={onOpenDailyModal}
+                >
+                  <Plus size={13} />
+                  Anotar síntomas o notas
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      {!hasCycle && <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>Registrar mi regla<ArrowRight size={17}/></button>}
+
+      {/* En Hoy: barra inferior con el resumen o aviso de síntomas para este día */}
+      {showRing && (
+        <div className="hero-today-symptoms-bar">
+          {hasAnyAnnotation ? (
+            <div className="hero-today-symptoms-content">
+              <div className="hero-today-symptoms-left">
+                <span className="hero-today-symptoms-label">
+                  <ClipboardList size={13}/> Tus anotaciones de hoy:
+                </span>
+                <ul className="hero-symptom-chips compact">
+                  {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
+                  {hasIntimacy && <li>Intimidad</li>}
+                  {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
+                  {hasBbt && <li>{log?.bbt} °C</li>}
+                </ul>
+                {notes && <span className="hero-today-notes-snippet">“{notes}”</span>}
+              </div>
+              <button type="button" className="hero-today-action-btn" onClick={onOpenDailyModal}>
+                <NotebookPen size={13} />
+                Editar
+              </button>
+            </div>
+          ) : (
+            <div className="hero-today-symptoms-empty">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <ClipboardList size={14} style={{ color: 'var(--text-secondary)' }} />
+                <span>Aún no hay anotaciones de síntomas para este día.</span>
+              </div>
+              <button type="button" className="hero-today-action-btn" onClick={onOpenDailyModal}>
+                <Plus size={13} />
+                Anotar síntomas
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hasCycle && (
+        <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>
+          Registrar mi regla<ArrowRight size={17}/>
+        </button>
+      )}
     </motion.div>
   </section>;
 }

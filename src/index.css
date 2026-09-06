@@ -131,7 +131,168 @@
 .diary-primary, .diary-secondary { min-width: 0; }
 .diary-secondary { padding-left: 0; }
 .cycle-summary { padding: 18px 20px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); }
-.cycle-summary-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.cycle-summary-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.cycle-summary-info { flex: 1; min-width: 0; }
+
+/* Panel lateral cuando no hay anillo (días pasados / futuros) para aprovechar el espacio */
+.hero-side-panel {
+  flex: 0 0 270px;
+  max-width: 300px;
+  background: color-mix(in srgb, var(--bg-card) 75%, transparent);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+.hero-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.hero-panel-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hero-empty-text {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  margin: 0;
+}
+.hero-add-symptom-btn {
+  align-self: flex-start;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+.hero-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hero-symptom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.hero-symptom-chips li {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.hero-symptom-chips.compact li {
+  font-size: 11px;
+  padding: 2px 7px;
+}
+.hero-notes-preview {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  margin: 0;
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hero-panel-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.hero-panel-action-btn:hover {
+  text-decoration: underline;
+}
+
+/* Barra inferior de anotaciones de hoy cuando se muestra el anillo */
+.hero-today-symptoms-bar {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.hero-today-symptoms-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.hero-today-symptoms-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hero-today-symptoms-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.hero-today-symptoms-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.hero-today-notes-snippet {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-today-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all .15s ease;
+}
+.hero-today-action-btn:hover {
+  background: var(--accent);
+  color: var(--accent-on, #fff);
+}
 .eyebrow { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 8px; }
 .cycle-headline { font: 400 29px/1.12 var(--font-display); letter-spacing: -0.5px; margin: 0 0 6px; max-width: 350px; text-wrap: balance; }
 .cycle-ring { width: 118px; height: 118px; flex-shrink: 0; position: relative; display: grid; place-items: center; filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--phase-ink) 20%, transparent)); }
@@ -388,6 +549,9 @@
   .cycle-summary:not(.is-first-record) .cycle-headline { grid-column: 1; margin-bottom: 0; }
   .cycle-summary:not(.is-first-record) .cycle-copy { grid-column: 1 / -1; max-width: none; }
   .cycle-summary:not(.is-first-record) .cycle-ring { grid-column: 2; grid-row: 1 / 3; justify-self: end; }
+  .hero-side-panel { grid-column: 1 / -1; max-width: 100%; width: 100%; }
+  .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) { display: flex; flex-direction: column; gap: 12px; }
+  .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) > div:first-child { display: block; }
   .cycle-meta dd { font-size: 14px; }
   .cycle-summary .muted-note { font-size: 11px; margin-top: 12px; }
   .modal-heading { padding: 16px; }
