@@ -13,7 +13,8 @@ import { calculateCycleStatistics, calculateUpcomingMilestones, extractPeriodClu
 import {
   getDefaultNotificationPreferences,
   scheduleLocalMilestones,
-  sendInstantTestNotification
+  sendInstantTestNotification,
+  sendLocalNotification
 } from '../services/localNotificationEngine';
 import {
   getAllLogsFromDB,
@@ -182,6 +183,27 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const scheduledNotifications = useMemo(() => {
     return scheduleLocalMilestones(upcomingMilestones, notificationPrefs);
   }, [upcomingMilestones, notificationPrefs]);
+
+  // Automated background/local dispatch of scheduled notifications when due (e.g. 1 week before period)
+  useEffect(() => {
+    if (!notificationPrefs.enabled) return;
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    const now = Date.now();
+    for (const notif of scheduledNotifications) {
+      // Check if trigger time has passed (within past 36 hours) and not yet sent
+      const isDue = now >= notif.triggerTimestamp && (now - notif.triggerTimestamp) < 36 * 3600 * 1000;
+      const storageKey = `aura_notif_sent_${notif.id}`;
+      if (isDue && !localStorage.getItem(storageKey)) {
+        void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
+          if (sent) {
+            try { localStorage.setItem(storageKey, String(now)); } catch {}
+          }
+        });
+      }
+    }
+  }, [scheduledNotifications, notificationPrefs.enabled]);
 
   const sendTestNotification = async () => {
     return await sendInstantTestNotification(notificationPrefs);

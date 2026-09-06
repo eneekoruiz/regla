@@ -11,6 +11,7 @@ import { ModularOnboardingModal } from '../Modals/ModularOnboardingModal';
 import { PwaInstallModal } from '../Modals/PwaInstallModal';
 import { PassphraseModal } from '../Modals/PassphraseModal';
 import { encryptText } from '../../services/cryptoVault';
+import { requestNotificationPermission } from '../../services/localNotificationEngine';
 import type { UserSettings } from '../../types/cycle';
 
 type Category = 'cycle' | 'body' | 'lifestyle';
@@ -225,8 +226,27 @@ function SettingsContent({ onOpenModularProfile }: Props) {
       {tab === 'notifications' && <div className="space-y-4">
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3">
           <label className="flex min-h-11 items-center gap-3 text-xs font-semibold cursor-pointer">
-            <input type="checkbox" checked={notificationPrefs.enabled} onChange={event => updateNotificationPrefs({ enabled: event.target.checked })} className="h-5 w-5 rounded accent-[var(--accent)]" />
-            <span>Activar recordatorios del ciclo</span>
+            <input
+              type="checkbox"
+              checked={notificationPrefs.enabled}
+              onChange={async event => {
+                const willEnable = event.target.checked;
+                if (willEnable && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+                  const perm = await requestNotificationPermission();
+                  if (perm === 'granted') {
+                    updateNotificationPrefs({ enabled: true });
+                    setMessage('Recordatorios activados (1 semana antes de tu regla).');
+                  } else {
+                    updateNotificationPrefs({ enabled: false });
+                    setError('Se necesita permiso del navegador para mostrar recordatorios.');
+                  }
+                } else {
+                  updateNotificationPrefs({ enabled: willEnable });
+                }
+              }}
+              className="h-5 w-5 rounded accent-[var(--accent)]"
+            />
+            <span>Activar recordatorios del ciclo (1 semana antes)</span>
           </label>
           {notificationPrefs.enabled && <div className="space-y-3 border-t border-[var(--border-subtle)] pt-3">
             <label className="flex min-h-11 items-center gap-3 text-xs cursor-pointer">
@@ -245,7 +265,7 @@ function SettingsContent({ onOpenModularProfile }: Props) {
               <label className="block space-y-1.5 text-xs font-medium">
                 <span>Antelación del aviso</span>
                 <select value={notificationPrefs.daysBeforePeriod} onChange={event => updateNotificationPrefs({ daysBeforePeriod: Number(event.target.value) })} className={modalField}>
-                  {[1, 2, 3].map(value => <option key={value} value={value}>{value} días antes</option>)}
+                  {[1, 2, 3, 5, 7].map(value => <option key={value} value={value}>{value === 7 ? '1 semana antes (7 días)' : `${value} días antes`}</option>)}
                 </select>
               </label>
             </div>

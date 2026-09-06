@@ -4,9 +4,9 @@ import { parseDateKey } from '../utils/cycleCalculator';
 
 export function getDefaultNotificationPreferences(): NotificationPreference {
   return {
-    enabled: false,
+    enabled: true,
     alertTime: '09:00',
-    daysBeforePeriod: 2,
+    daysBeforePeriod: 7,
     notifyFertileWindow: true,
     discreetMode: true
   };
@@ -17,14 +17,16 @@ export function getDefaultNotificationPreferences(): NotificationPreference {
  */
 export function getCamouflagedMessage(
   type: NotificationType,
-  discreetMode = true
+  discreetMode = true,
+  daysBefore = 7
 ): { title: string; body: string } {
+  const timeText = daysBefore === 7 ? 'en 1 semana' : daysBefore === 1 ? 'mañana' : `en ${daysBefore} días`;
   if (!discreetMode) {
     switch (type) {
       case 'period_approaching':
         return {
           title: 'Aura',
-          body: 'Tu periodo está previsto para comenzar en un par de días 🩸'
+          body: `Tu periodo está previsto para comenzar ${timeText} 🩸`
         };
       case 'fertile_window':
         return {
@@ -44,7 +46,7 @@ export function getCamouflagedMessage(
     case 'period_approaching':
       return {
         title: 'Aura',
-        body: 'Un pequeño recordatorio para ti hoy 🌸'
+        body: daysBefore === 7 ? 'Un pequeño recordatorio para tu semana 🌸' : 'Un pequeño recordatorio para ti hoy 🌸'
       };
     case 'fertile_window':
       return {
@@ -139,17 +141,18 @@ export function scheduleLocalMilestones(
   const scheduled: ScheduledNotification[] = [];
   const [hours, minutes] = (prefs.alertTime || '09:00').split(':').map(Number);
 
-  // 1. Period approaching alert (e.g. 2 days before nextPeriodStartDate)
+  // 1. Period approaching alert (e.g. 7 days before nextPeriodStartDate)
   if (milestones.nextPeriodStartDate) {
+    const daysBefore = prefs.daysBeforePeriod ?? 7;
     const periodStartDate = parseDateKey(milestones.nextPeriodStartDate);
     const triggerDate = new Date(periodStartDate);
-    triggerDate.setDate(periodStartDate.getDate() - (prefs.daysBeforePeriod || 2));
+    triggerDate.setDate(periodStartDate.getDate() - daysBefore);
     triggerDate.setHours(hours, minutes, 0, 0);
 
-    const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode);
+    const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode, daysBefore);
 
     scheduled.push({
-      id: `period_${milestones.nextPeriodStartDate}`,
+      id: `period_${milestones.nextPeriodStartDate}_${daysBefore}d`,
       targetDate: milestones.nextPeriodStartDate,
       triggerTimestamp: triggerDate.getTime(),
       type: 'period_approaching',

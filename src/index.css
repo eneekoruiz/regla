@@ -311,6 +311,8 @@
 .phase-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 6px 10px; margin: -8px 0 10px -10px; border-radius: 12px; color: var(--phase-ink); font-size: 12px; font-weight: 600; }
 .phase-chip:hover { background: var(--bg-card); }
 .phase-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.day-annotation-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-secondary); }
+.day-annotation-chip.has-data { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, transparent); font-weight: 600; }
 [data-phase="menstrual"] { --phase-ink: var(--rose); }
 [data-phase="follicular"] { --phase-ink: var(--accent); }
 [data-phase="ovulation"] { --phase-ink: #285bbb; }
