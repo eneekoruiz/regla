@@ -219,8 +219,13 @@ export function HeroStatus({
         title = 'Fecha estimada de regla: hoy';
         copy = `Día ${cycleDay} del ciclo · Confirma si te ha bajado la regla`;
       } else {
+        const daysToFertile = daysToOvu - 5;
         title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ciclo tiene su ritmo`;
+        if (daysToFertile > 0 && day.phase === 'follicular') {
+          copy = `Fase folicular · Tu ventana fértil se abre en ${daysToFertile} ${daysToFertile === 1 ? 'día' : 'días'}`;
+        } else {
+          copy = `Fase ${day.phaseName.toLowerCase()} · Tu ciclo tiene su ritmo`;
+        }
       }
     }
   }
