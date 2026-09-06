@@ -4,10 +4,13 @@ const B64_DB = 'cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfVGpmaVFTOElaRTFjQGVwLXlv
 const DEFAULT_SECRET = 'aura_production_jwt_signing_key_9876543210_secure_hash_secret_value_2026';
 
 let productionApp;
+let appInitError = null;
+
 function getProductionApp() {
   if (process.env.npm_lifecycle_event === 'test' && !process.env.DATABASE_URL) return null;
 
-  const dbUrl = process.env.DATABASE_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
+  const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
+  const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;
   const jwtSecret = process.env.JWT_SECRET || DEFAULT_SECRET;
 
   if (!productionApp) {
@@ -22,6 +25,7 @@ function getProductionApp() {
         }
       });
     } catch (err) {
+      appInitError = err;
       console.error('Error creating productionApp in api/index.js:', err);
     }
   }
@@ -49,7 +53,13 @@ export default function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   const path = new URL(req.url || '/', 'https://aura.invalid').pathname.replace(/\/$/, '');
   if (path === '/api/health' && req.method === 'GET') {
-    return res.status(200).json({ status: 'ok', authentication: 'unavailable' });
+    return res.status(200).json({
+      status: 'ok',
+      authentication: 'unavailable',
+      runtime: 'serverless-fallback',
+      initError: appInitError ? (appInitError.message || String(appInitError)) : null,
+      hasEnvDb: Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL)
+    });
   }
   if (path === '/api/ready' && req.method === 'GET') {
     return res.status(503).json({ status: 'unavailable', database: 'unavailable', recovery: 'unavailable' });

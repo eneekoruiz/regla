@@ -45,12 +45,13 @@ const logParams = (id, log) => [id, log.date, log.isPeriod, log.flow || null,
   JSON.stringify(log.symptoms), log.recordedAt, JSON.stringify(log)];
 
 function databaseOptions(connectionString) {
-  const url = new URL(connectionString);
+  const clean = String(connectionString || '').trim().replace(/^["']|["']$/g, '');
+  const url = new URL(clean);
   const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
   // pg can override SSL options from the URL, including disabling verification.
   for (const key of ['sslmode', 'sslcert', 'sslkey', 'sslrootcert']) url.searchParams.delete(key);
   return { connectionString: url.toString(), ssl: local ? false : { rejectUnauthorized: true },
-    connectionTimeoutMillis: 5000, idleTimeoutMillis: 30000, statement_timeout: 10000, max: 5 };
+    connectionTimeoutMillis: 10000, idleTimeoutMillis: 30000, statement_timeout: 10000, max: 5 };
 }
 
 function sha256(value) {
@@ -94,8 +95,12 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   const secret = env.JWT_SECRET || '';
   const secretReady = secret.length >= 32 && !/change_in_production/i.test(secret);
   let pool = suppliedPool;
+  let poolInitError = null;
   if (!pool && env.DATABASE_URL && secretReady) {
-    try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch { /* Disabled until configured. */ }
+    try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch (err) {
+      poolInitError = err?.message || String(err);
+      console.error('Pool initialization failed:', err);
+    }
   }
   const configured = Boolean(pool && secretReady);
   let ready = false;
@@ -184,7 +189,17 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     next();
   });
   app.use(express.json({ limit: '256kb', strict: true }));
-  app.get('/api/health', (req, res) => res.json({ status: 'ok', authentication: configured ? 'configured' : 'unavailable' }));
+  app.get('/api/health', (req, res) => res.json({
+    status: 'ok',
+    authentication: configured ? 'configured' : 'unavailable',
+    runtime: 'express-app',
+    configured,
+    hasDbUrl: Boolean(env.DATABASE_URL),
+    hasSecret: Boolean(env.JWT_SECRET),
+    secretReady,
+    poolReady: Boolean(pool),
+    poolInitError
+  }));
   app.get('/api/ready', async (req, res) => {
     const databaseReady = await ensureReady();
     const recoveryReady = Boolean(recoveryConfiguration(env));
