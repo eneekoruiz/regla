@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, CircleAlert, ClipboardList, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { CycleProvider } from './context/CycleContext';
 import { useCycle } from './hooks/useCycle';
+import { usePwaInstall } from './hooks/usePwaInstall';
 import { AuthScreens } from './components/Auth/AuthScreens';
 import { Header } from './components/Layout/Header';
 import type { AppView } from './components/Layout/Header';
@@ -44,6 +45,14 @@ const Loading = () => <div className="view-loading" role="status">Cargando…</d
 
 function MainScreen() {
   const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData, cycleStats, upcomingMilestones } = useCycle();
+  const { installed, canPrompt, isIos, install } = usePwaInstall();
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    try {
+      return !sessionStorage.getItem('aura_dismiss_install_banner');
+    } catch {
+      return true;
+    }
+  });
   const [view, setView] = useState<AppView>('diary');
   const [modal, setModal] = useState<ModalName | null>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -65,6 +74,17 @@ function MainScreen() {
   const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
   const openChat = (message?: string) => { setChatMessage(message || null); openModal('chat'); };
   const openCare = (phase?: CyclePhase) => { setCarePhase(phase || currentDayInfo.phase); openModal('care'); };
+  const handleInstall = async () => {
+    if (canPrompt && !installed) {
+      try {
+        await install();
+        return;
+      } catch {
+        // Fallback to guided modal
+      }
+    }
+    openModal('install');
+  };
   const changeView = (next: AppView) => { setView(next); window.scrollTo({ top: 0, behavior: 'instant' }); requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true })); };
   const log = logs[selectedDate];
   const healthAdvice = log?.flow === 'very_heavy' && selectedDate === todayDate ? generateDailyWellnessAdvice({ ...currentDayInfo, date: selectedDate, flow: log.flow }) : null;
@@ -94,10 +114,44 @@ function MainScreen() {
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={() => openModal('install')}/>
+    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={handleInstall}/>
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
+        {!installed && showInstallBanner && (
+          <aside className="install-banner" aria-label="Instalar aplicación">
+            <div className="install-banner-content">
+              <div className="install-banner-icon">
+                <Download size={20} aria-hidden="true" />
+              </div>
+              <div className="install-banner-text">
+                <strong>Instala Aura en tu {isIos ? 'iPhone' : 'móvil'}</strong>
+                <span>{isIos ? 'Añade la app a tu pantalla de inicio en 3 pasos rápidos.' : 'Instalación directa con un toque para acceder a tu diario.'}</span>
+              </div>
+            </div>
+            <div className="install-banner-actions">
+              <button
+                type="button"
+                className="aura-button primary sm"
+                onClick={handleInstall}
+              >
+                <Download size={15} aria-hidden="true" />
+                Instalar
+              </button>
+              <button
+                type="button"
+                className="aura-icon-button sm"
+                aria-label="Cerrar aviso de instalación"
+                onClick={() => {
+                  setShowInstallBanner(false);
+                  try { sessionStorage.setItem('aura_dismiss_install_banner', 'true'); } catch {}
+                }}
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </aside>
+        )}
         {view !== 'diary' && view !== 'tools' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
           <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
         </div>}
@@ -185,7 +239,7 @@ function MainScreen() {
             </aside>
           </div>
         </>}
-        {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare} onInstall={() => openModal('install')}/></Suspense></section>}
+        {view === 'calendar' && <section className="calendar-workspace" aria-label="Calendario del ciclo"><Suspense fallback={<Loading/>}><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare} onInstall={handleInstall}/></Suspense></section>}
         {view === 'tools' && (
           <div className="tools-workspace">
             {[
