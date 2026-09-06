@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, ShieldCheck, Download } from 'lucide-react';
+import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, ShieldCheck, Download, CheckCircle2, WifiOff } from 'lucide-react';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useSyncExternalStore } from 'react';
 import { useCycle } from '../../hooks/useCycle';
@@ -21,11 +21,12 @@ const subscribeTheme = (onChange: () => void) => {
 };
 
 
-export function Header({ view, onChangeView, onOpenChat, onInstall }: {
+export function Header({ view, onChangeView, onOpenChat, onInstall, online = true }: {
   view: AppView;
   onChangeView: (view: AppView) => void;
   onOpenChat: () => void;
   onInstall: () => void;
+  online?: boolean;
 }) {
   const { installed } = usePwaInstall();
   const { setIsSettingsOpen, settings, updateSettings } = useCycle();
@@ -81,7 +82,13 @@ export function Header({ view, onChangeView, onOpenChat, onInstall }: {
         <button type="button" className="aura-icon-button" title={dark ? 'Tema claro' : 'Tema oscuro'} aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'} onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>
         <button type="button" className="aura-icon-button" title="Ajustes" aria-label="Ajustes" onClick={() => setIsSettingsOpen(true)}><Settings size={20}/></button>
       </div>
-      <p className="navigation-note"><ShieldCheck size={15}/>Tu salud, bajo tu control</p>
+      <div className="navigation-footer">
+        <p className="navigation-note"><ShieldCheck size={14}/>Tu salud, bajo tu control</p>
+        <span className="sidebar-connection-status" role="status">
+          {online ? <CheckCircle2 size={13} style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} style={{ color: 'var(--rose)' }}/>}
+          <span>{online ? 'Conectado' : 'Sin conexión'}</span>
+        </span>
+      </div>
     </div>
   </header>;
 }

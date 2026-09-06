@@ -33,54 +33,75 @@ export function YearViewCalendar({
 
   return (
     <section className="space-y-4" aria-label="Vista anual">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-center gap-3 sm:gap-4 py-1">
         <button
           type="button"
           onClick={() => setYear(value => value - 1)}
-          className="aura-icon-button h-11 w-11"
+          className="aura-icon-button"
+          style={{ width: 40, height: 40, borderRadius: 12 }}
           aria-label="Año anterior"
         >
           <ChevronLeft size={20} aria-hidden="true" />
         </button>
-        <h2 className="text-base font-semibold" aria-live="polite">{year}</h2>
+        <h2
+          className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text-primary)]"
+          style={{ minWidth: 100, textAlign: 'center', fontFamily: 'var(--font-display)', letterSpacing: '-0.5px' }}
+          aria-live="polite"
+        >
+          {year}
+        </h2>
         <button
           type="button"
           onClick={() => setYear(value => value + 1)}
-          className="aura-icon-button h-11 w-11"
+          className="aura-icon-button"
+          style={{ width: 40, height: 40, borderRadius: 12 }}
           aria-label="Año siguiente"
         >
           <ChevronRight size={20} aria-hidden="true" />
         </button>
       </div>
 
-      {/* Quick legend bar at the top of the annual calendar for immediate reference on mobile & desktop */}
-      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-2.5 text-xs text-[var(--text-secondary)] shadow-xs">
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[var(--rose)]" />
-          Regla registrada
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />
-          Regla estimada
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-400 shadow-xs" />
-          Ovulación
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" />
-          Ventana fértil
-        </span>
-        {onOpenLegendModal && (
-          <button
-            type="button"
-            onClick={onOpenLegendModal}
-            className="aura-button min-h-7 px-2 py-0.5 text-xs text-[var(--text-primary)] hover:border-[var(--accent)]"
-          >
-            <Info size={13} aria-hidden="true" />
-            Leyenda
-          </button>
-        )}
+      {/* Leyenda única y completa en la parte superior */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs sm:text-[13px] text-[var(--text-secondary)] shadow-xs">
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--rose)]" />
+            Regla registrada
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />
+            Regla estimada
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400 shadow-xs" />
+            Ovulación máxima
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" />
+            Ventana fértil
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {onOpenLegendModal && (
+            <button
+              type="button"
+              onClick={onOpenLegendModal}
+              className="aura-button min-h-7 px-2.5 py-0.5 text-xs text-[var(--text-primary)] hover:border-[var(--accent)]"
+            >
+              <Info size={13} aria-hidden="true" />
+              Leyenda
+            </button>
+          )}
+          {onOpenCycleSyncing && (
+            <button
+              type="button"
+              onClick={onOpenCycleSyncing}
+              className="aura-button min-h-7 px-2.5 py-0.5 text-xs text-[var(--text-primary)] hover:border-[var(--accent)]"
+            >
+              Guía de fases
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -182,37 +203,6 @@ export function YearViewCalendar({
             </div>
           );
         })}
-      </div>
-
-      {/* Quick legend & actions at the bottom of the annual view */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--border-subtle)] pt-3 text-[13px] text-[var(--text-secondary)]">
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--rose)]" />
-          Regla registrada
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />
-          Regla estimada
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-amber-400 shadow-xs" />
-          Ovulación máxima
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" />
-          Ventana fértil
-        </span>
-        {onOpenLegendModal && (
-          <button type="button" onClick={onOpenLegendModal} className="aura-button min-h-11 text-sm">
-            <Info size={17} aria-hidden="true" />
-            Leyenda
-          </button>
-        )}
-        {onOpenCycleSyncing && (
-          <button type="button" onClick={onOpenCycleSyncing} className="aura-button min-h-11 text-sm">
-            Guía de fases
-          </button>
-        )}
       </div>
     </section>
   );

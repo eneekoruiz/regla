@@ -133,7 +133,7 @@ function MainScreen() {
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={handleInstall}/>
+    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={handleInstall} online={online}/>
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
@@ -171,9 +171,6 @@ function MainScreen() {
             </div>
           </aside>
         )}
-        {view !== 'diary' && view !== 'tools' && <div className="page-topline"><div><h1 className="page-title">{title}</h1><p className="page-subtitle">{view === 'calendar' ? 'Tus registros y las fechas que vienen.' : 'Todo lo que necesitas para cuidar de ti.'}</p></div>
-          <span className="connection-status" role="status">{online ? <CheckCircle2 size={15}/> : <WifiOff size={15}/>}<span>{online ? 'Conectado' : 'Sin conexión'}</span></span>
-        </div>}
         {view === 'diary' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && <button type="button" className="aura-icon-button" title="Volver a hoy" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={18}/></button>}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
