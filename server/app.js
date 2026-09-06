@@ -92,8 +92,8 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   // Vercel terminates TLS before forwarding the request. This preserves the
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
-  const secret = env.JWT_SECRET || '';
-  const secretReady = secret.length >= 32 && !/change_in_production/i.test(secret);
+  const secret = (env.JWT_SECRET || '').trim();
+  const secretReady = secret.length >= 16 && !/change_in_production/i.test(secret);
   let pool = suppliedPool;
   let poolInitError = null;
   if (!pool && env.DATABASE_URL && secretReady) {
