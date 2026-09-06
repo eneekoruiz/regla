@@ -1,16 +1,15 @@
 import { useState, type KeyboardEvent } from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw, Info, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RotateCcw, Info } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { formatDateKey, parseDateKey, SPANISH_MONTHS_FULL } from '../../utils/cycleCalculator';
 import type { CyclePhase } from '../../types/cycle';
 import { YearViewCalendar } from './YearViewCalendar';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCycleSyncing, onInstall }: {
+export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCycleSyncing }: {
   onSelectDate: (date: string) => void;
   onOpenLegendModal?: () => void;
   onOpenCycleSyncing?: (phase?: CyclePhase) => void;
-  onInstall?: () => void;
 }) => {
   const { getDayInfo, selectedDate, todayDate, hasEnoughData, logs, isRefugio, resetToToday } = useCycle();
   const [mode, setMode] = useState<'month' | 'year'>('month');
@@ -39,7 +38,6 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
         {(['month', 'year'] as const).map(value => <button type="button" key={value} aria-pressed={mode === value} onClick={() => setMode(value)} className={`min-h-9 sm:min-h-10 rounded-lg px-3 sm:px-4 text-xs sm:text-sm font-semibold ${mode === value ? 'bg-[var(--accent)] text-[var(--accent-on)]' : 'text-[var(--text-primary)]'}`}>{value === 'month' ? 'Mes' : 'Año'}</button>)}
       </div>
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {onInstall && <button type="button" onClick={onInstall} className="aura-button min-h-9 sm:min-h-10 rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm" title="Instalar Aura"><Download size={15} aria-hidden="true" />Instalar app</button>}
         <button type="button" onClick={() => { setMode('month'); setMonthKey(todayDate.slice(0, 7)); resetToToday(); }} className="aura-button min-h-9 sm:min-h-10 rounded-lg px-2.5 sm:px-3 text-xs sm:text-sm"><RotateCcw size={15} aria-hidden="true" />Hoy</button>
       </div>
     </div>

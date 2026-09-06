@@ -239,7 +239,6 @@ function MainScreen() {
                 onSelectDate={date => { setSelectedDate(date); openModal('daily'); }}
                 onOpenLegendModal={() => openModal('legend')}
                 onOpenCycleSyncing={openCare}
-                onInstall={handleInstall}
               />
             </section>
           )}

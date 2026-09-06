@@ -49,9 +49,35 @@ export function Header({ view, onChangeView, onOpenChat, onInstall }: {
       </button>)}
     </nav>
     <div className="navigation-bottom">
+      {!installed && (
+        <button
+          type="button"
+          className="sidebar-install-banner"
+          onClick={onInstall}
+          title="Instalar aplicación Aura en tu dispositivo"
+        >
+          <div className="sidebar-install-icon">
+            <Download size={18} aria-hidden="true" />
+          </div>
+          <div className="sidebar-install-info">
+            <strong>Instalar app</strong>
+            <span>Acceso directo y sin conexión</span>
+          </div>
+        </button>
+      )}
       <button type="button" className="navigation-item desktop-chat" onClick={onOpenChat}><MessageCircle size={20}/><span>Confidente</span></button>
       <div className="navigation-utilities">
-        {!installed && <button type="button" className="aura-icon-button" title="Instalar Aura" aria-label="Instalar Aura" onClick={onInstall}><Download size={19}/></button>}
+        {!installed && (
+          <button
+            type="button"
+            className="mobile-install-pill"
+            onClick={onInstall}
+            title="Instalar Aura en tu móvil"
+          >
+            <Download size={14} aria-hidden="true" />
+            <span>Instalar app</span>
+          </button>
+        )}
         <button type="button" className="aura-icon-button" title={dark ? 'Tema claro' : 'Tema oscuro'} aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'} onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>
         <button type="button" className="aura-icon-button" title="Ajustes" aria-label="Ajustes" onClick={() => setIsSettingsOpen(true)}><Settings size={20}/></button>
       </div>
