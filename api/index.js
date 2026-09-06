@@ -53,13 +53,7 @@ export default function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   const path = new URL(req.url || '/', 'https://aura.invalid').pathname.replace(/\/$/, '');
   if (path === '/api/health' && req.method === 'GET') {
-    return res.status(200).json({
-      status: 'ok',
-      authentication: 'unavailable',
-      runtime: 'serverless-fallback',
-      initError: appInitError ? (appInitError.message || String(appInitError)) : null,
-      hasEnvDb: Boolean(process.env.DATABASE_URL || process.env.POSTGRES_URL)
-    });
+    return res.status(200).json({ status: 'ok', authentication: 'unavailable' });
   }
   if (path === '/api/ready' && req.method === 'GET') {
     return res.status(503).json({ status: 'unavailable', database: 'unavailable', recovery: 'unavailable' });

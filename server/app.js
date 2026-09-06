@@ -189,17 +189,7 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     next();
   });
   app.use(express.json({ limit: '256kb', strict: true }));
-  app.get('/api/health', (req, res) => res.json({
-    status: 'ok',
-    authentication: configured ? 'configured' : 'unavailable',
-    runtime: 'express-app',
-    configured,
-    hasDbUrl: Boolean(env.DATABASE_URL),
-    hasSecret: Boolean(env.JWT_SECRET),
-    secretReady,
-    poolReady: Boolean(pool),
-    poolInitError
-  }));
+  app.get('/api/health', (req, res) => res.json({ status: 'ok', authentication: configured ? 'configured' : 'unavailable' }));
   app.get('/api/ready', async (req, res) => {
     const databaseReady = await ensureReady();
     const recoveryReady = Boolean(recoveryConfiguration(env));
