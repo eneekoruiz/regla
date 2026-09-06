@@ -62,6 +62,8 @@ export function NaturalInputBar() {
     try {
       await processDailyNote(note, selectedDate);
       setInput('');
+      // Mejora 9: vibración háptica suave al confirmar el guardado
+      try { navigator.vibrate?.(20); } catch {}
       toast.success('Nota registrada');
     }
     catch { setError('No se ha guardado la nota. El texto se conserva para que puedas reintentarlo.'); }

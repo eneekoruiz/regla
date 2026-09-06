@@ -18,6 +18,7 @@ import { HorizontalTimeline } from './components/Timeline/HorizontalTimeline';
 import { WellnessTipCard } from './components/Cards/WellnessTipCard';
 import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
+import { WeeklyRecapWidget } from './components/Cards/WeeklyRecapWidget';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
 import { parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, hasReportedStorageError } from './utils/storage';
@@ -26,6 +27,7 @@ import type { ChatQuizKey } from './services/aiAgent';
 import type { QuizAnswer } from './components/Chat/chatHistory';
 import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
+
 
 import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
 import { DailyLogBottomSheet } from './components/Modals/DailyLogBottomSheet';
@@ -298,11 +300,14 @@ function MainScreen() {
               <BiomarkersCard/>
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
+              {/* Mejora 5: widget de resumen semanal */}
+              <WeeklyRecapWidget />
               <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
               <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
             </aside>
           </div>
         </>}
+
         <ErrorBoundary fallbackTitle="No pudimos cargar esta sección" onReset={() => setView('diary')}>
           {view === 'calendar' && (
             <section className="calendar-workspace" aria-label="Calendario del ciclo">

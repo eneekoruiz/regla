@@ -692,20 +692,31 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Theme application (Dark, Light, System, Refugio)
+  // When theme === 'system': night hours (21:00–07:00) automatically apply dark mode
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('dark', 'theme-refugio');
+    const applyTheme = () => {
+      const root = document.documentElement;
+      root.classList.remove('dark', 'theme-refugio');
 
-    if (settings.theme === 'refugio') {
-      root.classList.add('dark', 'theme-refugio');
-    } else if (settings.theme === 'dark') {
-      root.classList.add('dark');
-    } else if (settings.theme === 'light') {
-      // Light is default
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) root.classList.add('dark');
-    }
+      if (settings.theme === 'refugio') {
+        root.classList.add('dark', 'theme-refugio');
+      } else if (settings.theme === 'dark') {
+        root.classList.add('dark');
+      } else if (settings.theme === 'light') {
+        // Light is default, no class needed
+      } else {
+        // 'system': honor OS preference, but override to dark during night hours (21:00 – 07:00)
+        const hour = new Date().getHours();
+        const isNight = hour >= 21 || hour < 7;
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark || isNight) root.classList.add('dark');
+      }
+    };
+
+    applyTheme();
+    // Recheck every minute so the transition happens automatically at 21:00 and 07:00
+    const interval = window.setInterval(applyTheme, 60_000);
+    return () => window.clearInterval(interval);
   }, [settings.theme]);
 
   return (

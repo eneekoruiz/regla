@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, Leaf, MessageCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Leaf, MessageCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCycle } from '../../hooks/useCycle';
-import { generateDailyWellnessCarousel } from '../../services/wellnessAgent';
+import { generateDailyWellnessCarousel, detectRecurringSymptomPattern } from '../../services/wellnessAgent';
 
 export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string) => void }) {
-  const { currentDayInfo, selectedDate, settings, hasEnoughData } = useCycle();
+  const { currentDayInfo, selectedDate, settings, hasEnoughData, logs, todayDate, cycleStats } = useCycle();
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  // Mejora 10: banner de patrón recurrente
+  const [patternDismissed, setPatternDismissed] = useState(false);
 
   const hasCycle = hasEnoughData && currentDayInfo.dayOfCycle > 0;
   const cards = useMemo(() => hasCycle ? generateDailyWellnessCarousel({
@@ -23,6 +25,20 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
     { id: 'privacy', categoryTitle: 'Tu espacio', category: 'privacidad', headline: 'Tu historia, contigo', advice: 'Los registros se guardan en este dispositivo. Puedes exportar una copia desde Ajustes para conservarlos o trasladarlos.', focusTip: 'El diario también está disponible sin conexión.' },
     { id: 'patterns', categoryTitle: 'Autoconocimiento', category: 'bienestar', headline: 'Mira lo que cambia', advice: 'Anotar el descanso, las sensaciones y las fechas del periodo puede ayudarte a preparar tus próximas consultas.', focusTip: 'No hace falta tener un ciclo regular para llevar un diario.' },
   ], [currentDayInfo, selectedDate, settings, hasCycle]);
+
+  // Mejora 10: detectar síntoma recurrente solo en hoy
+  const recurringPattern = useMemo(() => {
+    if (!hasCycle || selectedDate !== todayDate || patternDismissed) return null;
+    return detectRecurringSymptomPattern({
+      logs,
+      currentDayOfCycle: currentDayInfo.dayOfCycle,
+      todayDate,
+      cycleLength: Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28)),
+      lastPeriodStart: cycleStats.lastVerifiedPeriodStart || settings.lastPeriodStartDate || '',
+    });
+  }, [hasCycle, selectedDate, todayDate, patternDismissed, logs, currentDayInfo.dayOfCycle, cycleStats, settings]);
+
+
   const index = Math.min(activeIndex, Math.max(0, cards.length - 1));
   const card = cards[index];
 
@@ -46,6 +62,45 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
 
   if (!card) return null;
   return <section className="wellness-section" aria-labelledby="wellness-title">
+    {/* Mejora 10: banner proactivo de síntoma recurrente */}
+    {recurringPattern && (
+      <motion.div
+        className="recurring-symptom-banner"
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.2 }}
+        role="note"
+        aria-label="Patrón de síntoma detectado"
+      >
+        <div className="recurring-symptom-body">
+          <Sparkles size={14} className="recurring-symptom-icon" />
+          <p>{recurringPattern.message}</p>
+        </div>
+        <div className="recurring-symptom-actions">
+          {onOpenChat && (
+            <button
+              type="button"
+              className="aura-button sm primary"
+              style={{ fontSize: 12 }}
+              onClick={() => onOpenChat(`Hablemos sobre un síntoma que suelo tener en estos días del ciclo: ${recurringPattern.symptomName}`)}
+            >
+              <MessageCircle size={13} />
+              Hablar de ello
+            </button>
+          )}
+          <button
+            type="button"
+            className="aura-icon-button sm"
+            aria-label="Cerrar aviso de patrón"
+            onClick={() => setPatternDismissed(true)}
+            style={{ width: 32, height: 32 }}
+          >
+            ×
+          </button>
+        </div>
+      </motion.div>
+    )}
     <div className="section-heading">
       <h2 id="wellness-title">Un momento para ti</h2>
       <div className="wellness-controls flex items-center gap-1.5">

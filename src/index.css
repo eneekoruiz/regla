@@ -720,12 +720,24 @@
 .phase-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 6px 10px; margin: -8px 0 10px -10px; border-radius: 12px; color: var(--phase-ink); font-size: 12px; font-weight: 600; }
 .phase-chip:hover { background: var(--bg-card); }
 .phase-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+/* Phase-specific ink colors */
 [data-phase="menstrual"] { --phase-ink: var(--rose); }
 [data-phase="follicular"] { --phase-ink: var(--accent); }
 [data-phase="ovulation"] { --phase-ink: #285bbb; }
 [data-phase="luteal"] { --phase-ink: #785299; }
 .dark [data-phase="ovulation"] { --phase-ink: #a9c5ff; }
 .dark [data-phase="luteal"] { --phase-ink: #d1b4ef; }
+/* Mejora 3: hero-surface (fondo de la tarjeta verde) adapta su tono según la fase del ciclo */
+[data-phase="menstrual"] .cycle-summary,
+[data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)); }
+[data-phase="follicular"] .cycle-summary { background: var(--hero-surface); }
+[data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, #dbeafe 50%, var(--hero-surface)); }
+[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #ede9fe 50%, var(--hero-surface)); }
+.dark [data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 55%, var(--hero-surface)); }
+.dark [data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)); }
+.dark [data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, rgba(160,100,220,0.18) 80%, var(--hero-surface)); }
+/* Mejora 4: tipografía serif en el número grande del anillo */
+.cycle-ring-label strong { font-family: var(--font-display); font-style: italic; }
 .phase-chip.is-fertile { color: var(--accent); background: var(--accent-soft); border-radius: 12px; }
 .phase-chip.is-ovulation { color: #92400e; background: #fef3c7; border-radius: 12px; }
 .dark .phase-chip.is-ovulation { color: #fcd34d; background: rgba(245, 158, 11, 0.2); }
@@ -959,3 +971,173 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+
+/* ===== MEJORA 8: Empty-state cálido de primer registro ===== */
+.first-record-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 0 4px;
+  max-width: 340px;
+}
+.first-record-emoji {
+  font-size: 38px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(169, 54, 81, 0.25));
+  animation: gentle-float 3s ease-in-out infinite;
+}
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+.first-record-headline {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+.first-record-sub {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+.first-record-button {
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+/* ===== MEJORA 5: Widget de resumen semanal ===== */
+.weekly-recap-widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.weekly-recap-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.weekly-recap-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.weekly-recap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  width: fit-content;
+}
+.weekly-recap-chip.period {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
+.weekly-recap-chip.phase {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.weekly-recap-symptoms {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.weekly-recap-symptoms-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.weekly-recap-symptoms ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.weekly-recap-symptoms li {
+  font-size: 12px;
+  background: var(--bg-card-inner);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-primary);
+}
+.weekly-recap-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 8px;
+  padding: 0 5px;
+}
+.weekly-recap-hint {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ===== MEJORA 10: Banner de síntoma recurrente ===== */
+.recurring-symptom-banner {
+  background: color-mix(in srgb, var(--gold-soft) 80%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border-subtle));
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.recurring-symptom-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.recurring-symptom-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.recurring-symptom-body p {
+  font-size: 12.5px;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.45;
+}
+.recurring-symptom-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.aura-icon-button.sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+

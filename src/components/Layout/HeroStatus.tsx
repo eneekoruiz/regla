@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, CalendarDays, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, Sparkles, X } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, Sparkles, X, AlertTriangle } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/ToastContext';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
@@ -19,6 +19,11 @@ export function HeroStatus({
   const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
   const toast = useToast();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
+  // Mejora 6: estado para doble confirmación antes de borrar registro de regla
+  const [confirmDeletePending, setConfirmDeletePending] = useState(false);
+  // Reset automático al cambiar de fecha para evitar que quede activo el botón de "¿Segura?"
+  // cuando se navega a otro día
+
 
   const hasCycle = hasEnoughData && day.dayOfCycle > 0;
   const log = logs[selectedDate];
@@ -351,16 +356,35 @@ export function HeroStatus({
                     <Droplets size={14} style={{ color: 'var(--rose)' }} />
                     Editar flujo
                   </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => denyPeriodOnDate(selectedDate)}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    title="Quitar registro de regla para esta fecha"
-                  >
-                    <X size={14} />
-                    No tuve regla este día
-                  </button>
+                  {/* Mejora 6: doble confirmación antes de borrar */}
+                  {confirmDeletePending ? (
+                    <button
+                      type="button"
+                      className="aura-button sm"
+                      onClick={() => {
+                        denyPeriodOnDate(selectedDate);
+                        setConfirmDeletePending(false);
+                        try { navigator.vibrate?.([20, 40, 20]); } catch {}
+                        toast.success('Registro eliminado');
+                      }}
+                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                      title="Toca de nuevo para confirmar el borrado"
+                    >
+                      <AlertTriangle size={14} />
+                      ¿Segura? Confirmar
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="aura-button sm"
+                      onClick={() => setConfirmDeletePending(true)}
+                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      title="Quitar registro de regla para esta fecha"
+                    >
+                      <X size={14} />
+                      No tuve regla este día
+                    </button>
+                  )}
                 </>
               ) : day.isPeriod ? (
                 <>
@@ -373,15 +397,31 @@ export function HeroStatus({
                     <Droplets size={14} />
                     Tuve regla este día
                   </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => denyPeriodOnDate(selectedDate)}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Check size={14} />
-                    No tuve regla
-                  </button>
+                  {confirmDeletePending ? (
+                    <button
+                      type="button"
+                      className="aura-button sm"
+                      onClick={() => {
+                        denyPeriodOnDate(selectedDate);
+                        setConfirmDeletePending(false);
+                        try { navigator.vibrate?.([20, 40, 20]); } catch {}
+                      }}
+                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                    >
+                      <AlertTriangle size={14} />
+                      ¿Segura? Confirmar
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="aura-button sm"
+                      onClick={() => setConfirmDeletePending(true)}
+                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    >
+                      <Check size={14} />
+                      No tuve regla
+                    </button>
+                  )}
                 </>
               ) : (
                 <button
@@ -396,6 +436,7 @@ export function HeroStatus({
               )}
             </div>
           )}
+
 
           {confirmedEndFeedback && (
             <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -612,9 +653,16 @@ export function HeroStatus({
       )}
 
       {!hasCycle && (
-        <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>
-          Registrar mi regla<ArrowRight size={17}/>
-        </button>
+        <div className="first-record-empty-state">
+          <div className="first-record-emoji" aria-hidden="true">🌸</div>
+          <p className="first-record-headline">Aquí empieza tu historia</p>
+          <p className="first-record-sub">
+            Tu diario es solo tuyo. Empieza anotando cuándo fue tu última regla y el resto irá solo.
+          </p>
+          <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>
+            Registrar mi primera regla <ArrowRight size={17}/>
+          </button>
+        </div>
       )}
 
       {children && (
