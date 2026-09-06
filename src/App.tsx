@@ -43,7 +43,7 @@ type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile'
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData, cycleStats, upcomingMilestones } = useCycle();
   const [view, setView] = useState<AppView>('diary');
   const [modal, setModal] = useState<ModalName | null>(null);
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -51,6 +51,7 @@ function MainScreen() {
   const [chatMessage, setChatMessage] = useState<string | null>(null);
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
+  const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
     const storageError = () => setStorageFailed(true);
@@ -61,6 +62,7 @@ function MainScreen() {
   }, []);
   const openModal = (next: ModalName) => { setIsSettingsOpen(false); setModal(next); };
   const closeModal = () => setModal(null);
+  const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
   const openChat = (message?: string) => { setChatMessage(message || null); openModal('chat'); };
   const openCare = (phase?: CyclePhase) => { setCarePhase(phase || currentDayInfo.phase); openModal('care'); };
   const changeView = (next: AppView) => { setView(next); window.scrollTo({ top: 0, behavior: 'instant' }); requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true })); };
@@ -73,6 +75,13 @@ function MainScreen() {
   const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : 'Herramientas';
   const hasCycle = Boolean(hasEnoughData && currentDayInfo.dayOfCycle > 0);
   const isFuture = selectedDate > todayDate;
+  const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
+  const cycleDay = currentDayInfo.dayOfCycle;
+  const daysNext = upcomingMilestones.daysUntilNextPeriod;
+  const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(0, cycleLength - cycleDay + 1);
+  const isApproachingPeriod = (typeof daysNext === 'number' && daysNext <= 10) || (!daysNext && daysToNext <= 10) || hasPeriod;
+  const hasMedications = Boolean(log?.medications?.some(m => m.taken));
+  const hasIrregularBleeding = Boolean(log?.isIrregularBleeding);
   const tools = [
     { id: 'analytics' as const, name: 'Tendencias del ciclo', description: 'Historial, duración y variaciones', icon: BarChart3 },
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
@@ -101,7 +110,7 @@ function MainScreen() {
           {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
           <div className="diary-grid">
             <div className="diary-primary">
-              <HeroStatus onRecordPeriod={() => openModal('period')} onOpenLegend={() => openModal('legend')}/>
+              <HeroStatus onRecordPeriod={() => openBleedingModal('period')} onOpenLegend={() => openModal('legend')}/>
               {hasPeriod && <div className="period-registered-card">
                 <div className="period-registered-badge">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--rose-soft)] text-[var(--rose)]">
@@ -112,7 +121,7 @@ function MainScreen() {
                     <span>{log?.flow ? `Flujo ${log.flow === 'light' ? 'ligero' : log.flow === 'medium' ? 'medio' : log.flow === 'heavy' ? 'abundante' : 'muy abundante'}` : 'Sangrado activo'}</span>
                   </div>
                 </div>
-                <button type="button" className="aura-button sm" onClick={() => openModal('period')}>
+                <button type="button" className="aura-button sm" onClick={() => openBleedingModal('period')}>
                   Editar flujo
                 </button>
               </div>}
@@ -120,10 +129,51 @@ function MainScreen() {
                 <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
                 {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
                   <div className="quick-log-grid">
-                    <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={20}/><span>Síntomas y notas</span></button>
-                    <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={20}/><span>Intimidad</span></button>
+                    {hasPeriod ? (
+                      <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal('period')} title="Editar registro de regla">
+                        <Droplets size={20}/>
+                        <span>Regla registrada</span>
+                      </button>
+                    ) : isApproachingPeriod ? (
+                      <button type="button" className="quick-log period" aria-pressed={false} onClick={() => openBleedingModal('period')} title="Confirmar si te ha bajado la regla hoy">
+                        <Droplets size={20}/>
+                        <span>{daysToNext > 3 ? '¿Se te adelantó hoy?' : '¿Te ha bajado hoy?'}</span>
+                      </button>
+                    ) : (
+                      <button type="button" className="quick-log period" aria-pressed={hasIrregularBleeding} onClick={() => openBleedingModal('irregular')} title="Anotar sangrado imprevisto o manchado">
+                        <Droplets size={20}/>
+                        <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Sangrado irregular'}</span>
+                      </button>
+                    )}
+                    <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length || log?.notes)} onClick={() => openModal('daily')}>
+                      <NotebookPen size={20}/>
+                      <span>Síntomas y notas</span>
+                    </button>
+                    <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}>
+                      <Heart size={20}/>
+                      <span>Intimidad</span>
+                    </button>
+                    <button type="button" className="quick-log" aria-pressed={hasMedications} onClick={() => openModal('medication')}>
+                      <Pill size={20}/>
+                      <span>{hasMedications ? 'Tomas registradas' : 'Pastillas y tomas'}</span>
+                    </button>
                   </div>
-                  {hasEntries && (log?.symptoms.length || log?.notes || log?.bbt !== undefined || log?.medications?.length) ? <div className="log-preview"><ul className="symptom-list">{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}{hasIntimacy && <li>Intimidad registrada</li>}{log?.bbt !== undefined && <li>{log.bbt} °C</li>}{log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar síntomas<ArrowRight size={14}/></button></div> : null}
+                  {hasEntries && (log?.symptoms.length || log?.notes || log?.bbt !== undefined || log?.medications?.length || log?.isIrregularBleeding) ? (
+                    <div className="log-preview">
+                      <ul className="symptom-list">
+                        {hasPeriod && <li>Regla registrada</li>}
+                        {hasIrregularBleeding && <li>Sangrado irregular</li>}
+                        {log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}
+                        {hasIntimacy && <li>Intimidad registrada</li>}
+                        {log?.bbt !== undefined && <li>{log.bbt} °C</li>}
+                        {log?.medications?.filter(medication => medication.taken).map(medication => <li key={medication.id}>{medication.name}</li>)}
+                      </ul>
+                      {log?.notes && <p>{log.notes}</p>}
+                      <button type="button" className="text-action" onClick={() => openModal('daily')}><Check size={15}/>Ver o editar síntomas<ArrowRight size={14}/></button>
+                    </div>
+                  ) : (
+                    <p className="empty-log"><ClipboardList size={18}/>Aún no hay anotaciones de síntomas para este día.</p>
+                  )}
                 </>}
               </section>
               <QuizHistory results={log?.quizResults || []}/>
@@ -148,7 +198,7 @@ function MainScreen() {
     </main>
     <Suspense fallback={<Loading/>}>
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
-      {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen onClose={closeModal}/>}
+      {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen initialType={periodModalType} onClose={closeModal}/>}
       {modal === 'intimacy' && <IntimacyModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'daily' && <DailyLogBottomSheet key={selectedDate} isOpen onClose={closeModal} onOpenSymptothermal={() => openModal('symptothermal')} onOpenMedications={() => openModal('medication')}/>}
       {modal === 'legend' && <ColorLegendModal isOpen onClose={closeModal}/>}

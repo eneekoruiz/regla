@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, ClipboardList, Droplets } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, Droplets } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { diffDays, formatDateKey, parseDateKey } from '../../utils/dateKey';
 
@@ -26,15 +26,6 @@ export function HeroStatus({
   const cycleDay = hasCycle ? awaitingPeriod ? elapsedDays + 1 : day.dayOfCycle : 0;
   const daysNext = upcomingMilestones.daysUntilNextPeriod;
 
-  // Day annotations info (symptoms, notes, intimacy)
-  const currentLog = logs[selectedDate];
-  const symptomsCount = currentLog?.symptoms?.length || 0;
-  const hasDayNotes = Boolean(currentLog?.notes?.trim());
-  const hasDayIntimacy = Boolean((currentLog?.intimacy && currentLog.intimacy !== 'none') || (currentLog?.intimacyLog?.activity && currentLog.intimacyLog.activity !== 'none'));
-  const hasDayBbt = currentLog?.bbt !== undefined;
-  const hasDayMedications = Boolean(currentLog?.medications?.some(m => m.taken));
-  const hasDayAnnotations = symptomsCount > 0 || hasDayNotes || hasDayIntimacy || hasDayBbt || hasDayMedications;
-
   // Find effective last period day in this cycle to accurately know when the period finished
   let lastRecordedPeriodDay = periodLength;
   if (cycleStats.lastVerifiedPeriodStart) {
@@ -59,18 +50,12 @@ export function HeroStatus({
   const isJustFinishedPeriod = hasCycle && !isPeriodDay && (daysSincePeriodEnd === 1 || daysSincePeriodEnd === 2);
   const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(1, cycleLength - cycleDay + 1);
 
-  const symptomsStatusSummary = hasDayAnnotations
-    ? (symptomsCount > 0 ? `${symptomsCount} síntoma${symptomsCount > 1 ? 's' : ''} registrado${symptomsCount > 1 ? 's' : ''}` : 'Anotaciones registradas')
-    : 'Aún no hay anotaciones de síntomas para este día';
-
   let title = hasCycle ? `Día ${cycleDay} de tu ciclo` : 'Tu primer registro';
   let copy = hasCycle ? day.phaseName : 'Anota cuándo empezó tu regla. No necesitas conocer todavía la duración de tu ciclo.';
 
   if (hasEnoughData && !hasCycle) {
     title = 'Un día de tu historia';
-    copy = isFuture
-      ? 'No hay un inicio de ciclo registrado para esta fecha.'
-      : `${symptomsStatusSummary}. Tus anotaciones se guardan igualmente.`;
+    copy = 'No hay un inicio de ciclo registrado para esta fecha. Tus anotaciones se guardan igualmente.';
   } else if (hasCycle) {
     if (isFuture) {
       if (isPeriodDay) {
@@ -86,28 +71,28 @@ export function HeroStatus({
       }
     } else if (isPeriodDay) {
       title = isRecorded ? 'En tu periodo' : 'Periodo estimado';
-      copy = `${symptomsStatusSummary} · ${isRecorded ? 'Día de regla registrado.' : 'Previsión de sangrado.'}`;
+      copy = isRecorded ? 'Ve a tu ritmo. Registro de regla activo.' : 'Esta fecha es una previsión. Puedes confirmar o corregir el sangrado en tu registro.';
     } else if (isJustFinishedPeriod) {
       // EXACTAMENTE 1 o 2 días después de terminar la regla
       title = 'Tu regla ha terminado';
-      copy = `${symptomsStatusSummary} · Te faltan ~${daysToNext} días para tu próxima regla`;
+      copy = `Te faltan ~${daysToNext} días para tu próxima regla · ${day.phaseName}`;
     } else {
       // Más de 1 o 2 días después de la regla: "Te quedan X días para la regla"
       if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
-        copy = `${symptomsStatusSummary} · ${elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observes.'}`;
+        copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
       } else if (daysToNext > 1) {
         title = `Te quedan ${daysToNext} días para la regla`;
-        copy = `${day.phaseName} · ${symptomsStatusSummary}`;
+        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 1) {
         title = 'Te queda 1 día para la regla';
-        copy = `${day.phaseName} · ${symptomsStatusSummary}`;
+        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 0) {
         title = 'Fecha estimada de regla: hoy';
-        copy = `${day.phaseName} · ${symptomsStatusSummary}`;
+        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
       } else {
         title = 'Tu ciclo tiene su ritmo';
-        copy = `${day.phaseName} · ${symptomsStatusSummary}`;
+        copy = `${day.phaseName} · Día ${cycleDay} del ciclo`;
       }
     }
   }
@@ -128,26 +113,16 @@ export function HeroStatus({
     >
       <div className="cycle-summary-top">
         <div className="cycle-summary-info">
-          <div className="cycle-chips-line" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-            {hasCycle ? (
-              <button type="button" className="phase-chip" onClick={onOpenLegend} style={{ margin: 0 }}>
-                <span className="phase-dot"/>
-                {awaitingPeriod ? 'Ciclo en curso' : day.phaseName}
-                <ChevronDown size={14}/>
-                <span className="sr-only"> · Entender las fases</span>
-              </button>
-            ) : (
-              <p className="eyebrow" style={{ margin: 0 }}><Droplets size={15}/>Un espacio para ti</p>
-            )}
-            {!isFuture && (
-              <span className={`day-annotation-chip ${hasDayAnnotations ? 'has-data' : ''}`}>
-                {hasDayAnnotations ? <Check size={13} /> : <ClipboardList size={13} />}
-                {hasDayAnnotations
-                  ? (symptomsCount > 0 ? `${symptomsCount} síntoma${symptomsCount > 1 ? 's' : ''}` : 'Anotaciones')
-                  : 'Aún no hay anotaciones de síntomas'}
-              </span>
-            )}
-          </div>
+          {hasCycle ? (
+            <button type="button" className="phase-chip" onClick={onOpenLegend}>
+              <span className="phase-dot"/>
+              {awaitingPeriod ? 'Ciclo en curso' : day.phaseName}
+              <ChevronDown size={14}/>
+              <span className="sr-only"> · Entender las fases</span>
+            </button>
+          ) : (
+            <p className="eyebrow"><Droplets size={15}/>Un espacio para ti</p>
+          )}
           <h2 id="cycle-title" className="cycle-headline">{title}</h2>
           <p className="cycle-copy">{copy}</p>
 

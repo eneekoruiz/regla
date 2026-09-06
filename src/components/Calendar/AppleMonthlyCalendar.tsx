@@ -43,7 +43,15 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
         <button type="button" onClick={() => { setMode('month'); setMonthKey(todayDate.slice(0, 7)); resetToToday(); }} className="aura-button min-h-11 rounded-lg px-3 text-sm"><RotateCcw size={17} aria-hidden="true" />Hoy</button>
       </div>
     </div>
-    {mode === 'year' ? <YearViewCalendar initialYear={year} onSelectMonth={key => { setMonthKey(key); setMode('month'); }} onSelectDate={select} /> : <>
+    {mode === 'year' ? (
+      <YearViewCalendar
+        initialYear={year}
+        onSelectMonth={key => { setMonthKey(key); setMode('month'); }}
+        onSelectDate={select}
+        onOpenLegendModal={onOpenLegendModal}
+        onOpenCycleSyncing={onOpenCycleSyncing}
+      />
+    ) : <>
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={() => navigate(-1)} className="aura-icon-button h-11 w-11 shrink-0" aria-label="Mes anterior"><ChevronLeft size={20} aria-hidden="true" /></button>
         <h2 className="text-center text-base font-semibold capitalize" aria-live="polite">{SPANISH_MONTHS_FULL[month]} {year}</h2>
@@ -84,9 +92,9 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--border-subtle)] pt-3 text-[13px] text-[var(--text-secondary)]">
         <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--rose)]" />Regla registrada</span>
-        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />Regla estimada</span>}
-        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-amber-400 shadow-xs" />Ovulación máxima</span>}
-        {hasEnoughData && <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" />Ventana fértil</span>}
+        <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--rose-soft)] ring-1 ring-inset ring-[var(--rose)]" />Regla estimada</span>
+        <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-amber-400 shadow-xs" />Ovulación máxima</span>
+        <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" />Ventana fértil</span>
         {onOpenLegendModal && <button type="button" onClick={onOpenLegendModal} className="aura-button min-h-11 text-sm"><Info size={17} aria-hidden="true" />Leyenda</button>}
         {onOpenCycleSyncing && <button type="button" onClick={() => onOpenCycleSyncing()} className="aura-button min-h-11 text-sm">Guía de fases</button>}
       </div>

@@ -12,12 +12,22 @@ const FLOW_LEVELS: { id: FlowIntensity; label: string; count: number }[] = [
   { id: 'heavy', label: 'Abundante', count: 3 },
   { id: 'very_heavy', label: 'Muy abundante', count: 4 }
 ];
-export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function PeriodFlowModal({
+  isOpen,
+  onClose,
+  initialType = 'period'
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  initialType?: 'period' | 'irregular';
+}) {
   const { selectedDate, logBleedingForDate, denyPeriodOnDate, logs, settings } = useCycle();
   const log = logs[selectedDate];
   const existing = Boolean(log?.isPeriod || log?.isIrregularBleeding);
-  const [hasBleeding, setHasBleeding] = useState(existing);
-  const [bleedingType, setBleedingType] = useState<'period' | 'irregular'>(log?.isIrregularBleeding ? 'irregular' : 'period');
+  const [hasBleeding, setHasBleeding] = useState(existing || Boolean(initialType));
+  const [bleedingType, setBleedingType] = useState<'period' | 'irregular'>(
+    log?.isIrregularBleeding ? 'irregular' : log?.isPeriod ? 'period' : initialType
+  );
   const [flow, setFlow] = useState<FlowIntensity>(log?.flow || settings.typicalFlowIntensity || 'medium');
   const [isCycleStart, setIsCycleStart] = useState(Boolean(log?.isCycleStart || settings.lastPeriodStartDate === selectedDate));
   const [error, setError] = useState('');
