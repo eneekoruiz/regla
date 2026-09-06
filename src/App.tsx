@@ -184,20 +184,6 @@ function MainScreen() {
           <div className="diary-grid">
             <div className="diary-primary">
               <HeroStatus onRecordPeriod={() => openBleedingModal('period')} onOpenLegend={() => openModal('legend')}/>
-              {hasPeriod && <div className="period-registered-card">
-                <div className="period-registered-badge">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--rose-soft)] text-[var(--rose)]">
-                    <Droplets size={16} />
-                  </span>
-                  <div className="flex flex-col">
-                    <strong>Regla registrada</strong>
-                    <span>{log?.flow ? `Flujo ${log.flow === 'light' ? 'ligero' : log.flow === 'medium' ? 'medio' : log.flow === 'heavy' ? 'abundante' : 'muy abundante'}` : 'Sangrado activo'}</span>
-                  </div>
-                </div>
-                <button type="button" className="aura-button sm" onClick={() => openBleedingModal('period')}>
-                  Editar flujo
-                </button>
-              </div>}
               <section className="diary-section diary-record-section" aria-labelledby="record-title">
                 <div className="section-heading"><div><h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2><p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p></div>{!isFuture && <button type="button" className="aura-icon-button" title="Abrir registro diario" aria-label="Abrir registro diario" onClick={() => openModal('daily')}><Plus size={18}/></button>}</div>
                 {isFuture ? <div className="future-day-card"><p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p></div> : <>
