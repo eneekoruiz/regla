@@ -388,10 +388,19 @@ export function HeroStatus({
                       type="button"
                       className="aura-button sm"
                       onClick={() => {
+                        const start = cycleStats.lastVerifiedPeriodStart;
+                        const yesterday = parseDateKey(selectedDate);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = formatDateKey(yesterday);
+                        if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
+                          logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
+                          toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
+                        } else {
+                          toast.success('Registro eliminado');
+                        }
                         denyPeriodOnDate(selectedDate);
                         setConfirmDeletePending(false);
                         try { navigator.vibrate?.([20, 40, 20]); } catch {}
-                        toast.success('Registro eliminado');
                       }}
                       style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
                       title="Toca de nuevo para confirmar el borrado"
@@ -428,6 +437,14 @@ export function HeroStatus({
                       type="button"
                       className="aura-button sm"
                       onClick={() => {
+                        const start = cycleStats.lastVerifiedPeriodStart;
+                        const yesterday = parseDateKey(selectedDate);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = formatDateKey(yesterday);
+                        if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
+                          logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
+                          toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
+                        }
                         denyPeriodOnDate(selectedDate);
                         setConfirmDeletePending(false);
                         try { navigator.vibrate?.([20, 40, 20]); } catch {}
