@@ -650,7 +650,7 @@
 @media (max-width: 700px) {
   html { scroll-padding-top: calc(88px + env(safe-area-inset-top, 0px)); scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select { font-size: 16px; }
-  .app-navigation { height: calc(72px + env(safe-area-inset-top, 0px)); width: 100%; padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 10px; inset: 0 0 auto; flex-direction: row; align-items: center; justify-content: space-between; border-right: 0; border-bottom: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-root) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 100; }
+  .app-navigation { height: calc(72px + env(safe-area-inset-top, 0px)); width: 100%; padding: calc(10px + env(safe-area-inset-top, 0px)) 18px 10px; inset: 0 0 auto; flex-direction: row; align-items: center; justify-content: space-between; border-right: 0; border-bottom: 1px solid var(--border-subtle); background: var(--bg-root); z-index: 100; }
   .brand { font-size: 27px; padding: 0; gap: 9px; }
   .brand-symbol { height: 32px; width: 32px; font-size: 28px; }
   .brand-header-area, .brand-row { width: auto; }
