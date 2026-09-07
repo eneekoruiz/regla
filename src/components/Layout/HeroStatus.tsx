@@ -195,8 +195,8 @@ export function HeroStatus({
         title = 'Periodo estimado para hoy';
         copy = 'Esta fecha es una previsión. Confirma o corrige el sangrado de hoy.';
       } else if (isJustFinishedPeriod) {
-        title = `Tu regla ha terminado`;
-        copy = `Día ${cycleDay} del ciclo (Fase folicular) · Ovulación estimada en ${daysToOvu} días`;
+        title = `Ovulación estimada en ${daysToOvu} días`;
+        copy = `Tu regla ha terminado · Día ${cycleDay} del ciclo`;
       } else if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
         copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
