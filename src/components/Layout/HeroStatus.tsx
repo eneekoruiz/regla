@@ -614,7 +614,7 @@ export function HeroStatus({
           </div>
           <button
             type="button"
-            className="aura-button primary sm urgent-today-btn"
+            className="aura-button sm urgent-today-btn"
             onClick={onOpenDailyModal}
           >
             <Plus size={14} />
