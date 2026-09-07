@@ -195,8 +195,8 @@ export function HeroStatus({
         title = 'Periodo estimado para hoy';
         copy = 'Esta fecha es una previsión. Confirma o corrige el sangrado de hoy.';
       } else if (isJustFinishedPeriod) {
-        title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Tu regla ha terminado · Te faltan ${daysToNext} días para tu próxima regla`;
+        title = `Tu regla ha terminado`;
+        copy = `Día ${cycleDay} del ciclo (Fase folicular) · Ovulación estimada en ${daysToOvu} días`;
       } else if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
         copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
@@ -537,18 +537,13 @@ export function HeroStatus({
         )}
 
         {/* En días pasados / sin anillo: se aprovecha el espacio derecho para las anotaciones y síntomas */}
-        {!showRing && (
-          <div className={`hero-side-panel${isFuture ? ' is-future' : ''}`}>
+        {!showRing && !isFuture && (
+          <div className="hero-side-panel">
             <div className="hero-panel-header">
-              {isFuture ? <Sparkles size={15} /> : <ClipboardList size={15} />}
-              <span>{isFuture ? 'Previsión' : 'Anotaciones'}</span>
+              <ClipboardList size={15} />
+              <span>Anotaciones</span>
             </div>
-            {isFuture ? (
-              <div className="hero-panel-body">
-                <p className="hero-future-text">Día futuro estimado según tus ciclos habituales.</p>
-                <span className="hero-future-badge">Anotaciones activas al llegar esta fecha</span>
-              </div>
-            ) : hasAnyAnnotation ? (
+            {hasAnyAnnotation ? (
               <div className="hero-panel-body">
                 <ul className="hero-symptom-chips">
                   {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
