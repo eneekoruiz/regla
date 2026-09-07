@@ -301,8 +301,6 @@ function MainScreen() {
               <BiomarkersCard/>
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
-              {/* Mejora 5: widget de resumen semanal */}
-              <WeeklyRecapWidget />
               <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
               <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
             </aside>
