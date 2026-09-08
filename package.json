@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "db:migrate": "node server/migrate.js",
     "test": "node --import ./tests/unit/register-typescript.mjs --test tests/unit/*.test.mjs tests/server/*.test.mjs",
+    "test:accounts": "node scripts/verify-accounts.mjs",
     "test:e2e": "playwright test",
     "test:selenium": "node scripts/selenium-review.mjs",
     "test:visual": "node scripts/visual-review.mjs"

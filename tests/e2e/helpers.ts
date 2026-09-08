@@ -1,26 +1,53 @@
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-export async function enterLocal(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: /modo privado local/i }).click();
-  await expect(page.getByRole('heading', { name: 'Mi diario', exact: true })).toBeVisible();
+const qaUser = { id: 'qa-isolated', email: 'qa@example.invalid' };
+const qaToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
+const logsKey = `regla_daily_logs_v1:${encodeURIComponent(qaUser.id)}`;
+const settingsKey = `regla_user_settings_v1:${encodeURIComponent(qaUser.id)}`;
+
+async function mockAccountApi(page: Page) {
+  await page.route('**/api/auth/login', async route => route.fulfill({ json: { token: qaToken, user: qaUser } }));
+  await page.route('**/api/auth/signup', async route => route.fulfill({ status: 201, json: { token: qaToken, user: qaUser } }));
+  await page.route('**/api/auth/me', async route => route.fulfill({ json: { user: qaUser } }));
+  await page.route('**/api/settings', async route => {
+    const method = route.request().method();
+    if (method === 'POST') return route.fulfill({ json: { ok: true } });
+    return route.fulfill({ json: {} });
+  });
+  await page.route('**/api/logs', async route => route.fulfill({ json: [] }));
+  await page.route('**/api/logs/bulk', async route => route.fulfill({ json: { ok: true } }));
 }
 
-export async function seedLocal(page: Page) {
+export async function enterAccount(page: Page) {
+  await mockAccountApi(page);
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: /modo privado local/i })).toHaveCount(0);
+  await page.getByLabel('Correo electrónico').fill(qaUser.email);
+  await page.getByRole('textbox', { name: 'Contraseña', exact: true }).fill('test-password-1234');
+  await page.getByRole('button', { name: /^Iniciar sesión$/i }).click();
+  await expect(page.getByLabel('Fecha del registro')).toBeVisible();
+}
+
+export async function seedAccount(page: Page) {
+  await mockAccountApi(page);
   await page.addInitScript(() => {
     if (localStorage.getItem('qa-initialized')) return;
+    const user = { id: 'qa-isolated', email: 'qa@example.invalid' };
+    const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
+    const logsKey = `regla_daily_logs_v1:${encodeURIComponent(user.id)}`;
+    const settingsKey = `regla_user_settings_v1:${encodeURIComponent(user.id)}`;
     const today = new Date();
     const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3);
-    localStorage.setItem('token', 'local-qa');
-    localStorage.setItem('cached_user', JSON.stringify({ id: 'qa-isolated', email: 'qa@local.test' }));
-    localStorage.setItem('regla_user_settings_v1', JSON.stringify({ userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light' }));
-    localStorage.setItem('regla_daily_logs_v1', JSON.stringify({ [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() } }));
+    localStorage.setItem('token', token);
+    localStorage.setItem('cached_user', JSON.stringify(user));
+    localStorage.setItem(settingsKey, JSON.stringify({ userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light' }));
+    localStorage.setItem(logsKey, JSON.stringify({ [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() } }));
     localStorage.setItem('qa-initialized', 'true');
   });
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Mi diario', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Fecha del registro')).toBeVisible();
 }
 
 export async function checkLayout(page: Page) {
@@ -59,5 +86,9 @@ export async function openTool(page: Page, name: RegExp) {
 }
 
 export async function readLogs(page: Page) {
-  return page.evaluate(() => JSON.parse(localStorage.getItem('regla_daily_logs_v1') || '{}'));
+  return page.evaluate(key => JSON.parse(localStorage.getItem(key) || '{}'), logsKey);
+}
+
+export async function readSettings(page: Page) {
+  return page.evaluate(key => JSON.parse(localStorage.getItem(key) || '{}'), settingsKey);
 }

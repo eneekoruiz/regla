@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { seedLocal, readLogs, checkLayout, capture } from './helpers';
+import { seedAccount, readLogs, checkLayout, capture } from './helpers';
 
 test('arranque en frío sin red y catálogo completo de herramientas', async ({ page, context }, info) => {
   test.setTimeout(300_000);
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await seedLocal(page);
+  await seedAccount(page);
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }));

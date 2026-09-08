@@ -166,7 +166,7 @@ export const LegalComplianceModal: React.FC<LegalComplianceModalProps> = ({ isOp
                     1. Arquitectura Local-First y Categoría Especial (Art. 9 RGPD)
                   </span>
                   <p>
-                    Tus registros ginecológicos, síntomas, analíticas y vida sexual están clasificados como <strong>datos de salud especialmente protegidos</strong>. En modo privado se guardan en este dispositivo. Conserva una copia de seguridad para poder recuperarlos.
+                    Tus registros ginecológicos, síntomas, analíticas y vida sexual están clasificados como <strong>datos de salud especialmente protegidos</strong>. Se guardan en tu cuenta y en la caché de este dispositivo para funcionar sin conexión. Conserva una copia de seguridad para poder recuperarlos.
                   </p>
                 </div>
 

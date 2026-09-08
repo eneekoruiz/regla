@@ -1,4 +1,4 @@
-import { Droplet, Heart, Circle, Check } from 'lucide-react';
+import { Droplet, Heart, Check } from 'lucide-react';
 import type { CycleDayInfo } from '../../types/cycle';
 import { useCycle } from '../../hooks/useCycle';
 

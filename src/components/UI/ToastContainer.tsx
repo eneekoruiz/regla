@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
-import { useToast, type ToastType } from '../../context/ToastContext';
+import { useToast, type ToastType } from '../../context/toast';
 
 function ToastIcon({ type }: { type: ToastType }) {
   switch (type) {

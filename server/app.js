@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
 const { isObject, isSafeJson, credentials, emailAddress, resetPassword, dailyLog } = require('./validation');
 
-const UNAVAILABLE = 'El acceso con cuenta no está disponible ahora. Puedes continuar en modo privado local.';
+const UNAVAILABLE = 'El acceso con cuenta no está disponible ahora. Vuelve a intentarlo en unos minutos.';
 const schema = `
   CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL,
@@ -93,13 +93,11 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
   const secret = (env.JWT_SECRET || '').trim();
-  const secretReady = secret.length >= 16 && !/change_in_production/i.test(secret);
+  const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production|your_custom|aura_production_jwt_signing_key/i.test(secret);
   let pool = suppliedPool;
-  let poolInitError = null;
   if (!pool && env.DATABASE_URL && secretReady) {
-    try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch (err) {
-      poolInitError = err?.message || String(err);
-      console.error('Pool initialization failed:', err);
+    try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch {
+      console.error('Pool initialization failed. Check DATABASE_URL configuration.');
     }
   }
   const configured = Boolean(pool && secretReady);
@@ -111,15 +109,12 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     if (!initialization) initialization = (async () => {
       try {
         if (initialize) {
-          const check = await pool.query("SELECT 1 FROM information_schema.tables WHERE table_name = 'users'");
-          if (check.rows.length === 0) {
-            await pool.query(schema);
-          }
+          await pool.query(schema);
         }
         ready = true;
         return true;
-      } catch (err) {
-        console.error('ensureReady database error:', err.message || err);
+      } catch {
+        console.error('Database initialization failed. Check credentials and schema permissions.');
         return false;
       } finally {
         initialization = null;

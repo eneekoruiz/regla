@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, Check, CheckCircle2, ChevronRight, ChevronDown, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
-import { ToastProvider, useToast } from './context/ToastContext';
+import { ToastProvider } from './context/ToastContext';
+import { useToast } from './context/toast';
 import { ToastContainer } from './components/UI/ToastContainer';
 import { CycleProvider } from './context/CycleContext';
 import { useCycle } from './hooks/useCycle';
@@ -18,7 +19,6 @@ import { HorizontalTimeline } from './components/Timeline/HorizontalTimeline';
 import { WellnessTipCard } from './components/Cards/WellnessTipCard';
 import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
-import { WeeklyRecapWidget } from './components/Cards/WeeklyRecapWidget';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
 import { parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, hasReportedStorageError } from './utils/storage';
@@ -70,7 +70,7 @@ const Loading = () => <div className="view-loading" role="status">Cargando…</d
 
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, hasEnoughData, cycleStats, upcomingMilestones } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, upcomingMilestones } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
@@ -126,7 +126,6 @@ function MainScreen() {
   const healthAdvice = log?.flow === 'very_heavy' && selectedDate === todayDate ? generateDailyWellnessAdvice({ ...currentDayInfo, date: selectedDate, flow: log.flow }) : null;
   const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
-  const hasEntries = Boolean(log && (hasPeriod || hasIntimacy || log.symptoms.length || log.notes || log.bbt !== undefined || log.medications?.length || log.quizResults?.length));
   const allQuizResults = useMemo(() => {
     const list: QuizResult[] = [];
     for (const l of Object.values(logs)) {
@@ -137,8 +136,6 @@ function MainScreen() {
     return list.sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
   }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-  const title = view === 'diary' ? 'App menstrual' : view === 'calendar' ? 'Calendario' : view === 'tools' ? 'Herramientas' : 'Ajustes';
-  const hasCycle = Boolean(hasEnoughData && currentDayInfo.dayOfCycle > 0);
   const isFuture = selectedDate > todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
   const cycleDay = currentDayInfo.dayOfCycle;
@@ -213,7 +210,7 @@ function MainScreen() {
             </p>
           </div>
           <span className="connection-status" role="status">
-            {online ? <CheckCircle2 size={15} style={{ color: 'var(--accent)' }}/> : <WifiOff size={15} style={{ color: 'var(--rose)' }}/>}
+            {online ? <CheckCircle2 size={15} aria-hidden="true" style={{ color: 'var(--accent)' }}/> : <WifiOff size={15} aria-hidden="true" style={{ color: 'var(--rose)' }}/>}
             <span>{online ? 'Conectado' : 'Sin conexión'}</span>
           </span>
         </div>

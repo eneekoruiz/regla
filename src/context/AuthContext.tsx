@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const setSession = (token: string, nextUser: User) => {
-    if (!token || !isAuthUser(nextUser) || (token === 'dev-token' && !import.meta.env?.DEV)) throw new Error('Sesión no válida.');
+    if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(token) || !isAuthUser(nextUser)) throw new Error('Sesión no válida.');
     localStorage.setItem('cached_user', JSON.stringify(nextUser));
     localStorage.setItem('token', token);
     window.dispatchEvent(new Event('aura:session-changed'));

@@ -1,33 +1,12 @@
 import { createRequire } from 'node:module';
 
-const B64_DB = 'cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfVGpmaVFTOElaRTFjQGVwLXlvdW5nLW1vcm5pbmctemFvbW96NDgtcG9vbGVyLmMtMi5ldS13ZXN0LTIuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJl';
-const DEFAULT_SECRET = 'aura_production_jwt_signing_key_9876543210_secure_hash_secret_value_2026';
-
 let productionApp;
-let appInitError = null;
-
 function getProductionApp() {
-  if (process.env.npm_lifecycle_event === 'test' && !process.env.DATABASE_URL) return null;
-
-  const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
-  const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;
-  const jwtSecret = process.env.JWT_SECRET || DEFAULT_SECRET;
-
+  if (!process.env.DATABASE_URL || !process.env.JWT_SECRET) return null;
   if (!productionApp) {
-    try {
-      const require = createRequire(import.meta.url);
-      const { createApp } = require('../server/app.js');
-      productionApp = createApp({
-        env: {
-          ...process.env,
-          DATABASE_URL: dbUrl,
-          JWT_SECRET: jwtSecret,
-        }
-      });
-    } catch (err) {
-      appInitError = err;
-      console.error('Error creating productionApp in api/index.js:', err);
-    }
+    const require = createRequire(import.meta.url);
+    const { createApp } = require('../server/app.js');
+    productionApp = createApp();
   }
   return productionApp;
 }
@@ -65,7 +44,7 @@ export default function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido.' });
     return res.status(503).json({ error: path.endsWith('forgot_password') || path.endsWith('reset_password')
       ? 'La recuperación por correo aún no está disponible. No se ha enviado ningún enlace.'
-      : 'El acceso con cuenta no está configurado. Puedes continuar en modo privado local.' });
+      : 'El acceso con cuenta no está configurado. Inténtalo más tarde.' });
   }
   if (['/api/logs', '/api/logs/bulk', '/api/settings'].includes(path)) {
     return res.status(503).json({ error: 'La sincronización no está disponible. Conserva tus datos en este dispositivo.' });

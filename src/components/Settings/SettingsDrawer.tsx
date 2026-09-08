@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { AlertCircle, Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Clock, Sparkles, Plus, ChevronRight, UserRound, Shield, Moon, FileText, X } from 'lucide-react';
+import { AlertCircle, Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Plus, ChevronRight, UserRound, Shield, FileText, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import { ModalFrame } from '../Modals/ModalFrame';
 import { modalField, modalPrimaryButton, modalSecondaryButton } from '../Modals/modalStyles';
 import { MedicalExportModal } from '../Modals/MedicalExportModal';
@@ -13,7 +13,7 @@ import { PwaInstallModal } from '../Modals/PwaInstallModal';
 import { PassphraseModal } from '../Modals/PassphraseModal';
 import { DeviceNotificationModal } from '../Modals/DeviceNotificationModal';
 import { encryptText } from '../../services/cryptoVault';
-import { requestNotificationPermission, getNotificationPermission } from '../../services/localNotificationEngine';
+import { getNotificationPermission } from '../../services/localNotificationEngine';
 import type { UserSettings } from '../../types/cycle';
 
 type Category = 'cycle' | 'body' | 'lifestyle';
@@ -31,7 +31,7 @@ export function SettingsSection(props: Props) {
 }
 
 function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
-  const { setIsSettingsOpen, settings, updateSettings, exportData, destroyAllData, logs, todayDate, notificationPrefs, updateNotificationPrefs, sendTestNotification } = useCycle();
+  const { setIsSettingsOpen, settings, updateSettings, exportData, destroyAllData, logs, todayDate, notificationPrefs, updateNotificationPrefs } = useCycle();
   const { signOut, user } = useAuth();
   const toast = useToast();
   const [tab, setTab] = useState<SettingsTab>('cycle');
@@ -131,7 +131,7 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
               </span>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Cuenta conectada</p>
-                <p className="text-sm font-semibold text-[var(--text-primary)]">{user?.email || settings.userName || 'Modo privado local'}</p>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">{user?.email || settings.userName || 'Tu cuenta'}</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--accent)]">

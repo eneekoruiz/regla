@@ -703,7 +703,7 @@
   .page-topline { align-items: flex-start; }
   .connection-status { max-width: 80px; white-space: normal; }
   .cycle-ring { width: 80px; height: 80px; }
-  .cycle-headline { font-size: 28px; }
+  .cycle-headline { font-size: 24px; }
   .tool-grid { grid-template-columns: minmax(0, 1fr); }
   .tool-card { min-height: 70px; padding: 12px 14px; }
 }
@@ -802,6 +802,12 @@
   .cycle-summary:not(.is-first-record) .cycle-copy { grid-column: 1 / -1; max-width: none; }
   .cycle-summary:not(.is-first-record) .cycle-ring { grid-column: 2; grid-row: 1 / 3; justify-self: end; }
   .hero-side-panel { grid-column: 1 / -1; max-width: 100%; width: 100%; }
+  .cycle-summary.is-first-record .cycle-summary-top {
+    flex-direction: column;
+  }
+  .cycle-summary.is-first-record .hero-side-panel {
+    flex: 0 0 auto;
+  }
   .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) { display: flex; flex-direction: column; gap: 12px; }
   .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) > div:first-child { display: block; }
   .cycle-meta dd { font-size: 14px; }

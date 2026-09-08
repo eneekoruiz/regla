@@ -29,7 +29,7 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
   online?: boolean;
 }) {
   const { installed } = usePwaInstall();
-  const { isSettingsOpen, setIsSettingsOpen, settings, updateSettings } = useCycle();
+  const { setIsSettingsOpen, settings, updateSettings } = useCycle();
   const systemDark = useSyncExternalStore(subscribeTheme, () => systemTheme?.matches ?? false);
   const dark = settings.theme === 'dark' || settings.theme === 'refugio' || (settings.theme === 'system' && systemDark);
 
@@ -169,7 +169,7 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
           </div>
           <div className="navigation-footer">
             <span className="sidebar-connection-status" role="status">
-              {online ? <CheckCircle2 size={13} style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} style={{ color: 'var(--rose)' }}/>}
+              {online ? <CheckCircle2 size={13} aria-hidden="true" style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} aria-hidden="true" style={{ color: 'var(--rose)' }}/>}
               <span>{online ? 'Conectado' : 'Sin conexión'}</span>
             </span>
           </div>
