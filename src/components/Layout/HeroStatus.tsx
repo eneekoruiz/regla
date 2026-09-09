@@ -612,16 +612,19 @@ export function HeroStatus({
         )}
       </div>
 
-      {/* Aviso de registro diario para HOY: estilo consejos, contrastado y conciso */}
+      {/* Aviso de registro diario para HOY: estilo advice-card con contraste sutil */}
       {isToday && !hasAnyAnnotation && (
         <div className="urgent-today-banner" role="region" aria-label="Aviso de registro diario">
           <div className="urgent-today-left">
-            <div className="urgent-today-icon">
-              <Sparkles size={16} aria-hidden="true" />
+            <div className="urgent-today-symbol">
+              <Sparkles size={17} aria-hidden="true" />
             </div>
             <div className="urgent-today-text">
-              <strong>¿Cómo te sientes hoy?</strong>
-              <span>Anota tus síntomas en un toque</span>
+              <div className="advice-category urgent-today-cat">
+                <Sparkles size={11} aria-hidden="true" />
+                <span>Tu bienestar de hoy</span>
+              </div>
+              <h3 className="urgent-today-headline">¿Cómo te encuentras hoy?</h3>
             </div>
           </div>
           <button
