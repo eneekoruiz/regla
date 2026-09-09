@@ -120,7 +120,7 @@ export function ColorLegendModal({
               </div>
 
               <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
-                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
                   <Leaf size={15} />
                   <span>2. Fase Folicular (Días 6 a 13 aprox.)</span>
                 </div>

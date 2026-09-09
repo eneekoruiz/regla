@@ -79,10 +79,67 @@ export async function capture(page: Page, testInfo: TestInfo, name: string) {
   await page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: !hasDialog, animations: 'disabled', timeout: 15_000 });
 }
 
-export async function openTool(page: Page, name: RegExp) {
+export async function openSettings(page: Page, tab?: 'Mi ciclo' | 'Cuenta' | 'Privacidad' | 'Alertas') {
+  await page.getByRole('button', { name: /Ajustes de la aplicación|Ajustes/ }).click();
+  await expect(page.getByRole('region', { name: 'Ajustes de la aplicación' })).toBeVisible();
+  if (tab) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+  }
+}
+
+export async function openTools(page: Page) {
   await page.getByRole('button', { name: 'Herramientas', exact: true }).click();
-  await page.locator('.tool-card').filter({ hasText: name }).click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Conoce tu ciclo' })).toBeVisible();
+}
+
+export async function setTheme(page: Page, theme: 'light' | 'dark') {
+  await openSettings(page, 'Privacidad');
+  await page.getByRole('combobox', { name: 'Apariencia', exact: true }).selectOption(theme);
+  await expect.poll(() => page.locator('html').evaluate(el => el.classList.contains('dark'))).toBe(theme === 'dark');
+}
+
+export async function openToolGroup(page: Page, title: 'Conoce tu ciclo' | 'Cuídate a tu manera' | 'Cuestionarios de bienestar') {
+  await openTools(page);
+  const group = page.getByRole('region', { name: title });
+  const heading = group.getByRole('button').first();
+  if (await heading.getAttribute('aria-expanded') !== 'true') {
+    await heading.click();
+  }
+  return group;
+}
+
+export async function openTool(page: Page, name: RegExp) {
+  if (name.test('Importar registros') || name.test('Importar datos')) {
+    await openSettings(page, 'Privacidad');
+    await page.getByRole('button', { name: 'Importar datos', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    return;
+  }
+
+  if (name.test('Informe de salud')) {
+    await openSettings(page, 'Privacidad');
+    await page.getByRole('button', { name: 'Informe de salud para consulta médica', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    return;
+  }
+
+  for (const title of ['Conoce tu ciclo', 'Cuídate a tu manera', 'Cuestionarios de bienestar'] as const) {
+    const group = await openToolGroup(page, title);
+    const trigger = group.getByRole('button', { name }).first();
+    if (await trigger.count()) {
+      if (title === 'Cuestionarios de bienestar') {
+        await trigger.click();
+        await expect(page.getByRole('dialog', { name: 'Chat' })).toBeVisible();
+        await page.getByRole('button', { name: 'Abrir chequeo nuevo', exact: true }).click();
+      } else {
+        await trigger.click();
+      }
+      await expect(page.getByRole('dialog')).toBeVisible();
+      return;
+    }
+  }
+
+  throw new Error(`No se encontró la herramienta ${name}`);
 }
 
 export async function readLogs(page: Page) {

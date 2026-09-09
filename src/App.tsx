@@ -214,6 +214,12 @@ function MainScreen() {
             <span>{online ? 'Conectado' : 'Sin conexión'}</span>
           </span>
         </div>
+        {!online && (
+          <div className="mobile-connection-status" role="status">
+            <WifiOff size={14} aria-hidden="true" />
+            <span>Sin conexión</span>
+          </div>
+        )}
         {view === 'diary' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
           {selectedDate !== todayDate && (
             <button

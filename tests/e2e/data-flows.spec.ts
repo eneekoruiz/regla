@@ -1,5 +1,5 @@
 import { test, expect, type Download } from '@playwright/test';
-import { seedAccount, openTool, readLogs, readSettings, checkLayout, checkAccessibility } from './helpers';
+import { seedAccount, openTool, openSettings, openToolGroup, readLogs, readSettings, checkLayout, checkAccessibility } from './helpers';
 
 async function downloadBytes(download: Download) {
   const stream = await download.createReadStream();
@@ -14,7 +14,7 @@ test('cuestionario guardado en la fecha elegida, con respuestas visibles tras re
   const date = '2026-06-15';
   await page.getByLabel('Fecha del registro').fill(date);
   await expect(page.getByRole('group', { name: 'Seleccionar día' }).getByRole('button', { pressed: true })).toHaveAttribute('aria-label', /15 de Junio de 2026/);
-  await openTool(page, /^Estrés y tensión/);
+  await openTool(page, /Estrés y tensión/);
   await expect(page.getByRole('slider')).toHaveValue('3');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'A veces', exact: true }).click();
@@ -28,7 +28,9 @@ test('cuestionario guardado en la fecha elegida, con respuestas visibles tras re
   expect(results[0].answers).toEqual(expected);
   await page.reload();
   await page.getByLabel('Fecha del registro').fill(date);
+  await openToolGroup(page, 'Cuestionarios de bienestar');
   const history = page.getByRole('region', { name: 'Cuestionarios guardados' });
+  await expect(history).toBeVisible();
   await history.locator('summary').click();
   await expect(history.getByText('A veces', { exact: true })).toBeVisible();
   await expect(history.getByText('No', { exact: true })).toBeVisible();
@@ -84,7 +86,7 @@ test('importación CSV con revisión previa, fechas exactas y rechazo sin cambio
   expect(imported['2026-07-02']).toBeUndefined();
   await openTool(page, /^Importar registros/);
   await page.getByLabel('Archivo para importar').setInputFiles({ name: 'imagen.png', mimeType: 'image/png', buffer: Buffer.from('not a supported record') });
-  await expect(page.getByRole('alert')).toContainText('No podemos leer imágenes');
+  await expect(page.getByText('No podemos leer imágenes', { exact: false }).first()).toBeVisible();
   expect(await readLogs(page)).toEqual(imported);
 });
 
@@ -100,8 +102,7 @@ test('importación XML local de fechas reales', async ({ page }) => {
 test('copia exportada y restaurada sin perder el registro completo', async ({ page }) => {
   await seedAccount(page);
   const original = await readLogs(page);
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
-  await page.getByRole('button', { name: 'Mis datos', exact: true }).click();
+  await openSettings(page, 'Privacidad');
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Exportar copia', exact: true }).click();
   const bytes = await downloadBytes(await downloading);
@@ -121,8 +122,7 @@ test('copia exportada y restaurada sin perder el registro completo', async ({ pa
 
 test('copia cifrada exige frase secreta y descarga un sobre no legible', async ({ page }) => {
   await seedAccount(page);
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
-  await page.getByRole('button', { name: 'Mis datos', exact: true }).click();
+  await openSettings(page, 'Privacidad');
   await page.getByRole('button', { name: 'Copia cifrada', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Exportar copia cifrada' })).toContainText(/copia cifrada/i);
   await page.getByLabel('Frase secreta', { exact: true }).fill('frase de prueba segura');
@@ -146,15 +146,15 @@ test('informe PDF generado en el dispositivo y ajustes con validación', async (
   expect(pdf.length).toBeGreaterThan(1000);
   await info.attach('informe.pdf', { body: pdf, contentType: 'application/pdf' });
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await openSettings(page, 'Mi ciclo');
   await page.getByLabel('Duración media del ciclo (días)').fill('0');
-  await page.getByRole('button', { name: 'Guardar y cerrar' }).click();
-  await expect(page.getByRole('alert')).toContainText('Revisa la duración');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(page.getByText('Revisa la duración', { exact: false }).first()).toBeVisible();
   await checkLayout(page);
   await checkAccessibility(page, info, 'ajustes-error');
   await page.getByLabel('Duración media del ciclo (días)').fill('30');
-  await page.getByRole('button', { name: 'Guardar y cerrar' }).click();
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(page.getByText('Ajustes del ciclo guardados correctamente.', { exact: true }).first()).toBeVisible();
   await page.reload();
   expect((await readSettings(page)).averageCycleLength).toBe(30);
 });

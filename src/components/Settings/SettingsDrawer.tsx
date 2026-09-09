@@ -198,7 +198,7 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Apariencia</p>
           <label className="block space-y-1.5 text-xs">
-            <select value={settings.theme} onChange={event => { try { updateSettings({ theme: event.target.value as UserSettings['theme'] }); } catch { setError('No se ha guardado la apariencia.'); } }} className={modalField}>
+            <select aria-label="Apariencia" value={settings.theme} onChange={event => { try { updateSettings({ theme: event.target.value as UserSettings['theme'] }); } catch { setError('No se ha guardado la apariencia.'); } }} className={modalField}>
               <option value="light">Claro</option>
               <option value="dark">Oscuro</option>
               <option value="system">Según el dispositivo</option>
