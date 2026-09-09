@@ -79,10 +79,21 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
     else { setProfileCategory(category); setTool('profile'); }
   };
 
+  const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isIos = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+  const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
+  const tabs = [
+    { value: 'account' as const, label: 'Cuenta' },
+    { value: 'privacy' as const, label: 'Privacidad' },
+    { value: 'notifications' as const, label: 'Alertas' },
+    ...(isMobile ? [{ value: 'integrations' as const, label: 'Apps' }] : []),
+  ];
+
   const tabContent = (
     <>
       <div className="flex rounded-xl bg-[var(--bg-root)] p-1 border border-[var(--border-subtle)]" aria-label="Secciones de ajustes">
-        {([['account', 'Cuenta'], ['privacy', 'Privacidad'], ['notifications', 'Alertas'], ['integrations', 'Apps']] as const).map(([value, label]) => (
+        {tabs.map(({ value, label }) => (
           <button
             key={value}
             type="button"
@@ -133,19 +144,26 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Integraciones de Salud</p>
-            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">Conecta Aura con otras aplicaciones para sincronizar automáticamente tus pasos, sueño y métricas corporales.</p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">Conecta Aura con otras aplicaciones de tu dispositivo móvil para sincronizar métricas.</p>
           </div>
           <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">
-            <label className="flex items-center justify-between min-h-10 cursor-pointer">
-              <span className="text-sm font-semibold">Apple Health</span>
-              <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la versión nativa de iOS. Disponible próximamente.')} />
-            </label>
-            <label className="flex items-center justify-between min-h-10 cursor-pointer">
-              <span className="text-sm font-semibold">Google Health Connect</span>
-              <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la versión nativa de Android. Disponible próximamente.')} />
-            </label>
+            {isIos && (
+              <label className="flex items-center justify-between min-h-10 cursor-pointer">
+                <span className="text-sm font-semibold">Apple Health</span>
+                <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la versión nativa de iOS. Disponible próximamente.')} />
+              </label>
+            )}
+            {isAndroid && (
+              <label className="flex items-center justify-between min-h-10 cursor-pointer">
+                <span className="text-sm font-semibold">Google Health Connect</span>
+                <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la app nativa de Android. Disponible próximamente.')} />
+              </label>
+            )}
+            {!isIos && !isAndroid && (
+              <p className="text-sm text-[var(--text-secondary)] text-center py-2">Solo disponible en dispositivos iOS o Android nativos.</p>
+            )}
           </div>
-          <p className="text-[11px] text-[var(--text-secondary)] mt-2">La sincronización con apps externas requiere permisos del sistema operativo y actualmente se encuentra en desarrollo para las versiones nativas.</p>
+          <p className="text-[11px] text-[var(--text-secondary)] mt-2">La sincronización con apps externas requiere permisos del sistema operativo y actualmente se encuentra en desarrollo.</p>
         </div>
       </div>}
 

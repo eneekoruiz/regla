@@ -560,46 +560,74 @@ export function detectRecurringSymptomPattern(params: {
   const { logs, currentDayOfCycle, cycleLength, lastPeriodStart } = params;
   if (!lastPeriodStart || currentDayOfCycle <= 0 || cycleLength <= 0) return null;
 
-  // Recopilar todos los arranques de ciclo (días con isCycleStart)
-  const cycleStarts = Object.entries(logs)
-    .filter(([, l]) => l.isCycleStart || l.isPeriod)
+  // Filtrar todos los días con sangrado registrados, ordenados cronológicamente
+  const periodDates = Object.entries(logs)
+    .filter(([, l]) => l.isPeriod)
     .map(([dk]) => dk)
-    .sort()
-    .reverse();
+    .sort();
 
-  // Necesitamos al menos 2 ciclos anteriores (aparte del actual)
-  if (cycleStarts.length < 2) return null;
+  // Agrupar arranques de ciclo reales (separados por al menos 15 días)
+  const cycleStarts: string[] = [];
+  for (const date of periodDates) {
+    if (cycleStarts.length === 0) {
+      cycleStarts.push(date);
+    } else {
+      const lastStart = new Date(cycleStarts[cycleStarts.length - 1] + 'T12:00:00');
+      const current = new Date(date + 'T12:00:00');
+      const diffDays = (current.getTime() - lastStart.getTime()) / (1000 * 3600 * 24);
+      if (diffDays > 15) { 
+        cycleStarts.push(date);
+      }
+    }
+  }
+  
+  cycleStarts.reverse(); // El más reciente primero (el actual, idealmente)
+
+  // Necesitamos al menos 3 ciclos anteriores (aparte del actual) para afirmar que hay un patrón real
+  if (cycleStarts.length < 4) return null; // 1 actual + 3 anteriores
 
   const WINDOW = 3; // ±3 días del ciclo actual
   const symptomHitsPerCycle: Record<string, number> = {};
   let cyclesChecked = 0;
 
-  for (let i = 1; i < Math.min(cycleStarts.length, 4); i++) {
+  // Empezamos desde el índice 1 para saltarnos el ciclo actual en el que estamos
+  for (let i = 1; i < cycleStarts.length; i++) {
     const startDate = new Date(cycleStarts[i] + 'T12:00:00');
     cyclesChecked++;
+    
+    // Rastrear si en este ciclo específico se encontró el síntoma para no sumarlo dos veces por el mismo ciclo
+    const foundInThisCycle = new Set<string>();
+
     for (let d = currentDayOfCycle - WINDOW; d <= currentDayOfCycle + WINDOW; d++) {
       if (d < 1 || d > cycleLength) continue;
       const checkDate = new Date(startDate);
       checkDate.setDate(startDate.getDate() + d - 1);
       const dk = checkDate.toISOString().split('T')[0];
       const log = logs[dk];
+      
       if (!log?.symptoms) continue;
       for (const s of log.symptoms) {
-        symptomHitsPerCycle[s.name] = (symptomHitsPerCycle[s.name] || 0) + 1;
+        foundInThisCycle.add(s.name);
       }
+    }
+    
+    // Sumar 1 al conteo global por cada síntoma encontrado en la ventana de este ciclo
+    for (const symptomName of foundInThisCycle) {
+      symptomHitsPerCycle[symptomName] = (symptomHitsPerCycle[symptomName] || 0) + 1;
     }
   }
 
-  if (cyclesChecked < 2) return null;
+  // Si no tenemos suficiente historial comprobado, no sacamos conclusiones precipitadas
+  if (cyclesChecked < 3) return null;
 
-  // Buscar el síntoma que aparece en al menos 2 ciclos anteriores
+  // Buscar el síntoma que haya aparecido en al menos 3 ciclos distintos
   const recurring = Object.entries(symptomHitsPerCycle)
-    .filter(([, count]) => count >= 2)
+    .filter(([, count]) => count >= 3)
     .sort((a, b) => b[1] - a[1]);
 
   if (recurring.length === 0) return null;
 
   const [symptomName, cyclesCount] = recurring[0];
-  const message = `Parece que sueles tener "${symptomName}" alrededor de estos días del ciclo. ¿Quieres hablar de ello con Confidente?`;
+  const message = `Parece que hay un patrón: sueles tener "${symptomName.toLowerCase()}" alrededor de estos días del ciclo. ¿Quieres que hablemos sobre ello?`;
   return { symptomName, cyclesCount, message };
 }

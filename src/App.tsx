@@ -64,8 +64,9 @@ const CycleSyncingModal = resilientLazy(() => import('./components/Modals/CycleS
 const UniversalImportModal = resilientLazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
 const MedicalExportModal = resilientLazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
 const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
+const PastCycleRecoveryModal = resilientLazy(() => import('./components/Modals/PastCycleRecoveryModal').then(m => ({ default: m.PastCycleRecoveryModal })));
 
-type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install';
+type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
 
@@ -244,6 +245,7 @@ function MainScreen() {
                 onRecordPeriod={() => openBleedingModal('period')}
                 onOpenLegend={() => openModal('legend')}
                 onOpenDailyModal={() => openModal('daily')}
+                onOpenRecoveryModal={() => openModal('recovery')}
               >
                 <div className="diary-record-inner" aria-labelledby="record-title">
                   <div className="section-heading">
@@ -447,10 +449,11 @@ function MainScreen() {
     </main>
     <Suspense fallback={<Loading/>}>
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
+      {modal === 'recovery' && <PastCycleRecoveryModal isOpen onClose={closeModal}/>}
       {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen initialType={periodModalType} onClose={closeModal}/>}
       {modal === 'intimacy' && <IntimacyModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'daily' && <DailyLogBottomSheet key={selectedDate} isOpen onClose={closeModal} onOpenSymptothermal={() => openModal('symptothermal')} onOpenMedications={() => openModal('medication')}/>}
-      {modal === 'legend' && <ColorLegendModal isOpen onClose={closeModal}/>}
+      {modal === 'legend' && <ColorLegendModal isOpen onClose={closeModal} onOpenPhaseGuide={phase => { closeModal(); setTimeout(() => openCare(phase), 150); }}/>}
       {modal === 'profile' && <ModularOnboardingModal isOpen onClose={closeModal}/>}
       {modal === 'analytics' && <CycleAnalyticsModal isOpen onClose={closeModal}/>}
       {modal === 'symptothermal' && <SymptothermalModal key={selectedDate} isOpen onClose={closeModal}/>}

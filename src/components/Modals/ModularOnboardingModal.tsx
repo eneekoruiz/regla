@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, Droplets, UserRound, Activity } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import type { CycleProfileData, LifestyleProfileData } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
@@ -53,22 +53,89 @@ export function ModularOnboardingModal({ isOpen, onClose, initialCategory = null
   };
   return <ModalFrame isOpen={isOpen} onClose={onClose} title={category ? titles[category] : 'Tu perfil'} errorMessage={error} onClearError={() => setError('')}
     footer={category ? <><button type="button" onClick={() => { setCategory(null); setError(''); }} className={modalSecondaryButton}><ArrowLeft size={17} aria-hidden="true" />Volver</button><button type="button" onClick={save} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button></> : <button type="button" onClick={onClose} className={modalPrimaryButton}>Listo</button>}>
-    {!category && <div className="space-y-2">{(['cycle', 'body', 'lifestyle'] as const).map(value => <button key={value} type="button" onClick={() => { setCategory(value); setSaved(''); }} className="aura-button w-full justify-between"><span>{titles[value]}</span>{settings.completedOnboardingCategories?.includes(value) ? <Check size={18} aria-label="Completado" /> : <ChevronRight size={18} aria-hidden="true" />}</button>)}</div>}
-    {category === 'cycle' && <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block space-y-2 text-sm">Duración ciclo<input type="number" min={15} max={90} value={cycleLength} onChange={event => setCycleLength(event.target.value)} className={modalField} /></label>
-        <label className="block space-y-2 text-sm">Sangrado<input type="number" min={1} max={15} value={periodLength} onChange={event => setPeriodLength(event.target.value)} className={modalField} /></label>
+    {!category && <div className="space-y-3">
+      {(['cycle', 'body', 'lifestyle'] as const).map(value => {
+        const isCompleted = settings.completedOnboardingCategories?.includes(value);
+        const cardInfo = {
+          cycle: {
+            title: 'Mi ciclo menstrual',
+            desc: 'Ajusta la duración, regla, métodos y objetivos.',
+            icon: Droplets,
+            color: 'var(--rose)',
+            bg: 'color-mix(in srgb, var(--rose) 15%, transparent)'
+          },
+          body: {
+            title: 'Mi cuerpo',
+            desc: 'Medidas para afinar recomendaciones de bienestar.',
+            icon: UserRound,
+            color: 'var(--accent)',
+            bg: 'var(--accent-soft)'
+          },
+          lifestyle: {
+            title: 'Estilo de vida',
+            desc: 'Actividad física, horas de sueño y niveles de estrés.',
+            icon: Activity,
+            color: 'var(--gold)',
+            bg: 'var(--gold-soft)'
+          }
+        }[value];
+        const Icon = cardInfo.icon;
+        
+        return (
+          <button
+            key={value}
+            type="button"
+            onClick={() => { setCategory(value); setSaved(''); }}
+            className={`w-full text-left rounded-2xl border transition-all p-4 flex items-center gap-4 ${
+              isCompleted 
+                ? 'bg-[var(--bg-card)] border-[var(--border-subtle)] hover:border-[var(--accent)]' 
+                : 'bg-[var(--bg-card)] border-transparent ring-1 ring-[var(--border-subtle)] hover:ring-[var(--accent)] hover:shadow-sm'
+            }`}
+          >
+            <div 
+              className="shrink-0 flex items-center justify-center rounded-2xl w-12 h-12"
+              style={{ backgroundColor: cardInfo.bg, color: cardInfo.color }}
+            >
+              <Icon size={22} aria-hidden="true" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-[var(--text-primary)] text-[15px]">{cardInfo.title}</span>
+                {isCompleted && <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"><Check size={10} className="mr-0.5"/>Listo</span>}
+              </div>
+              <p className="text-[13px] text-[var(--text-secondary)] mt-0.5 pr-2 leading-snug truncate whitespace-normal line-clamp-2">
+                {cardInfo.desc}
+              </p>
+            </div>
+            <ChevronRight size={20} className="shrink-0 text-[var(--text-secondary)]" aria-hidden="true" />
+          </button>
+        );
+      })}
+    </div>}
+    {category === 'cycle' && <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-2"><Droplets size={14} /> Patrón de sangrado</h3>
+        <label className="block space-y-2 text-sm font-medium">Último inicio de regla<input type="date" max={todayDate} value={startDate} onChange={event => setStartDate(event.target.value)} className={modalField} /></label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block space-y-2 text-sm font-medium">Duración ciclo<input type="number" min={15} max={90} value={cycleLength} onChange={event => setCycleLength(event.target.value)} className={modalField} /></label>
+          <label className="block space-y-2 text-sm font-medium">Sangrado<input type="number" min={1} max={15} value={periodLength} onChange={event => setPeriodLength(event.target.value)} className={modalField} /></label>
+        </div>
+        <label className="block space-y-2 text-sm font-medium">Regularidad<select className={modalField} value={cycle.regularity} onChange={event => setCycle(value => ({ ...value, regularity: event.target.value as CycleProfileData['regularity'] }))}><option value="regular">Regular</option><option value="mostly_regular">Bastante regular</option><option value="irregular">Irregular</option><option value="pcos">SOP diagnosticado</option></select></label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block space-y-2 text-sm font-medium">Peor día regla<select value={worstDay} onChange={event => setWorstDay(Number(event.target.value))} className={modalField}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>Día {value}</option>)}</select></label>
+          <label className="block space-y-2 text-sm font-medium">Cólicos<select className={modalField} value={cycle.typicalCramps} onChange={event => setCycle(value => ({ ...value, typicalCramps: event.target.value as CycleProfileData['typicalCramps'] }))}>{[['none', 'Ninguno'], ['mild', 'Leves'], ['moderate', 'Moderados'], ['severe', 'Intensos']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        </div>
       </div>
-      <label className="block space-y-2 text-sm">Último inicio de regla<input type="date" max={todayDate} value={startDate} onChange={event => setStartDate(event.target.value)} className={modalField} /></label>
-      <label className="block space-y-2 text-sm">Regularidad<select className={modalField} value={cycle.regularity} onChange={event => setCycle(value => ({ ...value, regularity: event.target.value as CycleProfileData['regularity'] }))}><option value="regular">Regular</option><option value="mostly_regular">Bastante regular</option><option value="irregular">Irregular</option><option value="pcos">SOP diagnosticado</option></select></label>
-      <label className="block space-y-2 text-sm">Anticonceptivo<select className={modalField} value={cycle.birthControl} onChange={event => setCycle(value => ({ ...value, birthControl: event.target.value as CycleProfileData['birthControl'] }))}>{[['none', 'Ninguno'], ['pill', 'Píldora'], ['iud_hormonal', 'DIU hormonal'], ['iud_copper', 'DIU de cobre'], ['implant', 'Implante'], ['condom', 'Preservativo'], ['other', 'Otro']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label className="block space-y-2 text-sm">Motivo del anticonceptivo<select className={modalField} value={cycle.birthControlReason} onChange={event => setCycle(value => ({ ...value, birthControlReason: event.target.value as CycleProfileData['birthControlReason'] }))}>{[['contraception', 'Anticoncepción'], ['pcos', 'SOP'], ['endometriosis', 'Endometriosis'], ['acne', 'Acné'], ['heavy_bleeding', 'Sangrado abundante'], ['other', 'Otro']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={cycle.takesDailyMedication} onChange={event => setCycle(value => ({ ...value, takesDailyMedication: event.target.checked }))} className="h-5 w-5 accent-[var(--accent)]" />Tomo medicación diaria</label>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block space-y-2 text-sm">Peor día regla<select value={worstDay} onChange={event => setWorstDay(Number(event.target.value))} className={modalField}>{[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>Día {value}</option>)}</select></label>
-        <label className="block space-y-2 text-sm">Cólicos<select className={modalField} value={cycle.typicalCramps} onChange={event => setCycle(value => ({ ...value, typicalCramps: event.target.value as CycleProfileData['typicalCramps'] }))}>{[['none', 'Ninguno'], ['mild', 'Leves'], ['moderate', 'Moderados'], ['severe', 'Intensos']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      
+      <div className="space-y-4 border-t border-[var(--border-subtle)] pt-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-2"><Activity size={14} /> Salud reproductiva</h3>
+        <label className="block space-y-2 text-sm font-medium">Objetivo actual<select className={modalField} value={cycle.cycleGoal} onChange={event => setCycle(value => ({ ...value, cycleGoal: event.target.value as CycleProfileData['cycleGoal'] }))}><option value="track_health">Conocer mi ciclo</option><option value="prevent_pregnancy">Evitar embarazo</option><option value="trying_to_conceive">Buscar embarazo</option></select></label>
+        <label className="block space-y-2 text-sm font-medium">Anticonceptivo<select className={modalField} value={cycle.birthControl} onChange={event => setCycle(value => ({ ...value, birthControl: event.target.value as CycleProfileData['birthControl'] }))}>{[['none', 'Ninguno'], ['pill', 'Píldora'], ['iud_hormonal', 'DIU hormonal'], ['iud_copper', 'DIU de cobre'], ['implant', 'Implante'], ['condom', 'Preservativo'], ['other', 'Otro']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        {cycle.birthControl !== 'none' && cycle.birthControl !== 'condom' && (
+          <label className="block space-y-2 text-sm font-medium">Motivo principal<select className={modalField} value={cycle.birthControlReason} onChange={event => setCycle(value => ({ ...value, birthControlReason: event.target.value as CycleProfileData['birthControlReason'] }))}>{[['contraception', 'Anticoncepción'], ['pcos', 'SOP'], ['endometriosis', 'Endometriosis'], ['acne', 'Acné'], ['heavy_bleeding', 'Sangrado abundante'], ['other', 'Otro']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        )}
+        <label className="flex min-h-11 items-center gap-3 text-sm font-medium"><input type="checkbox" checked={cycle.takesDailyMedication} onChange={event => setCycle(value => ({ ...value, takesDailyMedication: event.target.checked }))} className="h-5 w-5 accent-[var(--accent)] rounded cursor-pointer" />Tomo medicación diaria general</label>
       </div>
-      <label className="block space-y-2 text-sm">Objetivo<select className={modalField} value={cycle.cycleGoal} onChange={event => setCycle(value => ({ ...value, cycleGoal: event.target.value as CycleProfileData['cycleGoal'] }))}><option value="track_health">Conocer mi ciclo</option><option value="prevent_pregnancy">Evitar embarazo</option><option value="trying_to_conceive">Buscar embarazo</option></select></label>
     </div>}
     {category === 'body' && <div className="space-y-4">{([['birthYear', 'Año de nacimiento'], ['heightCm', 'Altura (cm)'], ['weightKg', 'Peso (kg)']] as const).map(([key, label]) => <label key={key} className="block space-y-2 text-sm">{label} (opcional)<input inputMode={key === 'birthYear' ? 'numeric' : 'decimal'} value={body[key]} onChange={event => setBody(value => ({ ...value, [key]: event.target.value }))} className={modalField} /></label>)}</div>}
     {category === 'lifestyle' && <div className="space-y-4">

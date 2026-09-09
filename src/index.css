@@ -403,19 +403,18 @@
   background: var(--accent);
   color: var(--accent-on, #fff);
 }
-/* Banner de registro diario — estética advice-card con acento izquierdo */
 .urgent-today-banner {
-  margin: 6px 0 2px;
-  padding: 10px 12px;
+  margin: 12px 0 6px;
+  padding: 16px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-left: 4px solid var(--accent);
-  border-radius: 16px;
+  border-left: 5px solid var(--accent);
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   transition: all .18s ease;
 }
 
@@ -423,21 +422,21 @@
   background: var(--bg-card);
   border-color: var(--border-subtle);
   border-left-color: var(--accent);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
 .urgent-today-left {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 14px;
   flex: 1;
   min-width: 0;
 }
 
 /* Círculo símbolo — mismo patrón que .confidente-symbol */
 .urgent-today-symbol {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -445,22 +444,27 @@
   background: var(--accent-soft);
   color: var(--accent);
 }
+.urgent-today-symbol svg {
+  width: 22px;
+  height: 22px;
+}
 
 .urgent-today-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
 /* Eyebrow de categoría — igual que .advice-category pero con color heredado */
 .urgent-today-cat {
-  margin-bottom: 1px;
+  margin-bottom: 2px;
+  font-size: 13px;
 }
 
 /* Titular con fuente display — igual que .advice-card h3 */
 .urgent-today-headline {
-  font: 400 16px/1.18 var(--font-display);
+  font: 400 20px/1.2 var(--font-display);
   letter-spacing: -0.3px;
   margin: 0;
   color: var(--text-primary);
@@ -470,16 +474,16 @@
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 14px;
   font-weight: 700;
-  padding: 6px 14px;
-  min-height: 34px;
-  border-radius: 11px;
+  padding: 8px 18px;
+  min-height: 42px;
+  border-radius: 12px;
   background: var(--accent);
   color: var(--accent-on, #ffffff);
   border: 1px solid var(--accent);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
   transition: all .16s ease;
   cursor: pointer;
 }
@@ -487,7 +491,7 @@
 .urgent-today-btn:hover {
   filter: brightness(0.92);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .urgent-today-btn:active {
@@ -514,12 +518,12 @@
   padding: 3px 8px;
   border-radius: 6px;
 }
-.eyebrow { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 8px; }
-.cycle-headline { font: 400 26px/1.16 var(--font-display); letter-spacing: -0.5px; margin: 0 0 4px; max-width: 540px; text-wrap: balance; }
-.cycle-ring { width: clamp(140px, 16vh, 170px); height: clamp(140px, 16vh, 170px); flex-shrink: 0; position: relative; display: grid; place-items: center; filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--phase-ink) 20%, transparent)); }
+.eyebrow { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
+.cycle-headline { font: 400 30px/1.16 var(--font-display); letter-spacing: -0.5px; margin: 0 0 6px; max-width: 540px; text-wrap: balance; }
+.cycle-ring { width: clamp(150px, 18vh, 190px); height: clamp(150px, 18vh, 190px); flex-shrink: 0; position: relative; display: grid; place-items: center; filter: drop-shadow(0 2px 10px color-mix(in srgb, var(--phase-ink) 20%, transparent)); }
 .cycle-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cycle-ring svg circle { transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease; }
-.cycle-ring-label { text-align: center; display: flex; flex-direction: column; color: var(--text-secondary); font-size: 11px; }
+.cycle-ring-label { text-align: center; display: flex; flex-direction: column; color: var(--text-secondary); font-size: 12px; }
 .cycle-ring-label span:first-child { letter-spacing: 0.08em; font-weight: 700; text-transform: uppercase; }
 .cycle-ring-label strong { font-size: clamp(38px, 4.6vh, 48px); font-weight: 700; color: var(--text-primary); line-height: 1.1; }
 .period-registered-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-left: 4px solid var(--rose); border-radius: var(--radius-md); margin-top: 10px; }
@@ -572,10 +576,10 @@
   color: var(--accent-on, #fff);
   border-color: var(--accent);
 }
-.quick-log-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.quick-log { min-height: 40px; display: flex; flex-direction: row; align-items: center; gap: 6px; text-align: left; padding: 6px 9px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-subtle)); background: var(--bg-card); font-size: 11.5px; font-weight: 600; color: var(--text-primary); transition: background .16s, border-color .16s, transform .12s, box-shadow .16s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.quick-log-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.quick-log { min-height: 48px; display: flex; flex-direction: row; align-items: center; gap: 8px; text-align: left; padding: 10px 14px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border-subtle)); background: var(--bg-card); font-size: 13px; font-weight: 600; color: var(--text-primary); transition: background .16s, border-color .16s, transform .12s, box-shadow .16s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .quick-log:active { transform: scale(0.96); }
-.quick-log svg { color: var(--accent); flex-shrink: 0; }
+.quick-log svg { color: var(--accent); flex-shrink: 0; width: 22px; height: 22px; }
 .quick-log.period svg { color: var(--rose); }
 .quick-log[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .quick-log:hover { border-color: var(--accent); background: var(--bg-card-inner); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
@@ -589,17 +593,17 @@
 .wellness-carousel-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .wellness-count { font-size: 11.5px; color: var(--text-secondary); min-width: 32px; text-align: center; }
 .wellness-controls { display: flex; align-items: center; gap: 4px; }
-.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 16px 18px; min-height: 165px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-.advice-category { display: flex; gap: 6px; align-items: center; color: var(--accent); font-size: 11px; font-weight: 600; margin-bottom: 6px; }
-.advice-card h3 { font: 400 18px/1.18 var(--font-display); letter-spacing: -.4px; margin: 0 0 6px; }
-.advice-card p { font-size: 12.5px; line-height: 1.42; color: var(--text-secondary); margin: 0 0 6px; }
-.advice-card .advice-tip { padding: 6px 0; border-top: 1px solid var(--border-subtle); margin-top: 8px; font-size: 11.5px; }
-.text-action { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; font-size: 12px; font-weight: 600; color: var(--accent); text-align: left; margin-top: auto; padding-top: 6px; }
-.confidente-link { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 14px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); text-align: left; transition: all .16s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 20px 22px; min-height: 185px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+.advice-category { display: flex; gap: 6px; align-items: center; color: var(--accent); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.advice-card h3 { font: 400 22px/1.18 var(--font-display); letter-spacing: -.4px; margin: 0 0 10px; }
+.advice-card p { font-size: 14px; line-height: 1.45; color: var(--text-secondary); margin: 0 0 8px; }
+.advice-card .advice-tip { padding: 10px 0; border-top: 1px solid var(--border-subtle); margin-top: 12px; font-size: 13px; }
+.text-action { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; font-size: 13px; font-weight: 600; color: var(--accent); text-align: left; margin-top: auto; padding-top: 8px; }
+.confidente-link { display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px 18px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); text-align: left; transition: all .16s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .confidente-link:hover { border-color: var(--accent); background: var(--bg-card-inner); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-.confidente-symbol { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--gold-soft); color: var(--gold); flex-shrink: 0; }
-.confidente-link strong { display: block; font-size: 13.5px; font-weight: 600; }
-.confidente-link small { display: block; margin-top: 1px; color: var(--text-secondary); font-size: 11.5px; }
+.confidente-symbol { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--gold-soft); color: var(--gold); flex-shrink: 0; }
+.confidente-link strong { display: block; font-size: 15px; font-weight: 600; }
+.confidente-link small { display: block; margin-top: 2px; color: var(--text-secondary); font-size: 13px; }
 .confidente-link > svg { margin-left: auto; color: var(--accent); flex-shrink: 0; }
 .tools-workspace { padding-top: 2px; }
 .tool-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

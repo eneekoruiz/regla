@@ -9,11 +9,13 @@ export function HeroStatus({
   onRecordPeriod,
   onOpenLegend,
   onOpenDailyModal,
+  onOpenRecoveryModal,
   children
 }: {
   onRecordPeriod: () => void;
   onOpenLegend: () => void;
   onOpenDailyModal: () => void;
+  onOpenRecoveryModal?: () => void;
   children?: React.ReactNode;
 }) {
   const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
@@ -244,6 +246,8 @@ export function HeroStatus({
   const circumference = 2 * Math.PI * 58;
   const showRing = hasCycle && (isToday || isFuture);
 
+  const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
+
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
@@ -275,7 +279,7 @@ export function HeroStatus({
             <p className="eyebrow"><Droplets size={15}/>Un espacio para ti</p>
           )}
           <h2 id="cycle-title" className="cycle-headline">{title}</h2>
-          <p className="cycle-copy">{copy}</p>
+          <p className="cycle-copy" style={{ fontSize: '15px', color: 'var(--text-secondary)' }}>{copy}</p>
 
           {/* Acciones para HOY */}
           {isToday && hasCycle && (
@@ -658,6 +662,13 @@ export function HeroStatus({
         )}
       </div>
 
+      {/* QuickLog buttons moved up for visibility */}
+      {children && (
+        <div className="hero-integrated-record" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+          {children}
+        </div>
+      )}
+
       {/* Aviso de registro diario para HOY: estilo advice-card con contraste sutil */}
       {isToday && !hasAnyAnnotation && (
         <div className="urgent-today-banner" role="region" aria-label="Aviso de registro diario">
@@ -684,20 +695,69 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Aviso para HOY si ayer quedó sin registrar (solo se muestra si hoy ya está registrado) */}
-      {isToday && hasCycle && !yesterdayHasLog && hasAnyAnnotation && (
-        <div className="yesterday-reminder-bar">
-          <span className="yesterday-reminder-text">
-            <Clock size={13} aria-hidden="true" />
-            <span>Ayer quedó sin registrar</span>
-          </span>
-          <button
-            type="button"
-            className="yesterday-reminder-link"
-            onClick={() => setSelectedDate(yesterdayKey)}
-          >
-            Completar ayer <ArrowRight size={12} />
-          </button>
+      {/* Banner de recuperación de ciclo perdido (1 mes) */}
+      {isLikelyMissedOnePeriod && (
+        <div className="past-catchup-banner" style={{ background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' }} role="region" aria-label="Aviso de regla olvidada">
+          <div className="past-catchup-body">
+            <div className="past-catchup-badge" style={{ color: 'var(--gold)' }}>
+              <Clock size={13} aria-hidden="true" />
+              <span>POSIBLE REGLA OLVIDADA</span>
+            </div>
+            <p className="past-catchup-title" style={{ color: 'var(--gold)' }}>¿Te bajó la regla el mes pasado?</p>
+            <p className="past-catchup-sub" style={{ opacity: 0.9 }}>
+              Hace más de {cycleLength + 10} días de tu último registro de periodo.
+            </p>
+          </div>
+          <div className="past-catchup-actions">
+            <button
+              type="button"
+              className="aura-button sm primary"
+              style={{ background: 'var(--gold)', color: '#fff', borderColor: 'var(--gold)' }}
+              onClick={onOpenRecoveryModal}
+            >
+              Completar mes pasado
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Aviso para HOY si ayer quedó sin registrar (unificado con la tarjeta naranja) */}
+      {isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular) && (
+        <div className="past-catchup-banner" role="region" aria-label="Aviso de registro pasado">
+          <div className="past-catchup-body">
+            <div className="past-catchup-badge">
+              <Clock size={13} aria-hidden="true" />
+              <span>AYER SIN REGISTRAR</span>
+            </div>
+            <p className="past-catchup-title">¿Se te olvidó apuntar ayer?</p>
+            <p className="past-catchup-sub">
+              Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.
+            </p>
+          </div>
+          <div className="past-catchup-actions">
+            <button
+              type="button"
+              className="aura-button sm primary"
+              onClick={() => {
+                setSelectedDate(yesterdayKey);
+                setTimeout(onRecordPeriod, 50);
+              }}
+            >
+              <Droplets size={14} />
+              Anotar regla
+            </button>
+            <button
+              type="button"
+              className="aura-button sm"
+              onClick={() => {
+                setSelectedDate(yesterdayKey);
+                setTimeout(onOpenDailyModal, 50);
+              }}
+            >
+              <Plus size={14} />
+              Anotar síntomas
+            </button>
+          </div>
         </div>
       )}
 
@@ -749,12 +809,6 @@ export function HeroStatus({
           <button type="button" className="aura-button primary first-record-button" onClick={onRecordPeriod}>
             Registrar mi primera regla <ArrowRight size={17}/>
           </button>
-        </div>
-      )}
-
-      {children && (
-        <div className="hero-integrated-record">
-          {children}
         </div>
       )}
     </motion.div>

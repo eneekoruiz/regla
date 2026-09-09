@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Apple, Dumbbell, Brain } from 'lucide-react';
+import { Apple, Dumbbell, Brain, ChevronDown } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import type { CyclePhase } from '../../types/cycle';
 import { hapticSelect } from '../../utils/haptics';
@@ -121,9 +121,21 @@ export function CycleSyncingModal({ isOpen, onClose, initialPhase }: CycleSyncin
       <h3 className="text-base font-semibold">{currentInfo.title}</h3>
       <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{currentInfo.hormoneState}</p>
     </section>
-    {sections.map(({ title, icon: Icon, items }) => <section key={title} className="space-y-3 border-t border-[var(--border-subtle)] pt-4" aria-label={title}>
-      <h3 className="flex items-center gap-2 text-sm font-semibold"><Icon size={18} className="shrink-0 text-[var(--accent)]" aria-hidden="true" />{title}</h3>
-      <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--text-secondary)]">{items.map(item => <li key={item}>{item}</li>)}</ul>
-    </section>)}
+    {sections.map(({ title, icon: Icon, items }) => (
+      <details key={title} className="group border-t border-[var(--border-subtle)] py-4 outline-none">
+        <summary className="flex cursor-pointer select-none items-center justify-between text-sm font-semibold list-none [&::-webkit-details-marker]:hidden rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">
+          <div className="flex items-center gap-2">
+            <Icon size={18} className="shrink-0 text-[var(--accent)]" aria-hidden="true" />
+            {title}
+          </div>
+          <ChevronDown size={16} className="text-[var(--text-secondary)] transition-transform duration-200 group-open:-rotate-180" aria-hidden="true" />
+        </summary>
+        <div className="mt-3 overflow-hidden">
+          <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--text-secondary)]">
+            {items.map(item => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+      </details>
+    ))}
   </ModalFrame>;
 }

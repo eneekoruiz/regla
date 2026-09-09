@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ModalFrame } from './ModalFrame';
 import { useCycle } from '../../hooks/useCycle';
 import { Sparkles, Droplet, Check, Leaf, Moon } from 'lucide-react';
+import type { CyclePhase } from '../../types/cycle';
 
 const CALENDAR_ITEMS = [
   {
@@ -39,11 +40,13 @@ const CALENDAR_ITEMS = [
 export function ColorLegendModal({
   isOpen,
   onClose,
-  initialTab = 'phases'
+  initialTab = 'phases',
+  onOpenPhaseGuide
 }: {
   isOpen: boolean;
   onClose: () => void;
   initialTab?: 'phases' | 'legend';
+  onOpenPhaseGuide?: (phase: CyclePhase) => void;
 }) {
   const [tab, setTab] = useState<'phases' | 'legend'>(initialTab);
   const { currentDayInfo: day, hasEnoughData } = useCycle();
@@ -104,50 +107,70 @@ export function ColorLegendModal({
                           ? `Día ${day.dayOfCycle} de tu ciclo. Crecimiento folicular y aumento de estrógenos antes de la ventana fértil.`
                           : `Día ${day.dayOfCycle} de tu ciclo. Fase lútea post-ovulatoria dominada por la progesterona.`}
                 </p>
+                {onOpenPhaseGuide && (
+                  <button 
+                    onClick={() => onOpenPhaseGuide(day.phase || 'menstrual')}
+                    className="mt-2 text-xs font-bold underline hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                  >
+                    Abrir consejos para hoy &rarr;
+                  </button>
+                )}
               </div>
             )}
 
             {/* Guía de las 4 fases */}
-            <div className="space-y-2.5 pt-1">
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
-                <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-xs">
-                  <Droplet size={15} />
-                  <span>1. Fase Menstrual (Días 1 a 5 aprox.)</span>
+            <div className="space-y-2.5 pt-1 flex flex-col">
+              <button type="button" onClick={() => onOpenPhaseGuide?.('menstrual')} className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 hover:border-[var(--accent)] hover:shadow-sm transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-xs">
+                    <Droplet size={15} />
+                    <span>1. Fase Menstrual (Días 1 a 5 aprox.)</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
                   Descenso de estrógenos y progesterona. Desprendimiento del endometrio con sangrado. Momento ideal para reconectar, descansar e hidratarse.
                 </p>
-              </div>
+              </button>
 
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
-                  <Leaf size={15} />
-                  <span>2. Fase Folicular (Días 6 a 13 aprox.)</span>
+              <button type="button" onClick={() => onOpenPhaseGuide?.('follicular')} className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 hover:border-[var(--accent)] hover:shadow-sm transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
+                    <Leaf size={15} />
+                    <span>2. Fase Folicular (Días 6 a 13 aprox.)</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
                   La FSH estimula la maduración de folículos ováricos. Subida continua de estrógenos que eleva la energía física, el ánimo y la claridad mental.
                 </p>
-              </div>
+              </button>
 
-              <div className="rounded-xl border border-sky-300/50 bg-sky-50/50 dark:bg-sky-950/20 p-3">
-                <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold text-xs">
-                  <Sparkles size={15} />
-                  <span>3. Ventana Fértil y Ovulación (Aprox. 6 días clave)</span>
+              <button type="button" onClick={() => onOpenPhaseGuide?.('ovulation')} className="text-left rounded-xl border border-sky-300/50 bg-sky-50/50 dark:bg-sky-950/20 p-3 hover:border-sky-400 hover:shadow-sm transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold text-xs">
+                    <Sparkles size={15} />
+                    <span>3. Ventana Fértil y Ovulación (Aprox. 6 días clave)</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
                   Comprende los 5 días previos a la ovulación y el día ovulatorio. El pico de LH libera el óvulo. El moco cervical se vuelve elástico y transparente tipo clara de huevo, permitiendo la supervivencia espermática.
                 </p>
-              </div>
+              </button>
 
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
-                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs">
-                  <Moon size={15} />
-                  <span>4. Fase Lútea (Post-ovulación hasta la regla)</span>
+              <button type="button" onClick={() => onOpenPhaseGuide?.('luteal')} className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 hover:border-[var(--accent)] hover:shadow-sm transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-bold text-xs">
+                    <Moon size={15} />
+                    <span>4. Fase Lútea (Post-ovulación hasta la regla)</span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
                   El folículo se convierte en cuerpo lúteo y produce progesterona para sostener un posible embarazo. Si no hay fecundación, los niveles caen y se prepara el siguiente ciclo.
                 </p>
-              </div>
+              </button>
             </div>
           </div>
         ) : (
