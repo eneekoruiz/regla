@@ -242,7 +242,7 @@ export function HeroStatus({
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
   const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
   const circumference = 2 * Math.PI * 58;
-  const showRing = hasCycle && isToday;
+  const showRing = hasCycle && (isToday || isFuture);
 
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
@@ -502,13 +502,21 @@ export function HeroStatus({
             className="cycle-ring hero-prominent-ring"
             role="img"
             aria-label={
-              isPeriodDay
-                ? `Día ${cycleDay} de regla`
-                : daysToNext === 1
-                  ? 'Queda 1 día para la regla'
-                  : daysToNext > 0
-                    ? `Quedan ${daysToNext} días para la regla`
-                    : `Día ${cycleDay} del ciclo`
+              isFuture
+                ? isPeriodDay
+                  ? `Regla prevista este día (día ${cycleDay} estimado)`
+                  : daysToNext === 1
+                    ? 'Queda 1 día para la regla estimada'
+                    : daysToNext > 0
+                      ? `Quedan ${daysToNext} días para la regla estimada`
+                      : `Día ${cycleDay} estimado del ciclo`
+                : isPeriodDay
+                  ? `Día ${cycleDay} de regla`
+                  : daysToNext === 1
+                    ? 'Queda 1 día para la regla'
+                    : daysToNext > 0
+                      ? `Quedan ${daysToNext} días para la regla`
+                      : `Día ${cycleDay} del ciclo`
             }
           >
             <svg viewBox="0 0 140 140" aria-hidden="true">
@@ -526,7 +534,33 @@ export function HeroStatus({
               />
             </svg>
             <span className="cycle-ring-label">
-              {isPeriodDay ? (
+              {isFuture ? (
+                isPeriodDay ? (
+                  <>
+                    <span>REGLA</span>
+                    <strong className="cycle-ring-day-number" style={{ fontSize: '1.3rem' }}>Prevista</strong>
+                    <span>este día</span>
+                  </>
+                ) : daysToNext === 1 ? (
+                  <>
+                    <span>QUEDA</span>
+                    <strong className="cycle-ring-day-number">1</strong>
+                    <span>día</span>
+                  </>
+                ) : daysToNext > 1 ? (
+                  <>
+                    <span>QUEDAN</span>
+                    <strong className="cycle-ring-day-number">{daysToNext}</strong>
+                    <span>días</span>
+                  </>
+                ) : (
+                  <>
+                    <span>DÍA</span>
+                    <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                    <span>estimado</span>
+                  </>
+                )
+              ) : isPeriodDay ? (
                 <>
                   <span>DÍA</span>
                   <strong className="cycle-ring-day-number">{cycleDay}</strong>
@@ -561,9 +595,9 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* En días pasados / sin anillo: se aprovecha el espacio derecho para las anotaciones y síntomas */}
-        {!showRing && !isFuture && (
-          <div className="hero-side-panel">
+        {/* En días pasados sin anillo: panel compacto de anotaciones y síntomas */}
+        {!showRing && isPast && (
+          <div className="hero-side-panel is-past">
             <div className="hero-panel-header">
               <ClipboardList size={15} />
               <span>Anotaciones</span>
@@ -577,7 +611,7 @@ export function HeroStatus({
                   {hasBbt && <li>{log?.bbt} °C</li>}
                   {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
                 </ul>
-                {notes && <p className="hero-notes-preview">“{notes}”</p>}
+                {notes && <p className="hero-notes-preview">"{notes}"</p>}
                 <button
                   type="button"
                   className="hero-panel-action-btn"
@@ -592,19 +626,22 @@ export function HeroStatus({
               <div className="hero-panel-empty past-empty">
                 <p className="hero-empty-text">
                   {daysAgo <= 3
-                    ? `${daysAgoLabel}: sin datos registrados.`
+                    ? `${daysAgoLabel}: sin notas ni síntomas.`
                     : 'Sin notas ni síntomas en esta fecha.'}
                 </p>
                 <div className="hero-past-actions">
-                  <button
-                    type="button"
-                    className="aura-button sm hero-add-symptom-btn"
-                    onClick={onRecordPeriod}
-                    title="Anotar regla en este día"
-                  >
-                    <Droplets size={12} style={{ color: 'var(--rose)' }} />
-                    Regla
-                  </button>
+                  {/* Solo mostrar el botón de Regla si no hay regla ya registrada */}
+                  {!isRecorded && !isIrregular && (
+                    <button
+                      type="button"
+                      className="aura-button sm hero-add-symptom-btn"
+                      onClick={onRecordPeriod}
+                      title="Anotar regla en este día"
+                    >
+                      <Droplets size={12} style={{ color: 'var(--rose)' }} />
+                      Regla
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="aura-button sm hero-add-symptom-btn"

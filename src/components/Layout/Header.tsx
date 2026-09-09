@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, ShieldCheck, Download, CheckCircle2, WifiOff } from 'lucide-react';
+import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, ShieldCheck, Download, CheckCircle2, WifiOff, UserRound } from 'lucide-react';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useSyncExternalStore } from 'react';
 import { useCycle } from '../../hooks/useCycle';
@@ -21,15 +21,16 @@ const subscribeTheme = (onChange: () => void) => {
 };
 
 
-export function Header({ view, onChangeView, onOpenChat, onInstall, online = true }: {
+export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstall, online = true }: {
   view: AppView;
   onChangeView: (view: AppView) => void;
   onOpenChat: () => void;
+  onOpenProfile: () => void;
   onInstall: () => void;
   online?: boolean;
 }) {
   const { installed } = usePwaInstall();
-  const { setIsSettingsOpen, settings, updateSettings } = useCycle();
+  const { settings, updateSettings } = useCycle();
   const systemDark = useSyncExternalStore(subscribeTheme, () => systemTheme?.matches ?? false);
   const dark = settings.theme === 'dark' || settings.theme === 'refugio' || (settings.theme === 'system' && systemDark);
 
@@ -117,13 +118,23 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
 
           <button
             type="button"
+            className="navigation-item"
+            onClick={onOpenProfile}
+            aria-label="Ajustes de mi perfil"
+          >
+            <UserRound size={20} aria-hidden="true"/>
+            <span>Mi perfil</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => onChangeView('settings')}
             className={`navigation-item ${view === 'settings' ? 'is-active' : ''}`}
             aria-current={view === 'settings' ? 'page' : undefined}
-            aria-label="Ajustes de la aplicación"
+            aria-label="Configuración de la cuenta"
           >
             <Settings size={20} aria-hidden="true"/>
-            <span>Ajustes</span>
+            <span>Configuración</span>
           </button>
         </div>
 
@@ -153,16 +164,6 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
         </div>
 
         <div className="navigation-bottom">
-          <button
-            type="button"
-            onClick={() => setIsSettingsOpen(true)}
-            className="navigation-item"
-            aria-label="Abrir panel lateral de ajustes rápidos"
-          >
-            <Settings size={20} aria-hidden="true" />
-            <span>Configuración</span>
-          </button>
-          
           <div className="navigation-note">
             <ShieldCheck size={16} aria-hidden="true" className="text-[var(--text-secondary)]"/>
             <span>Tus datos se guardan de forma segura y privada en este dispositivo.</span>
@@ -209,6 +210,16 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
 
         <button
           type="button"
+          className="navigation-item"
+          onClick={onOpenProfile}
+          aria-label="Ajustes de mi perfil"
+        >
+          <UserRound size={20} aria-hidden="true"/>
+          <span>Perfil</span>
+        </button>
+
+        <button
+          type="button"
           className="navigation-item desktop-only-nav"
           onClick={onOpenChat}
           aria-label="Abrir Chat"
@@ -222,7 +233,7 @@ export function Header({ view, onChangeView, onOpenChat, onInstall, online = tru
           onClick={() => onChangeView('settings')}
           className={`navigation-item ${view === 'settings' ? 'is-active' : ''}`}
           aria-current={view === 'settings' ? 'page' : undefined}
-          aria-label="Ajustes de la aplicación"
+          aria-label="Configuración de la cuenta"
         >
           <Settings size={20} aria-hidden="true"/>
           <span>Ajustes</span>

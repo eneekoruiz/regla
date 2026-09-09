@@ -156,7 +156,7 @@ function MainScreen() {
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={handleInstall} online={online}/>
+    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onOpenProfile={() => openModal('profile')} onInstall={handleInstall} online={online}/>
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}

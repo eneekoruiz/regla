@@ -19,7 +19,7 @@ import type { UserSettings } from '../../types/cycle';
 type Category = 'cycle' | 'body' | 'lifestyle';
 type Props = { onOpenModularProfile?: (category?: Category) => void; inline?: boolean };
 type Tool = 'report' | 'import' | 'legal' | 'profile' | 'install' | null;
-type SettingsTab = 'account' | 'cycle' | 'privacy' | 'notifications';
+type SettingsTab = 'account' | 'integrations' | 'privacy' | 'notifications';
 
 export function SettingsDrawer(props: Props) {
   const { isSettingsOpen } = useCycle();
@@ -34,14 +34,9 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
   const { setIsSettingsOpen, settings, updateSettings, exportData, destroyAllData, logs, todayDate, notificationPrefs, updateNotificationPrefs } = useCycle();
   const { signOut, user } = useAuth();
   const toast = useToast();
-  const [tab, setTab] = useState<SettingsTab>('cycle');
+  const [tab, setTab] = useState<SettingsTab>('account');
   const [tool, setTool] = useState<Tool>(null);
   const [profileCategory, setProfileCategory] = useState<Category>('cycle');
-  const [cycleLength, setCycleLength] = useState(String(settings.averageCycleLength));
-  const [periodLength, setPeriodLength] = useState(String(settings.averagePeriodLength));
-  const [startDate, setStartDate] = useState(settings.lastPeriodStartDate);
-  const [pcos, setPcos] = useState(Boolean(settings.hasPCOS));
-  const [worstDay, setWorstDay] = useState(settings.worstDayOfPeriod ?? 1);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -51,24 +46,6 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
   const [customDayInput, setCustomDayInput] = useState('');
   const close = () => setIsSettingsOpen(false);
   const closeTool = () => setTool(null);
-  const saveCycle = () => {
-    const length = Number(cycleLength), duration = Number(periodLength);
-    if (!Number.isInteger(length) || length < 15 || length > 90 || !Number.isInteger(duration) || duration < 1 || duration > 15 || duration > length ||
-      (startDate && (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || startDate > todayDate || Number.isNaN(new Date(startDate + 'T12:00:00').getTime())))) {
-      setError('Revisa la duración del ciclo (15 a 90 días), el sangrado (1 a 15 días) y una fecha de inicio no futura.'); return;
-    }
-    try {
-      updateSettings({ averageCycleLength: length, averagePeriodLength: duration, lastPeriodStartDate: startDate, hasPCOS: pcos, worstDayOfPeriod: worstDay });
-      toast.success('Ajustes del ciclo guardados correctamente.');
-      if (inline) {
-        setMessage('Ajustes del ciclo guardados correctamente.');
-        setError('');
-      } else {
-        close();
-      }
-    }
-    catch { setError('No se han guardado los ajustes. Vuelve a intentarlo.'); }
-  };
   const download = () => {
     try {
       const url = URL.createObjectURL(new Blob([exportData()], { type: 'application/json' }));
@@ -105,7 +82,7 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
   const tabContent = (
     <>
       <div className="flex rounded-xl bg-[var(--bg-root)] p-1 border border-[var(--border-subtle)]" aria-label="Secciones de ajustes">
-        {([['cycle', 'Mi ciclo'], ['account', 'Cuenta'], ['privacy', 'Privacidad'], ['notifications', 'Alertas']] as const).map(([value, label]) => (
+        {([['account', 'Cuenta'], ['privacy', 'Privacidad'], ['notifications', 'Alertas'], ['integrations', 'Apps']] as const).map(([value, label]) => (
           <button
             key={value}
             type="button"
@@ -152,45 +129,23 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
         </div>
       </div>}
 
-      {tab === 'cycle' && <div className="space-y-4">
-        <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Tu perfil de bienestar</p>
-          <p className="text-xs text-[var(--text-secondary)]">Completa o actualiza tus cuestionarios para afinar las recomendaciones de Aura.</p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 pt-1">
-            {([['cycle', 'Mi ciclo'], ['body', 'Mi cuerpo'], ['lifestyle', 'Estilo de vida']] as const).map(([value, label]) => (
-              <button key={value} type="button" onClick={() => openProfile(value)} className="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3 py-2 text-xs font-semibold text-[var(--text-primary)] hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]/30 transition-all">
-                <span>{label}</span><ChevronRight size={15} aria-hidden="true" className="text-[var(--text-secondary)]" />
-              </button>
-            ))}
-          </div>
-        </div>
-
+      {tab === 'integrations' && <div className="space-y-4">
         <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-root)] p-3.5 space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Parámetros del ciclo</p>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="block space-y-1.5 text-xs font-medium">
-              <span>Duración media del ciclo (días)</span>
-              <input type="number" min={15} max={90} value={cycleLength} onChange={event => setCycleLength(event.target.value)} className={modalField} />
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Integraciones de Salud</p>
+            <p className="mt-0.5 text-xs text-[var(--text-secondary)]">Conecta Aura con otras aplicaciones para sincronizar automáticamente tus pasos, sueño y métricas corporales.</p>
+          </div>
+          <div className="space-y-2 border-t border-[var(--border-subtle)] pt-3">
+            <label className="flex items-center justify-between min-h-10 cursor-pointer">
+              <span className="text-sm font-semibold">Apple Health</span>
+              <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la versión nativa de iOS. Disponible próximamente.')} />
             </label>
-            <label className="block space-y-1.5 text-xs font-medium">
-              <span>Duración del sangrado (días)</span>
-              <input type="number" min={1} max={15} value={periodLength} onChange={event => setPeriodLength(event.target.value)} className={modalField} />
+            <label className="flex items-center justify-between min-h-10 cursor-pointer">
+              <span className="text-sm font-semibold">Google Health Connect</span>
+              <input type="checkbox" className="h-5 w-5 rounded accent-[var(--accent)] cursor-pointer" onChange={() => toast.info('Requiere la versión nativa de Android. Disponible próximamente.')} />
             </label>
           </div>
-          <label className="block space-y-1.5 text-xs font-medium">
-            <span>Último inicio de regla</span>
-            <input type="date" max={todayDate} value={startDate} onChange={event => setStartDate(event.target.value)} className={modalField} />
-          </label>
-          <label className="flex min-h-11 items-center gap-3 text-xs font-medium cursor-pointer">
-            <input type="checkbox" checked={pcos} onChange={event => setPcos(event.target.checked)} className="h-5 w-5 rounded accent-[var(--accent)]" />
-            <span>SOP / ciclos irregulares</span>
-          </label>
-          <label className="block space-y-1.5 text-xs font-medium">
-            <span>Día de mayor molestia</span>
-            <select value={worstDay} onChange={event => setWorstDay(Number(event.target.value))} className={modalField}>
-              {[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>Día {value}</option>)}
-            </select>
-          </label>
+          <p className="text-[11px] text-[var(--text-secondary)] mt-2">La sincronización con apps externas requiere permisos del sistema operativo y actualmente se encuentra en desarrollo para las versiones nativas.</p>
         </div>
       </div>}
 
@@ -503,18 +458,10 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
             </div>
           )}
           {tabContent}
-          {tab === 'cycle' && (
-            <div className="pt-3 border-t border-[var(--border-subtle)] flex justify-end">
-              <button type="button" onClick={saveCycle} className={modalPrimaryButton}>
-                <Check size={17} aria-hidden="true" />
-                Guardar cambios
-              </button>
-            </div>
-          )}
         </section>
       ) : (
-        <ModalFrame isOpen onClose={close} title="Ajustes" errorMessage={error} onClearError={() => setError('')}
-          footer={<><button type="button" onClick={close} className={modalSecondaryButton}>{tab === 'cycle' ? 'Cancelar' : 'Cerrar'}</button>{tab === 'cycle' && <button type="button" onClick={saveCycle} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button>}</>}>
+        <ModalFrame isOpen onClose={close} title="Configuración" errorMessage={error} onClearError={() => setError('')}
+          footer={<button type="button" onClick={close} className={modalSecondaryButton}>Cerrar</button>}>
           {tabContent}
         </ModalFrame>
       )}

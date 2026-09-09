@@ -106,9 +106,10 @@
 }
 .brand-caption { padding: 8px 4px 0; color: var(--text-secondary); font-size: 12px; }
 .primary-navigation { display: none; }
-.navigation-item { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 14px; border-radius: 14px; color: var(--text-secondary); font-size: 14px; font-weight: 600; text-align: left; transition: background .18s, color .18s; }
-.navigation-item:hover { background: var(--bg-card-inner); }
-.navigation-item.is-active { background: var(--accent-soft); color: var(--accent); }
+.navigation-item { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font-size: 14px; font-weight: 650; text-align: left; transition: all .18s cubic-bezier(0.16, 1, 0.3, 1); margin-bottom: 8px; width: 100%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.navigation-item:hover { background: var(--bg-card-inner); border-color: color-mix(in srgb, var(--accent) 40%, var(--border-subtle)); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+.navigation-item.is-active { background: color-mix(in srgb, var(--accent) 12%, var(--bg-card)); border-color: var(--accent); color: var(--text-primary); box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent); }
+.navigation-item.is-active svg { color: var(--accent); }
 .navigation-bottom { margin-top: auto; }
 .navigation-utilities { display: none; }
 
@@ -404,17 +405,17 @@
 }
 /* Banner de registro diario — estética advice-card con acento izquierdo */
 .urgent-today-banner {
-  margin: 10px 0 4px;
-  padding: 12px 14px;
+  margin: 6px 0 2px;
+  padding: 10px 12px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-left: 4px solid var(--accent);
-  border-radius: 18px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   transition: all .18s ease;
 }
 
@@ -435,8 +436,8 @@
 
 /* Círculo símbolo — mismo patrón que .confidente-symbol */
 .urgent-today-symbol {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -448,18 +449,18 @@
 .urgent-today-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 /* Eyebrow de categoría — igual que .advice-category pero con color heredado */
 .urgent-today-cat {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 /* Titular con fuente display — igual que .advice-card h3 */
 .urgent-today-headline {
-  font: 400 17px/1.18 var(--font-display);
+  font: 400 16px/1.18 var(--font-display);
   letter-spacing: -0.3px;
   margin: 0;
   color: var(--text-primary);
@@ -470,15 +471,15 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 7px 16px;
-  min-height: 36px;
-  border-radius: 12px;
+  padding: 6px 14px;
+  min-height: 34px;
+  border-radius: 11px;
   background: var(--accent);
   color: var(--accent-on, #ffffff);
   border: 1px solid var(--accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 20%, transparent);
   transition: all .16s ease;
   cursor: pointer;
 }
@@ -588,12 +589,12 @@
 .wellness-carousel-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .wellness-count { font-size: 11.5px; color: var(--text-secondary); min-width: 32px; text-align: center; }
 .wellness-controls { display: flex; align-items: center; gap: 4px; }
-.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 16px 18px; min-height: 165px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 16px 18px; min-height: 165px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
 .advice-category { display: flex; gap: 6px; align-items: center; color: var(--accent); font-size: 11px; font-weight: 600; margin-bottom: 6px; }
 .advice-card h3 { font: 400 18px/1.18 var(--font-display); letter-spacing: -.4px; margin: 0 0 6px; }
 .advice-card p { font-size: 12.5px; line-height: 1.42; color: var(--text-secondary); margin: 0 0 6px; }
-.advice-card .advice-tip { padding: 6px 0; border-top: 1px solid var(--border-subtle); margin-top: auto; font-size: 11.5px; }
-.text-action { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; font-size: 12px; font-weight: 600; color: var(--accent); text-align: left; }
+.advice-card .advice-tip { padding: 6px 0; border-top: 1px solid var(--border-subtle); margin-top: 8px; font-size: 11.5px; }
+.text-action { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; font-size: 12px; font-weight: 600; color: var(--accent); text-align: left; margin-top: auto; padding-top: 6px; }
 .confidente-link { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 14px; border: 1px solid var(--border-subtle); border-radius: 16px; background: var(--bg-card); text-align: left; transition: all .16s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .confidente-link:hover { border-color: var(--accent); background: var(--bg-card-inner); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
 .confidente-symbol { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--gold-soft); color: var(--gold); flex-shrink: 0; }
@@ -851,7 +852,9 @@
   .navigation-bottom { margin: 0; }
   .navigation-utilities { padding: 0; gap: 7px; align-items: center; }
   .primary-navigation { position: fixed; inset: auto 0 0; margin: 0; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); flex-direction: row; justify-content: space-around; border-top: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 8px; z-index: 100; }
-  .navigation-item { flex: 1; flex-direction: column; justify-content: center; gap: 5px; font-size: 11px; min-height: 54px; padding: 6px 8px; transition: transform 0.1s ease; }
+  .navigation-item { flex: 1; flex-direction: column; justify-content: center; gap: 5px; font-size: 11px; min-height: 54px; padding: 6px 8px; margin-bottom: 0; width: auto; border: none; background: transparent; box-shadow: none; transition: transform 0.1s ease; color: var(--text-secondary); font-weight: 600; }
+  .navigation-item.is-active { background: transparent; border: none; box-shadow: none; color: var(--accent); }
+  .navigation-item:hover { background: transparent; border: none; box-shadow: none; transform: none; }
   .navigation-item:active { transform: scale(0.92); }
   .workspace { margin-left: 0; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(120px + env(safe-area-inset-bottom, 0px)); }
   .page-topline { display: none; }
@@ -873,9 +876,9 @@
   .cycle-copy { font-size: 12.5px; }
   .diary-section { padding: 16px 0; }
   .diary-record-section { margin-top: 14px; padding-top: 16px; }
-  .diary-secondary { display: block; padding-top: 16px; }
-  .confidente-link { margin: 0; padding: 14px 0; border-top: 1px solid var(--border-subtle); }
-  .advice-card { padding: 18px; min-height: 240px; }
+  .diary-secondary { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+  .confidente-link { margin: 0; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 16px; }
+  .advice-card { padding: 14px 16px; min-height: 0; }
   .quick-log-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .quick-log { padding: 10px 14px; min-height: 52px; font-size: 12.5px; }
   .tool-grid { gap: 12px; }
@@ -988,6 +991,7 @@
   .cycle-summary:not(.is-first-record) .cycle-copy { grid-column: 1 / -1; max-width: none; }
   .cycle-summary:not(.is-first-record) .cycle-ring { grid-column: 2; grid-row: 1 / 3; justify-self: end; }
   .hero-side-panel { grid-column: 1 / -1; max-width: 100%; width: 100%; }
+  .hero-side-panel.is-past { padding: 8px 10px; gap: 5px; background: color-mix(in srgb, var(--bg-card) 90%, transparent); }
   .cycle-summary.is-first-record .cycle-summary-top {
     flex-direction: column;
   }
