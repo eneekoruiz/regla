@@ -43,6 +43,7 @@ export function HeroStatus({
   const awaitingPeriod = hasCycle && elapsedDays >= cycleLength && !isRecorded && !isFuture;
   const cycleDay = hasCycle ? awaitingPeriod ? elapsedDays + 1 : day.dayOfCycle : 0;
   const daysNext = upcomingMilestones.daysUntilNextPeriod;
+  const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
 
   // Find effective last period day in this cycle to accurately know when the period finished
   let lastRecordedPeriodDay = periodLength;
@@ -162,69 +163,82 @@ export function HeroStatus({
         copy = `Fase ${day.phaseName.toLowerCase()}`;
       }
     } else if (isFuture) {
-      const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
       if (isPeriodDay) {
         title = 'Periodo estimado';
-        copy = 'Previsión de sangrado según tus ciclos habituales.';
+        copy = `Probabilidad estimada de quedarse embarazada: muy baja · Previsión según tus ciclos · Día ${cycleDay} del ciclo`;
       } else if (day.isOvulationDay) {
-        title = `Día ${cycleDay} · Máxima fertilidad`;
-        copy = 'Día estimado de ovulación';
+        title = 'Día de máxima ovulación en base a los cálculos';
+        copy = `Probabilidad estimada de quedarse embarazada: muy alta · Día ${cycleDay} del ciclo`;
       } else if (day.isFertileWindow) {
-        title = `Día ${cycleDay} · Ventana fértil`;
-        copy = daysToOvu > 1 ? `La ovulación máxima se estima en ${daysToOvu} días` : daysToOvu === 1 ? 'La ovulación máxima se estima mañana' : 'Alta probabilidad de concepción';
+        title = daysToOvu > 1
+          ? `Quedarán ${daysToOvu} días para ovular al máximo en base a los cálculos`
+          : daysToOvu === 1
+            ? 'Quedará 1 día para ovular al máximo en base a los cálculos'
+            : 'Día de máxima ovulación en base a los cálculos';
+        copy = `Probabilidad estimada de quedarse embarazada: ${daysToOvu <= 1 ? 'muy alta' : 'alta'} · Día ${cycleDay} del ciclo`;
       } else if (daysToOvu > 0 && daysToOvu <= 5) {
-        title = `Día ${cycleDay} estimado`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ventana fértil se acerca`;
+        title = daysToOvu > 1
+          ? `Quedarán ${daysToOvu} días para ovular al máximo en base a los cálculos`
+          : 'Quedará 1 día para ovular al máximo en base a los cálculos';
+        copy = `Probabilidad estimada de quedarse embarazada: media · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext > 1 && daysToNext <= 5) {
-        title = `Día ${cycleDay} estimado`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega en ${daysToNext} días`;
+        title = `Tu regla llegará en ${daysToNext} días en base a los cálculos`;
+        copy = `Probabilidad estimada de quedarse embarazada: muy baja · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 1) {
-        title = `Día ${cycleDay} estimado`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega mañana`;
+        title = 'Tu regla llegará mañana en base a los cálculos';
+        copy = `Probabilidad estimada de quedarse embarazada: muy baja · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else {
         title = `Día ${cycleDay} estimado`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Quedarán ${daysToNext} días para la regla`;
+        copy = `Probabilidad estimada de quedarse embarazada: baja · Fase ${day.phaseName.toLowerCase()} · Quedarán ${daysToNext} días para la regla`;
       }
     } else {
       // Hoy
-      const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
       if (isRecorded) {
         title = 'En tu periodo';
-        copy = `Ve a tu ritmo · Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · Flujo ${flowName} registrado · Día ${cycleDay} del ciclo`;
       } else if (isPeriodDay) {
         title = 'Periodo estimado para hoy';
-        copy = 'Esta fecha es una previsión. Confirma o corrige el sangrado de hoy.';
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · Previsión orientativa · Día ${cycleDay} del ciclo`;
       } else if (isJustFinishedPeriod) {
-        title = `Ovulación estimada en ${daysToOvu} días`;
-        copy = `Tu regla ha terminado · Día ${cycleDay} del ciclo`;
+        title = daysToOvu > 1
+          ? `Te quedan ${daysToOvu} días para ovular al máximo en base a los cálculos`
+          : 'Te queda 1 día para ovular al máximo en base a los cálculos';
+        copy = `Probabilidad actual de quedarse embarazada: baja · Tu regla ha terminado · Día ${cycleDay} del ciclo`;
       } else if (awaitingPeriod) {
         title = elapsedDays === cycleLength ? 'Fecha estimada: hoy' : 'Tu ciclo tiene su ritmo';
-        copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra tu regla cuando empiece.' : 'La fecha estimada ha pasado. Registra lo que observas para actualizar tu calendario.';
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · ${elapsedDays === cycleLength ? 'Registra tu regla cuando empiece.' : `Día ${cycleDay} del ciclo`}`;
       } else if (day.isOvulationDay) {
-        title = `Día ${cycleDay} · Máxima fertilidad`;
-        copy = 'Día de ovulación estimado';
+        title = 'Hoy es tu día de máxima ovulación en base a los cálculos';
+        copy = `Probabilidad actual de quedarse embarazada: muy alta · Día ${cycleDay} del ciclo`;
       } else if (day.isFertileWindow) {
-        title = `Día ${cycleDay} · Ventana fértil`;
-        copy = daysToOvu > 1 ? `La ovulación máxima se estima en ${daysToOvu} días` : daysToOvu === 1 ? 'La ovulación máxima se estima mañana' : 'Alta probabilidad de concepción';
+        title = daysToOvu > 1
+          ? `Te quedan ${daysToOvu} días para ovular al máximo en base a los cálculos`
+          : daysToOvu === 1
+            ? 'Te queda 1 día para ovular al máximo en base a los cálculos'
+            : 'Hoy es tu día de máxima ovulación en base a los cálculos';
+        copy = `Probabilidad actual de quedarse embarazada: ${daysToOvu <= 1 ? 'muy alta' : 'alta'} · Día ${cycleDay} del ciclo`;
       } else if (daysToOvu > 0 && daysToOvu <= 5) {
-        title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu ventana fértil empieza pronto`;
+        title = daysToOvu > 1
+          ? `Te quedan ${daysToOvu} días para ovular al máximo en base a los cálculos`
+          : 'Te queda 1 día para ovular al máximo en base a los cálculos';
+        copy = `Probabilidad actual de quedarse embarazada: media · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext > 1 && daysToNext <= 5) {
-        title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega en ${daysToNext} días`;
+        title = `Tu regla llega en ${daysToNext} días en base a los cálculos`;
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 1) {
-        title = `Día ${cycleDay} de tu ciclo`;
-        copy = `Fase ${day.phaseName.toLowerCase()} · Tu regla llega mañana, prepárate`;
+        title = 'Tu regla llega mañana en base a los cálculos';
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · Fase ${day.phaseName.toLowerCase()} · Día ${cycleDay} del ciclo`;
       } else if (daysToNext === 0) {
         title = 'Fecha estimada de regla: hoy';
-        copy = `Día ${cycleDay} del ciclo · Confirma si te ha bajado la regla`;
+        copy = `Probabilidad actual de quedarse embarazada: muy baja · Día ${cycleDay} del ciclo · Confirma si te ha bajado la regla`;
       } else {
         const daysToFertile = daysToOvu - 5;
         title = `Día ${cycleDay} de tu ciclo`;
         if (daysToFertile > 0 && day.phase === 'follicular') {
-          copy = `Fase folicular · Tu ventana fértil se abre en ${daysToFertile} ${daysToFertile === 1 ? 'día' : 'días'}`;
+          title = `Te quedan ${daysToOvu} días para ovular al máximo en base a los cálculos`;
+          copy = `Probabilidad actual de quedarse embarazada: baja · Tu ventana fértil se abre en ${daysToFertile} ${daysToFertile === 1 ? 'día' : 'días'} · Día ${cycleDay} del ciclo`;
         } else {
-          copy = `Fase ${day.phaseName.toLowerCase()} · Tu ciclo tiene su ritmo`;
+          copy = `Probabilidad actual de quedarse embarazada: baja · Fase ${day.phaseName.toLowerCase()}`;
         }
       }
     }
@@ -496,11 +510,15 @@ export function HeroStatus({
             aria-label={
               isPeriodDay
                 ? `Día ${cycleDay} de regla`
-                : daysToNext === 1
-                  ? 'Queda 1 día para la regla'
-                  : daysToNext > 0
-                    ? `Quedan ${daysToNext} días para la regla`
-                    : `Día ${cycleDay} del ciclo`
+                : day.isFertileWindow && daysToOvu > 0
+                  ? `Quedan ${daysToOvu} días para la ovulación máxima`
+                  : day.isOvulationDay
+                    ? 'Día de máxima ovulación'
+                    : daysToNext === 1
+                      ? 'Queda 1 día para la regla'
+                      : daysToNext > 0
+                        ? `Quedan ${daysToNext} días para la regla`
+                        : `Día ${cycleDay} del ciclo`
             }
           >
             <svg viewBox="0 0 140 140" aria-hidden="true">
@@ -529,6 +547,18 @@ export function HeroStatus({
                   <span>ESPERANDO</span>
                   <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
                   <span>días</span>
+                </>
+              ) : day.isFertileWindow && daysToOvu > 0 ? (
+                <>
+                  <span>OVULACIÓN</span>
+                  <strong className="cycle-ring-day-number">{daysToOvu}</strong>
+                  <span>{daysToOvu === 1 ? 'día' : 'días'}</span>
+                </>
+              ) : day.isOvulationDay ? (
+                <>
+                  <span>MÁXIMA</span>
+                  <strong className="cycle-ring-day-number" style={{ fontSize: '1.4rem' }}>Hoy</strong>
+                  <span>ovulación</span>
                 </>
               ) : daysToNext === 1 ? (
                 <>
