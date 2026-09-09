@@ -119,7 +119,7 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
         <button type="button" className="aura-icon-button" aria-label="Siguiente consejo" title="Siguiente consejo" disabled={index === cards.length - 1} onClick={() => setActiveIndex(index + 1)}><ChevronRight size={18}/></button>
       </div>
     </div>
-    <div className="overflow-hidden">
+    <div className="wellness-carousel-wrapper overflow-hidden">
       <AnimatePresence mode="wait">
         <motion.article
           key={card.id || index}

@@ -105,7 +105,7 @@
   border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .brand-caption { padding: 8px 4px 0; color: var(--text-secondary); font-size: 12px; }
-.primary-navigation { display: flex; flex-direction: column; gap: 6px; margin-top: 18px; }
+.primary-navigation { display: none; }
 .navigation-item { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 14px; border-radius: 14px; color: var(--text-secondary); font-size: 14px; font-weight: 600; text-align: left; transition: background .18s, color .18s; }
 .navigation-item:hover { background: var(--bg-card-inner); }
 .navigation-item.is-active { background: var(--accent-soft); color: var(--accent); }
@@ -197,8 +197,8 @@
 .aura-button.rose { background: var(--rose-soft); color: var(--rose); border-color: transparent; }
 .aura-button:disabled { opacity: .55; }
 .aura-field { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-primary); background: var(--bg-card); }
-.workspace { margin-left: 224px; padding: 10px 24px 10px; flex: 1; overflow-y: auto; overflow-x: hidden; }
-.workspace-inner { width: 100%; max-width: 1200px; margin: 0; }
+.workspace { margin-left: 224px; padding: 16px 28px 18px; flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+.workspace-inner { width: 100%; max-width: 1280px; margin: 0; display: flex; flex-direction: column; flex: 1; }
 .workspace:focus { outline: none; }
 .tool-card, .quick-log, .day-pill { scroll-margin-block: 110px; }
 .page-topline { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
@@ -235,9 +235,9 @@
 .ovulation-sparkle { font-size: 11px; line-height: 1; font-weight: 900; color: #3b82f6; }
 .dark .ovulation-sparkle { color: #93c5fd; }
 .today-pill-button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; }
-.diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 8px; align-items: stretch; }
-.diary-primary { display: flex; flex-direction: column; min-width: 0; }
-.diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; }
+.diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 8px; align-items: stretch; flex: 1; }
+.diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
 .cycle-summary { padding: 16px 20px 14px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 260px; }
 .cycle-summary-motion { display: flex; flex-direction: column; justify-content: space-between; height: 100%; width: 100%; }
 .cycle-summary-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
@@ -589,10 +589,11 @@
 .symptom-list li { border-radius: 6px; background: var(--accent-soft); padding: 3px 7px; color: var(--accent); font-size: 11px; }
 .empty-log { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; padding: 2px 0; color: var(--text-secondary); font-size: 11.5px; }
 .empty-log svg { flex-shrink: 0; }
-.wellness-section { padding: 0; }
+.wellness-section { padding: 0; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.wellness-carousel-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .wellness-count { font-size: 11.5px; color: var(--text-secondary); min-width: 32px; text-align: center; }
 .wellness-controls { display: flex; align-items: center; gap: 4px; }
-.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 14px 16px; min-height: 165px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.advice-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 18px; padding: 16px 18px; min-height: 165px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
 .advice-category { display: flex; gap: 6px; align-items: center; color: var(--accent); font-size: 11px; font-weight: 600; margin-bottom: 6px; }
 .advice-card h3 { font: 400 18px/1.18 var(--font-display); letter-spacing: -.4px; margin: 0 0 6px; }
 .advice-card p { font-size: 12.5px; line-height: 1.42; color: var(--text-secondary); margin: 0 0 6px; }
