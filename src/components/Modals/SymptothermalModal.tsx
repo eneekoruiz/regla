@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import type { CervicalMucusType } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalField, modalPrimaryButton, modalSecondaryButton, modalSelected, modalUnselected } from './modalStyles';

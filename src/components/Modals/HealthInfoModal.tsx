@@ -71,7 +71,7 @@ export function HealthInfoModal({ isOpen, onClose }: HealthInfoModalProps) {
         <span>Compromiso Ético y Privacidad 100% Local</span>
       </div>
       <p className="text-[13px] leading-snug">
-        Tus registros de salud no se venden ni se envían a servidores de publicidad. En modo privado, la información se guarda en este dispositivo.
+        Tus registros de salud no se venden ni se envían a servidores de publicidad. Tu cuenta sincroniza los registros con el servidor. El dispositivo conserva una copia para usarlos sin conexión.
       </p>
     </div>
   </ModalFrame>;

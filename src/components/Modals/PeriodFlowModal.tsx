@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalSecondaryButton, modalUnselected } from './modalStyles';

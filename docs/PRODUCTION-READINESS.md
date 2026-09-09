@@ -81,14 +81,12 @@ Las estimaciones no deben presentarse como diagnóstico, confirmación de ovulac
 
 ## Privacidad y copias
 
-El modo local continúa guardando datos en el navegador. La exportación JSON no es un backup automático ni está cifrada por defecto; borrar datos del navegador puede eliminarla. Para publicar hay que elegir una de estas decisiones y documentarla:
+El modo privado local queda retirado de producción: Aura exige una cuenta para entrar y todo el caché offline se guarda bajo el identificador de la usuaria autenticada. Las sesiones antiguas sin cuenta no vuelven a abrir la app; solo muestran una recuperación de legado para descargar una copia JSON de los registros locales previos.
 
-1. Mantener modo privado local solo con una advertencia clara y exigir exportación manual cifrada antes de abandonar el dispositivo.
-2. Integrar un almacén local cifrado con una clave derivada de una frase secreta que la usuaria conserve; si se pierde la frase, no hay recuperación.
-3. Desactivar el modo local en producción y exigir cuenta sincronizada, con política de retención y borrado verificadas.
+La exportación JSON no es un backup automático ni está cifrada por defecto. Para trasladar datos sensibles entre dispositivos, usar la copia cifrada con frase secreta y probar la restauración antes de borrar el navegador anterior. Si se pierde esa frase, no hay recuperación de la copia cifrada.
 
 No afirmar “cifrado de grado nativo” mientras no exista una prueba de almacenamiento cifrado, gestión de claves, restauración y borrado. El archivo `src/services/cryptoVault.ts` sirve como base para copias cifradas, pero no está conectado automáticamente al almacenamiento diario.
 
 ## Criterio de publicación
 
-Publicar solo cuando `/api/ready` sea `ready`, la recuperación haya sido probada con correo real, la sincronización haya sido probada con dos dispositivos, la matriz física de accesibilidad esté firmada, la revisión sanitaria/legal esté aprobada y la decisión de privacidad esté implementada y documentada. Si uno de esos puntos falla, mantener Aura en modo privado o staging.
+Publicar solo cuando `/api/ready` sea `ready`, la recuperación haya sido probada con correo real, la sincronización haya sido probada con dos dispositivos, la matriz física de accesibilidad esté firmada, la revisión sanitaria/legal esté aprobada y la decisión de privacidad de cuenta obligatoria esté verificada en producción. Si uno de esos puntos falla, mantener Aura en staging.

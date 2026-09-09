@@ -5,7 +5,6 @@ import { getApiBase } from '../utils/apiBase';
 
 export function getRemoteToken(): string | null {
   try {
-    if (import.meta.env?.DEV && localStorage.getItem('dev_bypass_auth') === 'true') return null;
     const token = localStorage.getItem('token');
     return !token || token === 'dev-token' || token.startsWith('local-') || token.startsWith('offline-') ? null : token;
   } catch {

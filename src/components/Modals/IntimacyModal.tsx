@@ -13,7 +13,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import type { IntimacyLog } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import {

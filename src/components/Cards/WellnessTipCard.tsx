@@ -105,10 +105,11 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
       <h2 id="wellness-title">Un momento para ti</h2>
       <div className="wellness-controls flex items-center gap-1.5">
         <button type="button" className="aura-icon-button" aria-label="Consejo anterior" title="Consejo anterior" disabled={index === 0} onClick={() => setActiveIndex(index - 1)}><ChevronLeft size={18}/></button>
-        <div className="flex items-center gap-1 px-1" aria-label={`Consejo ${index + 1} de ${cards.length}`}>
+        <div className="flex items-center gap-1 px-1" role="img" aria-label={`Consejo ${index + 1} de ${cards.length}`}>
           {cards.map((_, i) => (
             <span
               key={i}
+              aria-hidden="true"
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 i === index ? 'w-4 bg-[var(--accent)]' : 'w-1.5 bg-[var(--border-subtle)]'
               }`}

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { enterLocal, openTool, checkLayout } from './helpers';
+import { enterAccount, openTool, checkLayout } from './helpers';
 
 test('chat local conserva mensajes y permite borrar sólo la conversación', async ({ page }) => {
-  await enterLocal(page);
+  await enterAccount(page);
   await openTool(page, /^Confidente/);
   const question = 'Quiero entender la privacidad, prueba QA';
   await page.getByLabel('Tu mensaje').fill(question);

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Mic, MicOff, ArrowUp, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 
 interface SpeechSession {
   continuous: boolean;

@@ -19,15 +19,14 @@ export async function resolveStoredSession(signal?: AbortSignal): Promise<Stored
     token = localStorage.getItem('token');
     const raw = localStorage.getItem('cached_user');
     try { cachedUser = raw ? parseDataJSON(raw) : null; } catch { cachedUser = null; }
-    if (import.meta.env?.DEV && localStorage.getItem('dev_bypass_auth') === 'true') {
-      return { token: 'dev-token', user: { id: 'development', email: 'dev@test.com' } };
-    }
+
   } catch {
     return null;
   }
-  if (!token || token === 'dev-token') return null;
-  if (token.startsWith('local-') || token.startsWith('offline-')) {
-    return isAuthUser(cachedUser) ? { token, user: cachedUser } : null;
+  if (!token) return null;
+  if (token === 'dev-token' || token.startsWith('local-') || token.startsWith('offline-')) {
+    clearSessionStorage();
+    return null;
   }
   try {
     const response = await fetch(`${getApiBase()}/auth/me`, {

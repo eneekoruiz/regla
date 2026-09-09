@@ -557,7 +557,7 @@ export function detectRecurringSymptomPattern(params: {
   cycleLength: number;
   lastPeriodStart: string;
 }): { symptomName: string; cyclesCount: number; message: string } | null {
-  const { logs, currentDayOfCycle, todayDate, cycleLength, lastPeriodStart } = params;
+  const { logs, currentDayOfCycle, cycleLength, lastPeriodStart } = params;
   if (!lastPeriodStart || currentDayOfCycle <= 0 || cycleLength <= 0) return null;
 
   // Recopilar todos los arranques de ciclo (días con isCycleStart)

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, CalendarDays, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, Sparkles, X, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 
 export function HeroStatus({

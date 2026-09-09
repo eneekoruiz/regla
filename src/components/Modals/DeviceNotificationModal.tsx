@@ -23,17 +23,19 @@ export function DeviceNotificationModal({
   prefs,
   onUpdatePrefs
 }: DeviceNotificationModalProps) {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] = useState<NotificationPermission>(() => getNotificationPermission());
   const [testSent, setTestSent] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    const frame = requestAnimationFrame(() => {
       setPermission(getNotificationPermission());
       setTestSent(false);
       setError('');
-    }
+    });
+    return () => cancelAnimationFrame(frame);
   }, [isOpen]);
 
   const handleRequestPermission = async () => {

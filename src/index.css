@@ -206,6 +206,7 @@
 .page-subtitle { color: var(--text-secondary); margin: 3px 0 0; font-size: 13px; }
 .connection-status { display: inline-flex; align-items: center; gap: 7px; color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 .connection-status svg { color: var(--accent); }
+.mobile-connection-status { display: none; }
 .date-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .date-heading { font-size: 15px; font-weight: 600; margin: 0; }
 .date-heading::first-letter { text-transform: uppercase; }
@@ -225,6 +226,7 @@
 .dark .day-pill.is-ovulation:not(.is-selected):not(.is-period) { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border-color: #2563eb; }
 .day-pill.is-selected { background: var(--accent); color: var(--accent-on); border-color: var(--accent); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent); }
 .day-pill.is-period.is-selected { background: var(--rose); color: #fff; border-color: var(--rose); box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35); }
+.dark .day-pill.is-period.is-selected { background: #be123c; color: #fff; border-color: #fb7185; }
 .day-pill.is-fertile.is-selected { background: #f59e0b; color: #fff; border-color: #d97706; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35); }
 .day-pill.is-ovulation.is-selected { background: #3b82f6; color: #fff; border-color: #2563eb; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35); }
 .day-pill.is-today:not(.is-selected) { border-color: var(--accent); }
@@ -673,6 +675,7 @@
   .page-title { font-size: 30px; }
   .page-subtitle { font-size: 13px; }
   .connection-status { font-size: 11px; }
+  .mobile-connection-status { display: inline-flex; align-items: center; gap: 6px; width: fit-content; min-height: 32px; margin-bottom: 8px; padding: 6px 10px; border: 1px solid var(--rose-soft); border-radius: 999px; background: var(--bg-card); color: var(--rose); font-size: 12px; font-weight: 650; }
   .date-toolbar { flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
   .date-heading { font-size: 14px; }
   .date-picker { font-size: 16px; max-width: 160px; }
@@ -703,7 +706,7 @@
   .page-topline { align-items: flex-start; }
   .connection-status { max-width: 80px; white-space: normal; }
   .cycle-ring { width: 80px; height: 80px; }
-  .cycle-headline { font-size: 28px; }
+  .cycle-headline { font-size: 24px; }
   .tool-grid { grid-template-columns: minmax(0, 1fr); }
   .tool-card { min-height: 70px; padding: 12px 14px; }
 }
@@ -802,6 +805,12 @@
   .cycle-summary:not(.is-first-record) .cycle-copy { grid-column: 1 / -1; max-width: none; }
   .cycle-summary:not(.is-first-record) .cycle-ring { grid-column: 2; grid-row: 1 / 3; justify-self: end; }
   .hero-side-panel { grid-column: 1 / -1; max-width: 100%; width: 100%; }
+  .cycle-summary.is-first-record .cycle-summary-top {
+    flex-direction: column;
+  }
+  .cycle-summary.is-first-record .hero-side-panel {
+    flex: 0 0 auto;
+  }
   .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) { display: flex; flex-direction: column; gap: 12px; }
   .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) > div:first-child { display: block; }
   .cycle-meta dd { font-size: 14px; }

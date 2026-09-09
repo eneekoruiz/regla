@@ -1,7 +1,7 @@
 import { ModalFrame } from './ModalFrame';
 import { useState, useMemo } from 'react';
 import { useCycle } from '../../hooks/useCycle';
-import { useToast } from '../../context/ToastContext';
+import { useToast } from '../../context/toast';
 import { generateMedicalReportData, generateMedicalReportPDF, generateMedicalReportText } from '../../services/medicalReportGenerator';
 import { shareOrCopyText, shareOrDownloadPDF } from '../../services/shareService';
 import { Share2, Copy, Check, Activity } from 'lucide-react';
