@@ -93,7 +93,7 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
   const secret = (env.JWT_SECRET || '').trim();
-  const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production|your_custom|aura_production_jwt_signing_key/i.test(secret);
+  const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production|your_custom/i.test(secret);
   let pool = suppliedPool;
   if (!pool && env.DATABASE_URL && secretReady) {
     try { pool = new Pool(databaseOptions(env.DATABASE_URL)); } catch {

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, ClipboardList, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -392,47 +392,34 @@ function MainScreen() {
                     </button>
                     {isOpen && (
                       <div className="tool-group-content">
-                        <div className="tool-grid">
+                        <div className="quiz-grid">
                           {Object.values(HEALTH_QUIZZES).map(quiz => {
                             if (!quiz || !quiz.id) return null;
                             const questionsCount = quiz.questions?.length ?? 0;
                             const quizKey = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === quiz.id) || 'stress';
                             return (
-                              <div
+                              <button
+                                type="button"
                                 key={quiz.id}
-                                className="tool-card flex flex-col justify-between"
-                                style={{ textAlign: 'left' }}
+                                className="quiz-card"
+                                data-quiz={quiz.id}
+                                onClick={() => openChatWithQuiz(quizKey)}
                               >
-                                <div
-                                  onClick={() => openChatWithQuiz(quizKey)}
-                                  role="button"
-                                  tabIndex={0}
-                                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openChatWithQuiz(quizKey); } }}
-                                  style={{ cursor: 'pointer' }}
-                                >
-                                  <div className="tool-card-top">
-                                    <div className="tool-card-icon">
-                                      <ClipboardList size={20} aria-hidden="true" />
-                                    </div>
-                                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
-                                      En el chat
-                                    </span>
+                                <div className="quiz-card-cover">
+                                  <span className="quiz-card-emoji" role="img" aria-label={quiz.title}>{quiz.iconEmoji || '📋'}</span>
+                                  <span className="quiz-card-time">{quiz.estimatedTime}</span>
+                                </div>
+                                <div className="quiz-card-body">
+                                  <div className="quiz-card-main">
+                                    <strong className="quiz-card-title">{quiz.title}</strong>
+                                    <span className="quiz-card-subtitle">{questionsCount} preguntas</span>
                                   </div>
-                                  <div className="tool-card-body">
-                                    <strong>{quiz.title}</strong>
-                                    <span>{questionsCount} preguntas · Chequeo guiado</span>
+                                  <div className="quiz-card-action">
+                                    <span>Comenzar</span>
+                                    <ArrowRight size={14} aria-hidden="true" />
                                   </div>
                                 </div>
-                                <div className="mt-3 flex items-center justify-between border-t border-[var(--border-subtle)] pt-2 text-xs">
-                                  <button
-                                    type="button"
-                                    onClick={() => openChatWithQuiz(quizKey)}
-                                    className="text-[var(--accent)] font-medium flex items-center gap-1 hover:underline"
-                                  >
-                                    <MessageCircle size={13} /> Iniciar en Confidente
-                                  </button>
-                                </div>
-                              </div>
+                              </button>
                             );
                           })}
                         </div>

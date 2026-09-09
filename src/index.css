@@ -598,6 +598,149 @@
 .tool-group-icon { color: var(--text-tertiary); transition: transform 0.2s ease; }
 .tool-group.is-open .tool-group-icon { transform: rotate(180deg); color: var(--accent); }
 .tool-group-content { padding: 0 20px 20px; }
+/* Tarjetas de Cuestionarios de bienestar con Portada */
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.quiz-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-primary);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.quiz-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.quiz-card-cover {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.quiz-card[data-quiz="stress_check"] .quiz-card-cover {
+  background: linear-gradient(135deg, #e0e7ff, #ede9fe);
+}
+.dark .quiz-card[data-quiz="stress_check"] .quiz-card-cover {
+  background: linear-gradient(135deg, #24294d, #2e264f);
+}
+
+.quiz-card[data-quiz="sleep_quality"] .quiz-card-cover {
+  background: linear-gradient(135deg, #ccfbf1, #e0f2fe);
+}
+.dark .quiz-card[data-quiz="sleep_quality"] .quiz-card-cover {
+  background: linear-gradient(135deg, #173836, #163647);
+}
+
+.quiz-card[data-quiz="pcos_screening"] .quiz-card-cover {
+  background: linear-gradient(135deg, #fce7f3, #fed7aa);
+}
+.dark .quiz-card[data-quiz="pcos_screening"] .quiz-card-cover {
+  background: linear-gradient(135deg, #441c30, #42251a);
+}
+
+.quiz-card[data-quiz="pms_evaluation"] .quiz-card-cover {
+  background: linear-gradient(135deg, #fae8ff, #ffe4e6);
+}
+.dark .quiz-card[data-quiz="pms_evaluation"] .quiz-card-cover {
+  background: linear-gradient(135deg, #3d1c44, #441d28);
+}
+
+.quiz-card[data-quiz="cramps_check"] .quiz-card-cover {
+  background: linear-gradient(135deg, #fee2e2, #fef3c7);
+}
+.dark .quiz-card[data-quiz="cramps_check"] .quiz-card-cover {
+  background: linear-gradient(135deg, #421e20, #422f1d);
+}
+
+.quiz-card-emoji {
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.quiz-card-time {
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-primary);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dark .quiz-card-time {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.quiz-card-body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quiz-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.quiz-card-title {
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.quiz-card-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.quiz-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.quiz-card:hover .quiz-card-action svg {
+  transform: translateX(3px);
+  transition: transform .18s ease;
+}
 .tool-section-title { font-size: 15px; font-weight: 650; margin: 16px 0 8px; }
 .biomarker-list { margin: 0; }
 .quiz-history { padding: 0 0 16px; }
