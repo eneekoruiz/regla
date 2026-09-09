@@ -270,9 +270,9 @@ function MainScreen() {
                   ) : (
                     <div className="quick-log-grid">
                       {hasPeriod ? (
-                        <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal('period')} title="Editar registro de regla">
+                        <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal(hasIrregularBleeding ? 'irregular' : 'period')} title="Editar registro de sangrado">
                           <Droplets size={18}/>
-                          <span>Regla registrada</span>
+                          <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Regla registrada'}</span>
                         </button>
                       ) : isApproachingPeriod ? (
                         <button type="button" className="quick-log period" aria-pressed={false} onClick={() => openBleedingModal('period')} title="Confirmar si te ha bajado la regla hoy">
