@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
@@ -612,24 +612,25 @@ export function HeroStatus({
         )}
       </div>
 
-      {/* Aviso urgente de registro diario SOLO para HOY si no ha apuntado nada aún */}
+      {/* Aviso de registro diario para HOY: estilo consejos, contrastado y conciso */}
       {isToday && !hasAnyAnnotation && (
-        <div className="urgent-today-banner" role="alert">
-          <div className="urgent-today-body">
-            <div className="urgent-today-badge">
-              <span className="urgent-today-pulse" aria-hidden="true" />
-              <span>Registro diario pendiente</span>
+        <div className="urgent-today-banner" role="region" aria-label="Aviso de registro diario">
+          <div className="urgent-today-left">
+            <div className="urgent-today-icon">
+              <Sparkles size={16} aria-hidden="true" />
             </div>
-            <p className="urgent-today-title">Aún no has registrado tus sensaciones de hoy</p>
-            <p className="urgent-today-sub">Anota tus síntomas o notas para ajustar con precisión tus alertas y previsiones del ciclo.</p>
+            <div className="urgent-today-text">
+              <strong>¿Cómo te sientes hoy?</strong>
+              <span>Anota tus síntomas en un toque</span>
+            </div>
           </div>
           <button
             type="button"
-            className="aura-button sm urgent-today-btn"
+            className="aura-button sm primary urgent-today-btn"
             onClick={onOpenDailyModal}
           >
-            <Plus size={14} />
-            Anotar hoy
+            <Plus size={14} aria-hidden="true" />
+            Anotar
           </button>
         </div>
       )}
