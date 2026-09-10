@@ -18,6 +18,13 @@ interface SymptomRule {
 
 export const KNOWN_SYMPTOMS: SymptomRule[] = [
   {
+    id: 'calm_day',
+    name: 'Día normal sin molestias',
+    category: 'general',
+    emoji: '✨',
+    patterns: [/\b(d[ií]a\s+normal|sin\s+(dolor|molestias?|s[ií]ntomas?)|todo\s+(bien|tranquilo)|bien\s+sin\s+dolor)\b/i]
+  },
+  {
     id: 'cramps',
     name: 'Cólicos',
     category: 'pain',
