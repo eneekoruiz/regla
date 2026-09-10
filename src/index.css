@@ -243,11 +243,12 @@
 .cycle-summary-motion { display: flex; flex-direction: column; gap: clamp(12px, 1.8vh, 18px); height: 100%; width: 100%; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 1.05fr);
   align-items: center;
-  text-align: center;
-  gap: clamp(10px, 1.6vh, 18px);
+  column-gap: clamp(14px, 2vw, 24px);
+  row-gap: 8px;
+  width: 100%;
 }
 .cycle-summary-top.no-ring {
   display: flex;
@@ -258,11 +259,10 @@
 .cycle-summary-header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   width: 100%;
-  max-width: 540px;
-  margin: 0 auto;
+  min-width: 0;
 }
 .cycle-summary-top.no-ring .cycle-summary-header {
   align-items: flex-start;
@@ -271,36 +271,99 @@
   flex: 1;
 }
 .cycle-summary-top.has-ring .phase-chip {
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
+  align-self: flex-start;
 }
 .cycle-summary-top.has-ring .cycle-headline {
-  text-align: center;
-  margin: 0 0 6px 0;
-  max-width: 540px;
-  font-size: clamp(23px, 3vh, 31px);
+  text-align: left;
+  margin: 0 0 4px 0;
+  max-width: 100%;
+  font-size: clamp(19px, 2.3vh, 25px);
+  line-height: 1.18;
 }
 .cycle-summary-top.has-ring .cycle-copy {
-  text-align: center;
-  margin: 0;
+  text-align: left;
+  margin: 0 0 6px 0;
+  font-size: 13.5px;
+  line-height: 1.35;
 }
 .cycle-ring-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: auto;
+  margin: 0 auto;
+}
+.cycle-summary-top.has-ring .cycle-ring {
+  width: clamp(160px, 21vh, 195px);
+  height: clamp(160px, 21vh, 195px);
+}
+.cycle-summary-top.has-ring .cycle-ring-label strong {
+  font-size: clamp(44px, 5.8vh, 58px);
+}
+.cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
+  width: clamp(170px, 22vh, 205px);
+  height: clamp(170px, 22vh, 205px);
+}
+.cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong {
+  font-size: clamp(48px, 6.4vh, 64px);
+}
+.cycle-summary-side-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   width: 100%;
-  margin: 2px auto;
+  min-width: 0;
 }
 .cycle-summary-top.has-ring .hero-quick-actions {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   width: 100%;
+}
+.cycle-summary-top.has-ring .hero-quick-actions .aura-button {
+  font-size: 12.5px;
+  padding: 6px 12px;
+  min-height: 35px;
+  width: 100%;
+  justify-content: flex-start;
+}
+.cycle-side-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+.cycle-stat-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
+  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.cycle-stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.9;
+}
+.cycle-stat-val {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+.confirmed-feedback-msg {
+  grid-column: 1 / -1;
 }
 .cycle-summary-info { flex: 1; min-width: 0; }
 .hero-integrated-record { margin-top: auto; }
-.cycle-summary:not(.is-annotated) .hero-integrated-record { margin-bottom: 8px; }
+.cycle-summary:not(.is-annotated) .hero-integrated-record { margin-bottom: 4px; }
 .cycle-ring-context {
   font-size: 11.5px;
   font-weight: 500;
@@ -309,7 +372,7 @@
   margin-top: 1px;
 }
 .cycle-summary.is-annotated .cycle-ring-context {
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 /* Panel lateral cuando no hay anillo (días pasados / futuros) para aprovechar el espacio */
@@ -920,25 +983,29 @@
 @media (min-width: 701px) {
   .app-navigation { overflow-y: auto; }
 }
-@media (min-width: 701px) and (max-height: 750px) {
+@media (min-width: 701px) and (max-height: 850px) {
   .workspace { padding: 6px 20px 6px; }
-  .page-topline { margin-bottom: 3px; }
+  .page-topline { margin-bottom: 2px; }
   .page-title { font-size: 21px; }
-  .date-toolbar { margin-bottom: 3px; }
-  .day-pill { width: 48px; height: 48px; }
+  .date-toolbar { margin-bottom: 2px; }
+  .day-pill { width: 46px; height: 46px; }
   .day-pill .day-label { font-size: 8.5px; }
-  .day-pill .day-number { font-size: 14px; }
-  .diary-grid { margin-top: 5px; }
-  .cycle-summary { padding: 10px 16px 8px; min-height: 220px; }
-  .cycle-headline { font-size: 22px; }
-  .cycle-ring { width: clamp(175px, 25vh, 215px); height: clamp(175px, 25vh, 215px); }
-  .cycle-ring-label strong { font-size: clamp(42px, 6vh, 56px); }
-  .cycle-summary.is-annotated .cycle-ring { width: clamp(195px, 29vh, 240px); height: clamp(195px, 29vh, 240px); }
-  .cycle-summary.is-annotated .cycle-ring-label strong { font-size: clamp(48px, 7vh, 64px); }
-  .hero-quick-actions { margin-top: 6px !important; }
-  .advice-card { min-height: 140px; padding: 10px 12px; }
+  .day-pill .day-number { font-size: 13.5px; }
+  .diary-grid { margin-top: 4px; row-gap: 6px; }
+  .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
+  .cycle-summary-motion { gap: 6px; }
+  .cycle-headline { font-size: 20px; }
+  .cycle-summary-top.has-ring .cycle-ring { width: clamp(145px, 19vh, 175px); height: clamp(145px, 19vh, 175px); }
+  .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(38px, 5.2vh, 50px); }
+  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring { width: clamp(155px, 20.5vh, 185px); height: clamp(155px, 20.5vh, 185px); }
+  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(42px, 5.8vh, 54px); }
+  .hero-quick-actions { margin-top: 2px !important; }
+  .advice-card { min-height: 125px; padding: 10px 14px; }
   .advice-card h3 { font-size: 16px; margin: 0 0 3px; }
-  .confidente-link { padding: 6px 12px; }
+  .confidente-link { padding: 6px 12px; min-height: 42px; }
+  .hero-integrated-record .section-heading { margin-bottom: 3px; }
+  .hero-integrated-record .section-heading h2 { font-size: 13.5px; }
+  .quick-log { min-height: 38px; padding: 5px 8px; font-size: 11.5px; }
 }
 @media (min-width: 701px) and (max-height: 500px) {
   .app-navigation { padding-block: 20px; }
@@ -1134,6 +1201,7 @@
   }
   .cycle-summary-top.has-ring .phase-chip {
     grid-column: auto !important;
+    align-self: center !important;
     margin: 0 0 6px 0 !important;
   }
   .cycle-summary-top.has-ring .cycle-headline {
@@ -1167,8 +1235,21 @@
   .cycle-summary-top.has-ring .cycle-ring-label strong {
     font-size: clamp(44px, 12vw, 56px) !important;
   }
+  .cycle-summary-top.has-ring .cycle-summary-side-actions {
+    align-items: center !important;
+    width: 100% !important;
+  }
   .cycle-summary-top.has-ring .hero-quick-actions {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
     justify-content: center !important;
+  }
+  .cycle-summary-top.has-ring .hero-quick-actions .aura-button {
+    width: auto !important;
+    justify-content: center !important;
+  }
+  .cycle-side-stats {
+    display: none !important;
   }
   .cycle-summary:not(.is-first-record) .cycle-summary-top.no-ring {
     display: flex !important;
