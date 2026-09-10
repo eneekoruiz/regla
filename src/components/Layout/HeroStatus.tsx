@@ -262,8 +262,9 @@ export function HeroStatus({
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="cycle-summary-motion"
     >
-      <div className="cycle-summary-top">
-        <div className="cycle-summary-info">
+      <div className={`cycle-summary-top${showRing ? ' has-ring' : ' no-ring'}`}>
+        {/* Encabezado: Títulos y mensajes centrados encima de la rueda */}
+        <div className="cycle-summary-header">
           {hasCycle ? (
             <button
               type="button"
@@ -286,93 +287,119 @@ export function HeroStatus({
           )}
           <h2 id="cycle-title" className="cycle-headline">{title}</h2>
           <p className="cycle-copy" style={{ fontSize: '15px', color: 'var(--text-secondary)' }}>{copy}</p>
+        </div>
 
-          {/* Acciones para HOY */}
-          {isToday && hasCycle && (
-            <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              {isRecorded ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                    Editar flujo
-                  </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={handleConfirmPeriodEndToday}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
-                  >
-                    <Check size={14} style={{ color: 'var(--accent)' }} />
-                    Hoy ha terminado mi regla
-                  </button>
-                </>
-              ) : awaitingPeriod ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm primary"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} />
-                    Me ha bajado hoy la regla
-                  </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => {
-                      setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.');
-                    }}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Clock size={14} />
-                    Se me está retrasando la regla
-                  </button>
-                </>
-              ) : day.isPeriod ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm primary"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} />
-                    {cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla'}
-                  </button>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={
-                      cycleDay > 1
-                        ? handleConfirmPeriodEndToday
-                        : () => {
-                            denyPeriodOnDate(todayDate);
-                            setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
-                          }
-                    }
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    {cycleDay > 1 ? (
-                      <>
-                        <Check size={14} style={{ color: 'var(--accent)' }} />
-                        Ya se me ha terminado
-                      </>
-                    ) : (
-                      <>
-                        <Clock size={14} />
-                        Se me está retrasando la regla
-                      </>
-                    )}
-                  </button>
-                </>
-              ) : daysToNext <= 4 ? (
+        {/* La rueda como elemento principal y protagonista central */}
+        {showRing && (
+          <div className="cycle-ring-wrap">
+            <div
+              className="cycle-ring hero-prominent-ring"
+              role="img"
+              aria-label={
+                isFuture
+                  ? isPeriodDay
+                    ? `Regla prevista este día (día ${cycleDay} estimado)`
+                    : daysToNext === 1
+                      ? 'Queda 1 día para la regla estimada'
+                      : daysToNext > 0
+                        ? `Quedan ${daysToNext} días para la regla estimada`
+                        : `Día ${cycleDay} estimado del ciclo`
+                  : isPeriodDay
+                    ? `Día ${cycleDay} de regla`
+                    : daysToNext === 1
+                      ? 'Queda 1 día para la regla'
+                      : daysToNext > 0
+                        ? `Quedan ${daysToNext} días para la regla`
+                        : `Día ${cycleDay} del ciclo`
+              }
+            >
+              <svg viewBox="0 0 140 140" aria-hidden="true">
+                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--border-subtle)" strokeWidth="10"/>
+                <circle
+                  cx="70"
+                  cy="70"
+                  r="55"
+                  fill="none"
+                  stroke="var(--phase-ink)"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${progress * circumference} ${circumference}`}
+                  transform="rotate(-90 70 70)"
+                />
+              </svg>
+              <span className="cycle-ring-label">
+                {isFuture ? (
+                  isPeriodDay ? (
+                    <>
+                      <span>REGLA</span>
+                      <strong className="cycle-ring-day-number is-text">Prevista</strong>
+                      <span>este día</span>
+                    </>
+                  ) : daysToNext === 1 ? (
+                    <>
+                      <span>QUEDA</span>
+                      <strong className="cycle-ring-day-number">1</strong>
+                      <span>día</span>
+                      <span className="cycle-ring-context">para la regla</span>
+                    </>
+                  ) : daysToNext > 1 ? (
+                    <>
+                      <span>QUEDAN</span>
+                      <strong className="cycle-ring-day-number">{daysToNext}</strong>
+                      <span>días</span>
+                      <span className="cycle-ring-context">para la regla</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>DÍA</span>
+                      <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                      <span>estimado</span>
+                    </>
+                  )
+                ) : isPeriodDay ? (
+                  <>
+                    <span>DÍA</span>
+                    <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                    <span>de regla</span>
+                  </>
+                ) : awaitingPeriod ? (
+                  <>
+                    <span>ESPERANDO</span>
+                    <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
+                    <span>días</span>
+                    <span className="cycle-ring-context">de retraso</span>
+                  </>
+                ) : daysToNext === 1 ? (
+                  <>
+                    <span>QUEDA</span>
+                    <strong className="cycle-ring-day-number">1</strong>
+                    <span>día</span>
+                    <span className="cycle-ring-context">para la regla</span>
+                  </>
+                ) : daysToNext > 1 ? (
+                  <>
+                    <span>QUEDAN</span>
+                    <strong className="cycle-ring-day-number">{daysToNext}</strong>
+                    <span>días</span>
+                    <span className="cycle-ring-context">para la regla</span>
+                  </>
+                ) : (
+                  <>
+                    <span>PREVISIÓN</span>
+                    <strong className="cycle-ring-day-number is-text">Hoy</strong>
+                    <span>de regla</span>
+                  </>
+                )}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Acciones para HOY (debajo de la rueda) */}
+        {isToday && hasCycle && (
+          <div className="hero-quick-actions" style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+            {isRecorded ? (
+              <>
                 <button
                   type="button"
                   className="aura-button sm"
@@ -380,228 +407,208 @@ export function HeroStatus({
                   style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
                   <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                  Se me ha adelantado la regla
+                  Editar flujo
                 </button>
-              ) : null}
-            </div>
-          )}
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={handleConfirmPeriodEndToday}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
+                >
+                  <Check size={14} style={{ color: 'var(--accent)' }} />
+                  Hoy ha terminado mi regla
+                </button>
+              </>
+            ) : awaitingPeriod ? (
+              <>
+                <button
+                  type="button"
+                  className="aura-button sm primary"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} />
+                  Me ha bajado hoy la regla
+                </button>
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={() => {
+                    setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.');
+                  }}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Clock size={14} />
+                  Se me está retrasando la regla
+                </button>
+              </>
+            ) : day.isPeriod ? (
+              <>
+                <button
+                  type="button"
+                  className="aura-button sm primary"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} />
+                  {cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla'}
+                </button>
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={
+                    cycleDay > 1
+                      ? handleConfirmPeriodEndToday
+                      : () => {
+                          denyPeriodOnDate(todayDate);
+                          setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
+                        }
+                  }
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  {cycleDay > 1 ? (
+                    <>
+                      <Check size={14} style={{ color: 'var(--accent)' }} />
+                      Ya se me ha terminado
+                    </>
+                  ) : (
+                    <>
+                      <Clock size={14} />
+                      Se me está retrasando la regla
+                    </>
+                  )}
+                </button>
+              </>
+            ) : daysToNext <= 4 ? (
+              <button
+                type="button"
+                className="aura-button sm"
+                onClick={onRecordPeriod}
+                style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                Se me ha adelantado la regla
+              </button>
+            ) : null}
+          </div>
+        )}
 
-          {/* Acciones para DÍA PASADO */}
-          {isPast && (
-            <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              {isRecorded || isIrregular ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                    Editar flujo
-                  </button>
-                  {/* Mejora 6: doble confirmación antes de borrar */}
-                  {confirmDeletePending ? (
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => {
-                        const start = cycleStats.lastVerifiedPeriodStart;
-                        const yesterday = parseDateKey(selectedDate);
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const yesterdayStr = formatDateKey(yesterday);
-                        if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
-                          logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
-                          toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
-                        } else {
-                          toast.success('Registro eliminado');
-                        }
-                        denyPeriodOnDate(selectedDate);
-                        setConfirmDeletePending(false);
-                        try { navigator.vibrate?.([20, 40, 20]); } catch {}
-                      }}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
-                      title="Toca de nuevo para confirmar el borrado"
-                    >
-                      <AlertTriangle size={14} />
-                      ¿Segura? Confirmar
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => setConfirmDeletePending(true)}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      title="Quitar registro de regla para esta fecha"
-                    >
-                      <X size={14} />
-                      No tuve regla este día
-                    </button>
-                  )}
-                </>
-              ) : day.isPeriod ? (
-                <>
-                  <button
-                    type="button"
-                    className="aura-button sm primary"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} />
-                    Tuve regla este día
-                  </button>
-                  {confirmDeletePending ? (
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => {
-                        const start = cycleStats.lastVerifiedPeriodStart;
-                        const yesterday = parseDateKey(selectedDate);
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const yesterdayStr = formatDateKey(yesterday);
-                        if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
-                          logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
-                          toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
-                        }
-                        denyPeriodOnDate(selectedDate);
-                        setConfirmDeletePending(false);
-                        try { navigator.vibrate?.([20, 40, 20]); } catch {}
-                      }}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
-                    >
-                      <AlertTriangle size={14} />
-                      ¿Segura? Confirmar
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => setConfirmDeletePending(true)}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Check size={14} />
-                      No tuve regla
-                    </button>
-                  )}
-                </>
-              ) : (
+        {confirmedEndFeedback && (
+          <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Check size={14} /> {confirmedEndFeedback}
+          </p>
+        )}
+
+        {/* Acciones para DÍA PASADO */}
+        {isPast && (
+          <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            {isRecorded || isIrregular ? (
+              <>
                 <button
                   type="button"
                   className="aura-button sm"
                   onClick={onRecordPeriod}
-                  style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
                   <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                  ¿Tuviste regla este día?
+                  Editar flujo
                 </button>
-              )}
-            </div>
-          )}
-
-
-          {confirmedEndFeedback && (
-            <p style={{ margin: '8px 0 0', fontSize: 12.5, color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <Check size={14} /> {confirmedEndFeedback}
-            </p>
-          )}
-        </div>
-
-        {/* El círculo solo se muestra en el día de hoy con la cuenta atrás sincronizada */}
-        {showRing && (
-          <div
-            className="cycle-ring hero-prominent-ring"
-            role="img"
-            aria-label={
-              isFuture
-                ? isPeriodDay
-                  ? `Regla prevista este día (día ${cycleDay} estimado)`
-                  : daysToNext === 1
-                    ? 'Queda 1 día para la regla estimada'
-                    : daysToNext > 0
-                      ? `Quedan ${daysToNext} días para la regla estimada`
-                      : `Día ${cycleDay} estimado del ciclo`
-                : isPeriodDay
-                  ? `Día ${cycleDay} de regla`
-                  : daysToNext === 1
-                    ? 'Queda 1 día para la regla'
-                    : daysToNext > 0
-                      ? `Quedan ${daysToNext} días para la regla`
-                      : `Día ${cycleDay} del ciclo`
-            }
-          >
-            <svg viewBox="0 0 140 140" aria-hidden="true">
-              <circle cx="70" cy="70" r="55" fill="none" stroke="var(--border-subtle)" strokeWidth="10"/>
-              <circle
-                cx="70"
-                cy="70"
-                r="55"
-                fill="none"
-                stroke="var(--phase-ink)"
-                strokeWidth="10"
-                strokeLinecap="round"
-                strokeDasharray={`${progress * circumference} ${circumference}`}
-                transform="rotate(-90 70 70)"
-              />
-            </svg>
-            <span className="cycle-ring-label">
-              {isFuture ? (
-                isPeriodDay ? (
-                  <>
-                    <span>REGLA</span>
-                    <strong className="cycle-ring-day-number is-text">Prevista</strong>
-                    <span>este día</span>
-                  </>
-                ) : daysToNext === 1 ? (
-                  <>
-                    <span>QUEDA</span>
-                    <strong className="cycle-ring-day-number">1</strong>
-                    <span>día</span>
-                  </>
-                ) : daysToNext > 1 ? (
-                  <>
-                    <span>QUEDAN</span>
-                    <strong className="cycle-ring-day-number">{daysToNext}</strong>
-                    <span>días</span>
-                  </>
+                {/* Mejora 6: doble confirmación antes de borrar */}
+                {confirmDeletePending ? (
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => {
+                      const start = cycleStats.lastVerifiedPeriodStart;
+                      const yesterday = parseDateKey(selectedDate);
+                      yesterday.setDate(yesterday.getDate() - 1);
+                      const yesterdayStr = formatDateKey(yesterday);
+                      if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
+                        logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
+                        toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
+                      } else {
+                        toast.success('Registro eliminado');
+                      }
+                      denyPeriodOnDate(selectedDate);
+                      setConfirmDeletePending(false);
+                      try { navigator.vibrate?.([20, 40, 20]); } catch {}
+                    }}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                    title="Toca de nuevo para confirmar el borrado"
+                  >
+                    <AlertTriangle size={14} />
+                    ¿Segura? Confirmar
+                  </button>
                 ) : (
-                  <>
-                    <span>DÍA</span>
-                    <strong className="cycle-ring-day-number">{cycleDay}</strong>
-                    <span>estimado</span>
-                  </>
-                )
-              ) : isPeriodDay ? (
-                <>
-                  <span>DÍA</span>
-                  <strong className="cycle-ring-day-number">{cycleDay}</strong>
-                  <span>de regla</span>
-                </>
-              ) : awaitingPeriod ? (
-                <>
-                  <span>ESPERANDO</span>
-                  <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
-                  <span>días</span>
-                </>
-              ) : daysToNext === 1 ? (
-                <>
-                  <span>QUEDA</span>
-                  <strong className="cycle-ring-day-number">1</strong>
-                  <span>día</span>
-                </>
-              ) : daysToNext > 1 ? (
-                <>
-                  <span>QUEDAN</span>
-                  <strong className="cycle-ring-day-number">{daysToNext}</strong>
-                  <span>días</span>
-                </>
-              ) : (
-                <>
-                  <span>PREVISIÓN</span>
-                  <strong className="cycle-ring-day-number is-text">Hoy</strong>
-                  <span>de regla</span>
-                </>
-              )}
-            </span>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => setConfirmDeletePending(true)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    title="Quitar registro de regla para esta fecha"
+                  >
+                    <X size={14} />
+                    No tuve regla este día
+                  </button>
+                )}
+              </>
+            ) : day.isPeriod ? (
+              <>
+                <button
+                  type="button"
+                  className="aura-button sm primary"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} />
+                  Tuve regla este día
+                </button>
+                {confirmDeletePending ? (
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => {
+                      const start = cycleStats.lastVerifiedPeriodStart;
+                      const yesterday = parseDateKey(selectedDate);
+                      yesterday.setDate(yesterday.getDate() - 1);
+                      const yesterdayStr = formatDateKey(yesterday);
+                      if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
+                        logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
+                        toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
+                      }
+                      denyPeriodOnDate(selectedDate);
+                      setConfirmDeletePending(false);
+                      try { navigator.vibrate?.([20, 40, 20]); } catch {}
+                    }}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
+                  >
+                    <AlertTriangle size={14} />
+                    ¿Segura? Confirmar
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => setConfirmDeletePending(true)}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Check size={14} />
+                    No tuve regla
+                  </button>
+                )}
+              </>
+            ) : (
+              <button
+                type="button"
+                className="aura-button sm"
+                onClick={onRecordPeriod}
+                style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                ¿Tuviste regla este día?
+              </button>
+            )}
           </div>
         )}
 
