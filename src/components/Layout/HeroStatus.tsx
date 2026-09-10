@@ -251,8 +251,10 @@ export function HeroStatus({
   const showRing = hasCycle && (isToday || isFuture);
 
   const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
+  const isAnnotated = Boolean(hasAnyLog);
+  const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
 
-  return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
+  return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
       initial={{ opacity: 0, y: 5 }}
@@ -546,7 +548,7 @@ export function HeroStatus({
                 isPeriodDay ? (
                   <>
                     <span>REGLA</span>
-                    <strong className="cycle-ring-day-number" style={{ fontSize: '1.3rem' }}>Prevista</strong>
+                    <strong className="cycle-ring-day-number is-text">Prevista</strong>
                     <span>este día</span>
                   </>
                 ) : daysToNext === 1 ? (
@@ -595,7 +597,7 @@ export function HeroStatus({
               ) : (
                 <>
                   <span>PREVISIÓN</span>
-                  <strong className="cycle-ring-day-number" style={{ fontSize: '1.4rem' }}>Hoy</strong>
+                  <strong className="cycle-ring-day-number is-text">Hoy</strong>
                   <span>de regla</span>
                 </>
               )}
@@ -668,13 +670,13 @@ export function HeroStatus({
 
       {/* QuickLog buttons moved up for visibility */}
       {children && (
-        <div className="hero-integrated-record" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+        <div className="hero-integrated-record">
           {children}
         </div>
       )}
 
       {/* Aviso de registro diario para HOY: estilo advice-card con contraste sutil */}
-      {isToday && !hasAnyAnnotation && (
+      {isToday && !hasAnyLog && (
         <div className="urgent-today-banner" role="region" aria-label="Aviso de registro diario">
           <div className="urgent-today-left">
             <div className="urgent-today-symbol">
