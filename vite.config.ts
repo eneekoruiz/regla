@@ -7,7 +7,16 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   // Test traces and review backups are generated output, not application input.
-  server: { host: true, watch: { ignored: ['**/artifacts/**'] } },
+  server: {
+    host: true,
+    watch: { ignored: ['**/artifacts/**'] },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
+    }
+  },
   optimizeDeps: { entries: ['index.html'] },
   plugins: [
     react(),
@@ -18,8 +27,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,avif,woff,woff2,ttf,otf,json,wasm}'],
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api(?:\/|$)/],
-        cleanupOutdatedCaches: true
+        navigateFallbackDenylist: [/^\/api(?:\/|$)/, /^\/assets\//, /\.[a-zA-Z0-9]+$/],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true
       }
     })
   ],

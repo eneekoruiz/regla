@@ -1,5 +1,6 @@
-import { createRequire } from 'node:module';
+import serverModule from '../server/app.js';
 
+const { createApp } = serverModule;
 const B64_DB = 'cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfVGpmaVFTOElaRTFjQGVwLXlvdW5nLW1vcm5pbmctemFvbW96NDgtcG9vbGVyLmMtMi5ldS13ZXN0LTIuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJl';
 const B64_SECRET = 'OWU2ZjdhM2UyYjE0YzVkNmU3ZjgwOTFhMmIzYzRkNWU2ZjcwODE5MmEzYjRjNWQ2ZTdmODA5MWEyYjNjNGQ1';
 
@@ -12,15 +13,17 @@ function getProductionApp() {
   const jwtSecret = process.env.JWT_SECRET || Buffer.from(B64_SECRET, 'base64').toString('utf8');
 
   if (!productionApp) {
-    const require = createRequire(import.meta.url);
-    const { createApp } = require('../server/app.js');
-    productionApp = createApp({
-      env: {
-        ...process.env,
-        DATABASE_URL: dbUrl,
-        JWT_SECRET: jwtSecret,
-      }
-    });
+    try {
+      productionApp = createApp({
+        env: {
+          ...process.env,
+          DATABASE_URL: dbUrl,
+          JWT_SECRET: jwtSecret,
+        }
+      });
+    } catch (err) {
+      console.error('Failed to create server app:', err);
+    }
   }
   return productionApp;
 }
