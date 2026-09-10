@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
+import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
 
 export function HeroStatus({
   onRecordPeriod,
@@ -44,8 +45,11 @@ export function HeroStatus({
     : 0;
   const awaitingPeriod = hasCycle && elapsedDays >= cycleLength && !isRecorded && !isFuture;
   const cycleDay = hasCycle ? awaitingPeriod ? elapsedDays + 1 : day.dayOfCycle : 0;
-  const daysNext = upcomingMilestones.daysUntilNextPeriod;
-  const daysToOvu = upcomingMilestones.daysUntilNextOvulation;
+  const selectedMilestones = useMemo(() => {
+    return calculateUpcomingMilestones(cycleStats, selectedDate);
+  }, [cycleStats, selectedDate]);
+  const daysNext = selectedMilestones.daysUntilNextPeriod;
+  const daysToOvu = selectedMilestones.daysUntilNextOvulation;
 
   // Find effective last period day in this cycle to accurately know when the period finished
   let lastRecordedPeriodDay = periodLength;
@@ -243,7 +247,7 @@ export function HeroStatus({
   const activeDuration = isPeriodDay ? periodLength : cycleLength;
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
   const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
-  const circumference = 2 * Math.PI * 58;
+  const circumference = 2 * Math.PI * 55;
   const showRing = hasCycle && (isToday || isFuture);
 
   const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
@@ -524,14 +528,14 @@ export function HeroStatus({
             }
           >
             <svg viewBox="0 0 140 140" aria-hidden="true">
-              <circle cx="70" cy="70" r="58" fill="none" stroke="var(--border-subtle)" strokeWidth="8"/>
+              <circle cx="70" cy="70" r="55" fill="none" stroke="var(--border-subtle)" strokeWidth="10"/>
               <circle
                 cx="70"
                 cy="70"
-                r="58"
+                r="55"
                 fill="none"
                 stroke="var(--phase-ink)"
-                strokeWidth="8"
+                strokeWidth="10"
                 strokeLinecap="round"
                 strokeDasharray={`${progress * circumference} ${circumference}`}
                 transform="rotate(-90 70 70)"

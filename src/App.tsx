@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -27,6 +27,7 @@ import type { ChatQuizKey } from './services/aiAgent';
 import type { QuizAnswer } from './components/Chat/chatHistory';
 import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
+import { calculateUpcomingMilestones } from './services/predictiveEngine';
 
 
 import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
@@ -140,8 +141,12 @@ function MainScreen() {
   const isFuture = selectedDate > todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
   const cycleDay = currentDayInfo.dayOfCycle;
-  const daysNext = upcomingMilestones.daysUntilNextPeriod;
+  const selectedMilestones = useMemo(() => {
+    return calculateUpcomingMilestones(cycleStats, selectedDate);
+  }, [cycleStats, selectedDate]);
+  const daysNext = selectedMilestones.daysUntilNextPeriod;
   const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(0, cycleLength - cycleDay + 1);
+  const daysToOvu = selectedMilestones.daysUntilNextOvulation;
   const isApproachingPeriod = (typeof daysNext === 'number' && daysNext <= 10) || (!daysNext && daysToNext <= 10) || hasPeriod;
   const hasMedications = Boolean(log?.medications?.some(m => m.taken));
   const hasIrregularBleeding = Boolean(log?.isIrregularBleeding);
@@ -266,8 +271,60 @@ function MainScreen() {
                     )}
                   </div>
                   {isFuture ? (
-                    <div className="future-day-card">
-                      <p>No puedes anotar este día porque es un día futuro y todavía no ha pasado.</p>
+                    <div className="future-forecast-container">
+                      <div className="future-forecast-card" data-phase={currentDayInfo.phase}>
+                        <div className="future-forecast-icon">
+                          {currentDayInfo.isOvulationDay || (currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod) ? (
+                            <Sparkles size={18} aria-hidden="true" />
+                          ) : currentDayInfo.isPeriod ? (
+                            <Droplets size={18} aria-hidden="true" />
+                          ) : currentDayInfo.phase === 'luteal' ? (
+                            <Clock size={18} aria-hidden="true" />
+                          ) : (
+                            <Leaf size={18} aria-hidden="true" />
+                          )}
+                        </div>
+                        <div className="future-forecast-content">
+                          <h3 className="future-forecast-title">
+                            {currentDayInfo.isOvulationDay
+                              ? 'Día de ovulación estimada'
+                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                                ? 'Ventana de fertilidad estimada'
+                                : currentDayInfo.isPeriod
+                                  ? 'Inicio estimado de menstruación'
+                                  : currentDayInfo.phase === 'luteal'
+                                    ? 'Fase lútea (post-ovulación)'
+                                    : 'Fase folicular en desarrollo'}
+                          </h3>
+                          <p className="future-forecast-desc">
+                            {currentDayInfo.isOvulationDay
+                              ? 'Día con mayor probabilidad de concepción del ciclo. El óvulo permanece viable entre 12 y 24 horas.'
+                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                                ? daysToOvu > 1
+                                  ? `Días fértiles estimados. El pico de máxima ovulación se prevé en ${daysToOvu} días.`
+                                  : daysToOvu === 1
+                                    ? 'Víspera del pico de máxima ovulación estimada. Probabilidad de concepción muy alta.'
+                                    : 'Pico de máxima probabilidad de concepción.'
+                                : currentDayInfo.isPeriod
+                                  ? `Fecha prevista para tu siguiente regla según tu ciclo medio de ${cycleLength} días.`
+                                  : currentDayInfo.phase === 'luteal'
+                                    ? `Predominio de progesterona. Faltarán ${daysToNext} días para el siguiente ciclo.`
+                                    : 'Aumento paulatino de estrógenos y maduración folicular tras la regla.'}
+                          </p>
+                          <span className="future-forecast-tip">
+                            {currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                              ? 'Etapa clave si buscas concebir o si quieres evitar embarazo.'
+                              : currentDayInfo.isPeriod
+                                ? 'Ten a mano tus productos menstruales habituales.'
+                                : currentDayInfo.phase === 'luteal'
+                                  ? 'Prioriza el descanso y la hidratación.'
+                                  : 'Suele acompañarse de mayor vitalidad y energía.'}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="future-day-note">
+                        Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
+                      </p>
                     </div>
                   ) : (
                     <div className="quick-log-grid">
