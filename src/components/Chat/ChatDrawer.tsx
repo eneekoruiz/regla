@@ -321,8 +321,8 @@ function ChatSession({
         </div>
         <p id="chat-description" className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">Orientación local. Disponible sin conexión.</p>
       </header>
-      {/* Barra de accesos directos a cuestionarios en el chat */}
-      <div className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2">
+      {/* Barra de accesos directos a cuestionarios – solo visible en bienvenida */}
+      {!conversation.messages.length && <div className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2">
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5">
             <ClipboardList size={13} className="text-[var(--accent)]" /> Cuestionarios en el chat
@@ -351,7 +351,7 @@ function ChatSession({
             </button>
           ))}
         </div>
-      </div>
+      </div>}
       {confirmClear && <div className="shrink-0 border-b border-[var(--rose)] bg-[var(--rose-soft)] px-4 py-3 text-sm text-[var(--rose)]">
         <p className="font-semibold">¿Borrar esta conversación?</p><p className="mt-1 text-xs">Se eliminarán los mensajes y chequeos de este usuario en este navegador. Se conservan como máximo los últimos 200 mensajes.</p>
         <div className="mt-3 flex gap-2"><button type="button" onClick={clearHistory} className={control + ' flex items-center gap-2'}><Trash2 className="size-4" />Borrar</button>
