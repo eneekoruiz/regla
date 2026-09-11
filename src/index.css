@@ -244,7 +244,7 @@
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) auto minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1.25fr) 1fr;
   align-items: center;
   column-gap: clamp(14px, 2vw, 24px);
   row-gap: 8px;
@@ -295,18 +295,18 @@
   margin: 0 auto;
 }
 .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(160px, 21vh, 195px);
-  height: clamp(160px, 21vh, 195px);
+  width: clamp(220px, 32vh, 300px);
+  height: clamp(220px, 32vh, 300px);
 }
 .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(44px, 5.8vh, 58px);
+  font-size: clamp(56px, 7vh, 76px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(170px, 22vh, 205px);
-  height: clamp(170px, 22vh, 205px);
+  width: clamp(230px, 33vh, 310px);
+  height: clamp(230px, 33vh, 310px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(48px, 6.4vh, 64px);
+  font-size: clamp(60px, 7.5vh, 80px);
 }
 .cycle-summary-side-actions {
   display: flex;
@@ -314,6 +314,8 @@
   align-items: stretch;
   gap: 8px;
   width: 100%;
+  grid-column: 1 / -1;
+  margin-top: 8px;
   min-width: 0;
 }
 .cycle-summary-top.has-ring .hero-quick-actions {
@@ -995,10 +997,10 @@
   .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
   .cycle-summary-motion { gap: 6px; }
   .cycle-headline { font-size: 20px; }
-  .cycle-summary-top.has-ring .cycle-ring { width: clamp(145px, 19vh, 175px); height: clamp(145px, 19vh, 175px); }
-  .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(38px, 5.2vh, 50px); }
-  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring { width: clamp(155px, 20.5vh, 185px); height: clamp(155px, 20.5vh, 185px); }
-  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(42px, 5.8vh, 54px); }
+  .cycle-summary-top.has-ring .cycle-ring { width: clamp(200px, 30vh, 260px); height: clamp(200px, 30vh, 260px); }
+  .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(52px, 6.5vh, 64px); }
+  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring { width: clamp(210px, 31vh, 280px); height: clamp(210px, 31vh, 280px); }
+  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(56px, 7vh, 70px); }
   .hero-quick-actions { margin-top: 2px !important; }
   .advice-card { min-height: 125px; padding: 10px 14px; }
   .advice-card h3 { font-size: 16px; margin: 0 0 3px; }
@@ -1285,15 +1287,15 @@
     grid-row: auto !important;
     justify-self: center !important;
     margin: 2px auto !important;
-    width: clamp(170px, 46vw, 210px) !important;
-    height: clamp(170px, 46vw, 210px) !important;
+    width: clamp(230px, 60vw, 320px) !important;
+    height: clamp(230px, 60vw, 320px) !important;
   }
   .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-    width: clamp(180px, 50vw, 220px) !important;
-    height: clamp(180px, 50vw, 220px) !important;
+    width: clamp(240px, 65vw, 340px) !important;
+    height: clamp(240px, 65vw, 340px) !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-label strong {
-    font-size: clamp(44px, 12vw, 56px) !important;
+    font-size: clamp(60px, 14vw, 76px) !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
