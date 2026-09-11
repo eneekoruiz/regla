@@ -305,9 +305,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(16px, 2.5vw, 36px);
+  gap: clamp(18px, 3.2vw, 44px);
   width: 100%;
   min-width: 0;
+  margin: auto 0;
 }
 .cycle-ring-wrap {
   display: flex;
@@ -317,30 +318,12 @@
   margin: 0;
   flex: 0 0 auto;
 }
-.cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(170px, 18vw, 230px);
-  height: clamp(185px, 20vw, 250px);
-  max-width: 100%;
-}
-.cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(48px, 5.5vw, 68px);
-}
-.cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(175px, 19vw, 240px);
-  height: clamp(190px, 21vw, 260px);
-}
-.cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(52px, 6vw, 72px);
-}
 
 .cycle-phase-wheel {
   cursor: pointer;
   outline: none;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
-}
-.cycle-phase-wheel:hover {
-  transform: scale(1.02);
 }
 .cycle-phase-wheel:focus-visible {
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -689,56 +672,130 @@
 .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
 .cycle-headline { font: 400 30px/1.16 var(--font-display); letter-spacing: -0.5px; margin: 0 0 6px; max-width: 540px; text-wrap: balance; }
 .cycle-ring {
-  width: clamp(210px, 27vh, 255px);
-  height: clamp(210px, 27vh, 255px);
   flex-shrink: 0;
   position: relative;
-  display: grid;
-  place-items: center;
-  filter: drop-shadow(0 4px 16px color-mix(in srgb, var(--phase-ink) 25%, transparent));
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
-}
-.cycle-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.cycle-ring svg circle { transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease; }
-.cycle-ring-label {
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
-  font-size: 12px;
-  padding-top: 24px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
 }
-.cycle-ring-label span:first-child { letter-spacing: 0.12em; font-weight: 700; text-transform: uppercase; font-size: 12px; opacity: 0.85; transition: font-size 0.3s ease; }
-.cycle-ring-label strong { font-size: clamp(58px, 7.8vh, 76px); font-weight: 700; color: var(--text-primary); line-height: 1; font-family: var(--font-display); font-style: italic; letter-spacing: -0.02em; transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-.cycle-ring-label span:last-child { font-size: 13.5px; font-weight: 600; margin-top: 2px; opacity: 0.9; transition: font-size 0.3s ease; }
+.cycle-ring svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cycle-ring svg circle,
+.cycle-ring svg path {
+  transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease, opacity 0.35s ease;
+}
 
-/* Cuando el día está anotado o hay espacio libre, el círculo y la cuenta atrás crecen para aprovechar el espacio */
-.cycle-summary.is-annotated .cycle-ring {
-  width: clamp(285px, 40vw, 400px);
-  height: clamp(305px, 46vh, 430px);
-  filter: drop-shadow(0 6px 24px color-mix(in srgb, var(--phase-ink) 28%, transparent));
+/* Dial Protagonista (Primer Plano) */
+.cycle-ring.is-primary {
+  width: clamp(200px, 24vw, 265px);
+  height: clamp(215px, 26vw, 285px);
+  opacity: 1;
+  z-index: 2;
+  filter: drop-shadow(0 6px 22px color-mix(in srgb, var(--phase-ink) 25%, transparent));
 }
-.cycle-summary.is-annotated .cycle-ring-label span:first-child {
-  font-size: 13.5px;
-  letter-spacing: 0.14em;
+
+/* Dial en Segundo Plano (Más pequeño y sutil) */
+.cycle-ring.is-secondary {
+  width: clamp(140px, 16.5vw, 180px);
+  height: clamp(150px, 17.5vw, 195px);
+  opacity: 0.65;
+  z-index: 1;
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--phase-ink) 12%, transparent));
 }
-.cycle-summary.is-annotated .cycle-ring-label strong {
-  font-size: clamp(70px, 9.5vh, 98px);
-  letter-spacing: -0.03em;
+.cycle-ring.is-secondary:hover {
+  opacity: 0.95;
+  transform: scale(1.03);
 }
-.cycle-summary.is-annotated .cycle-ring-label span:last-child {
-  font-size: 16px;
-  margin-top: 3px;
+
+/* Tipografía interior del dial - Centrada exactamente en (80, 98) sin colisiones */
+.cycle-ring-label {
+  position: absolute;
+  inset: 0;
+  top: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 10px;
 }
-.cycle-ring-day-number.is-text {
-  font-size: clamp(20px, 2.8vh, 30px) !important;
+
+/* 1. Kicker / Etiqueta de fase */
+.cycle-ring-label span:first-child {
+  letter-spacing: 0.12em;
+  font-weight: 750;
+  text-transform: uppercase;
+  font-size: 10px;
+  line-height: 1.15;
+  margin-bottom: 2px;
+  opacity: 0.9;
+  transition: font-size 0.3s ease;
+}
+.cycle-ring.is-secondary .cycle-ring-label span:first-child {
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  margin-bottom: 1px;
+}
+
+/* 2. Número central serif en cursiva */
+.cycle-ring-label strong {
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 0.92;
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: -0.02em;
+  transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cycle-ring.is-primary .cycle-ring-label strong {
+  font-size: clamp(42px, 5vw, 58px);
+}
+.cycle-ring.is-secondary .cycle-ring-label strong {
+  font-size: clamp(28px, 3.5vw, 38px);
+}
+.cycle-ring.is-primary .cycle-ring-day-number.is-text {
+  font-size: clamp(20px, 2.5vw, 26px) !important;
   font-style: normal !important;
-  letter-spacing: normal !important;
 }
-.cycle-summary.is-annotated .cycle-ring-day-number.is-text {
-  font-size: clamp(24px, 3.4vh, 36px) !important;
+.cycle-ring.is-secondary .cycle-ring-day-number.is-text {
+  font-size: clamp(15px, 1.8vw, 18px) !important;
+  font-style: normal !important;
+}
+
+/* 3. Unidad */
+.cycle-ring-label span:nth-of-type(2) {
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.15;
+  margin-top: 2px;
+  opacity: 0.88;
+  transition: font-size 0.3s ease;
+}
+.cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
+  font-size: 9.5px;
+  margin-top: 1px;
+}
+
+/* 4. Contexto / Aclaración */
+.cycle-ring-context {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  line-height: 1.15;
+  margin-top: 1px;
+}
+.cycle-ring.is-secondary .cycle-ring-context {
+  font-size: 8.5px;
+  margin-top: 0px;
 }
 .period-registered-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-left: 4px solid var(--rose); border-radius: var(--radius-md); margin-top: 10px; }
 .period-registered-badge { display: flex; align-items: center; gap: 12px; }
@@ -1042,10 +1099,10 @@
   .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
   .cycle-summary-motion { gap: 6px; }
   .cycle-headline { font-size: 20px; }
-  .cycle-summary-top.has-ring .cycle-ring { width: clamp(150px, 21vh, 190px); height: clamp(160px, 23vh, 205px); }
-  .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(42px, 5.5vh, 56px); }
-  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring { width: clamp(155px, 22vh, 200px); height: clamp(165px, 24vh, 215px); }
-  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong { font-size: clamp(44px, 6vh, 60px); }
+  .cycle-ring.is-primary { width: clamp(175px, 23vh, 220px); height: clamp(185px, 25vh, 235px); }
+  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(36px, 4.8vh, 48px); }
+  .cycle-ring.is-secondary { width: clamp(125px, 17vh, 160px); height: clamp(135px, 18.5vh, 170px); }
+  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(24px, 3.5vh, 32px); }
   .hero-quick-actions { margin-top: 2px !important; }
   .advice-card { min-height: 125px; padding: 10px 14px; }
   .advice-card h3 { font-size: 16px; margin: 0 0 3px; }
@@ -1320,31 +1377,30 @@
     flex: 0 0 auto !important;
     width: auto !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring {
-    grid-column: auto !important;
-    grid-row: auto !important;
-    justify-self: center !important;
-    margin: 0 auto !important;
-    width: clamp(140px, 42vw, 170px) !important;
-    height: clamp(150px, 45vw, 182px) !important;
+  .cycle-ring.is-primary {
+    width: clamp(155px, 47vw, 190px) !important;
+    height: clamp(165px, 50vw, 205px) !important;
     max-height: 38vh !important;
   }
-  .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-    width: clamp(145px, 43vw, 175px) !important;
-    height: clamp(155px, 46vw, 188px) !important;
-    max-height: 40vh !important;
+  .cycle-ring.is-primary .cycle-ring-label strong {
+    font-size: clamp(36px, 9.2vw, 46px) !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring-label strong {
-    font-size: clamp(38px, 9.5vw, 48px) !important;
+  .cycle-ring.is-secondary {
+    width: clamp(118px, 35vw, 142px) !important;
+    height: clamp(128px, 38vw, 152px) !important;
+    max-height: 30vh !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring-label span:first-child {
+  .cycle-ring.is-secondary .cycle-ring-label strong {
+    font-size: clamp(24px, 6.8vw, 30px) !important;
+  }
+  .cycle-ring.is-secondary .cycle-ring-label span:first-child {
+    font-size: 7.5px !important;
+  }
+  .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
     font-size: 9px !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring-label span:last-child {
-    font-size: 10.5px !important;
-  }
-  .cycle-summary.is-annotated .cycle-ring-label strong {
-    font-size: clamp(40px, 10vw, 52px) !important;
+  .cycle-ring.is-secondary .cycle-ring-context {
+    font-size: 8px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;

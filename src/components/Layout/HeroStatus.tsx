@@ -313,36 +313,62 @@ export function HeroStatus({
     }
   ];
 
+  // Si quedan muchos días para la regla (ej. más de 5 días y estamos en ventana fértil, folicular o lútea temprana),
+  // el círculo de ovulación/fase toma el protagonismo (más grande, primer plano),
+  // y la gota pasa a segundo plano (más pequeña).
+  // Cuando quedan pocos días (<= 5 días) o estamos en regla/retraso, la gota toma el protagonismo (más grande)
+  // y el círculo pasa a segundo plano.
+  const isPeriodPriority = Boolean(
+    day.isPeriod ||
+    isPeriodDay ||
+    awaitingPeriod ||
+    (daysToNext <= 5 && !day.isFertileWindow && !day.isOvulationDay)
+  );
+
   const wheelInfo = (() => {
     if (day.isPeriod || isPeriodDay) {
       return {
-        kicker: 'OVULACIÓN',
+        kicker: 'FASE MENSTRUAL',
+        kickerColor: 'var(--rose)',
         number: daysToOvu > 0 ? daysToOvu : '—',
         isText: false,
         unit: 'días',
-        context: 'estimada'
+        context: 'próxima ovulación'
       };
     }
     if (day.isOvulationDay || daysToOvu === 0) {
       return {
-        kicker: 'OVULACIÓN',
+        kicker: 'VENTANA FÉRTIL',
+        kickerColor: '#f59e0b',
         number: 'Hoy',
         isText: true,
         unit: 'pico fértil',
         context: 'máxima probabilidad'
       };
     }
-    if (daysToOvu > 0) {
+    if (day.isFertileWindow) {
       return {
-        kicker: 'OVULACIÓN',
-        number: daysToOvu,
+        kicker: 'VENTANA FÉRTIL',
+        kickerColor: '#f59e0b',
+        number: daysToOvu > 0 ? daysToOvu : 1,
         isText: false,
         unit: daysToOvu === 1 ? 'día' : 'días',
-        context: 'estimada'
+        context: 'ovulación estimada'
+      };
+    }
+    if (day.phase === 'follicular') {
+      return {
+        kicker: 'FASE FOLICULAR',
+        kickerColor: 'var(--accent)',
+        number: daysToOvu > 0 ? daysToOvu : '—',
+        isText: false,
+        unit: daysToOvu === 1 ? 'día' : 'días',
+        context: 'ovulación estimada'
       };
     }
     return {
       kicker: 'FASE LÚTEA',
+      kickerColor: '#8b5cf6',
       number: daysToNext,
       isText: false,
       unit: daysToNext === 1 ? 'día' : 'días',
@@ -359,41 +385,52 @@ export function HeroStatus({
       className="cycle-summary-motion"
     >
       <div className={`cycle-summary-top${showRing ? ' has-ring' : ' no-ring'}`}>
-        {/* Encabezado / Flanco Izquierdo */}
-        <div className={`cycle-summary-header${showRing ? ' cycle-summary-flank is-left' : ''}`}>
-          {hasCycle ? (
-            <button
-              type="button"
-              className={`phase-chip${day.isOvulationDay ? ' is-ovulation' : day.isFertileWindow && !day.isPeriod ? ' is-fertile' : ''}`}
-              onClick={onOpenLegend}
-            >
-              <span className="phase-dot"/>
-              {awaitingPeriod
-                ? 'Retraso'
-                : day.isPeriod
-                  ? 'Regla'
-                  : day.isOvulationDay
-                    ? 'Ovulación estimada'
-                    : day.isFertileWindow
-                      ? 'Ventana Fértil'
-                      : day.phase === 'follicular'
-                        ? 'Fase Folicular'
-                        : 'Fase Lútea'}
-              <ChevronDown size={13} aria-hidden="true" style={{ opacity: 0.7 }}/>
-            </button>
-          ) : null}
-          <h2 id="cycle-title" className="cycle-headline">{title}</h2>
-          {copy && <p className="cycle-copy">{copy}</p>}
-        </div>
+        {/* Si no hay anillos (ej. días pasados o sin ciclo), mostramos la cabecera estándar */}
+        {!showRing && (
+          <div className="cycle-summary-header">
+            {hasCycle ? (
+              <button
+                type="button"
+                className={`phase-chip${day.isOvulationDay ? ' is-ovulation' : day.isFertileWindow && !day.isPeriod ? ' is-fertile' : ''}`}
+                onClick={onOpenLegend}
+              >
+                <span className="phase-dot"/>
+                {awaitingPeriod
+                  ? 'Retraso'
+                  : day.isPeriod
+                    ? 'Regla'
+                    : day.isOvulationDay
+                      ? 'Ovulación estimada'
+                      : day.isFertileWindow
+                        ? 'Ventana Fértil'
+                        : day.phase === 'follicular'
+                          ? 'Fase Folicular'
+                          : 'Fase Lútea'}
+                <ChevronDown size={13} aria-hidden="true" style={{ opacity: 0.7 }}/>
+              </button>
+            ) : null}
+            <h2 id="cycle-title" className="cycle-headline">{title}</h2>
+            {copy && <p className="cycle-copy">{copy}</p>}
+          </div>
+        )}
 
-        {/* Visuales complementarios: Gota principal + Círculo dividido de 4 fases */}
+        {/* Visuales: ÚNICAMENTE los dos instrumentos (Gota y Círculo) con jerarquía dinámica */}
         {showRing && (
           <div className="cycle-summary-visuals">
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
-            <div className="cycle-ring-wrap">
+            <div className={`cycle-ring-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
-                className="cycle-ring hero-prominent-ring"
-                role="img"
+                className={`cycle-ring hero-prominent-ring ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}
+                role="button"
+                tabIndex={0}
+                onClick={onRecordPeriod}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onRecordPeriod();
+                  }
+                }}
+                title="Toca para registrar sangrado o editar tu regla"
                 aria-label={
                   isFuture
                     ? isPeriodDay
@@ -509,9 +546,9 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            <div className="cycle-ring-wrap">
+            <div className={`cycle-ring-wrap ${!isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
-                className="cycle-ring cycle-phase-wheel hero-prominent-ring"
+                className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${!isPeriodPriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
                 tabIndex={0}
                 onClick={onOpenLegend}
@@ -555,7 +592,9 @@ export function HeroStatus({
 
                 {/* Texto central con la misma familia tipográfica que la gota */}
                 <span className="cycle-ring-label">
-                  <span>{wheelInfo.kicker}</span>
+                  <span style={wheelInfo.kickerColor ? { color: wheelInfo.kickerColor } : undefined}>
+                    {wheelInfo.kicker}
+                  </span>
                   <strong className={`cycle-ring-day-number${wheelInfo.isText ? ' is-text' : ''}`}>{wheelInfo.number}</strong>
                   <span>{wheelInfo.unit}</span>
                   <span className="cycle-ring-context">{wheelInfo.context}</span>
