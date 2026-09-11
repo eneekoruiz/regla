@@ -243,11 +243,11 @@
 .cycle-summary-motion { display: flex; flex-direction: column; gap: clamp(12px, 1.8vh, 18px); height: 100%; width: 100%; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) 1fr;
+  display: flex;
   align-items: center;
-  column-gap: clamp(14px, 2vw, 24px);
-  row-gap: 8px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 36px);
   width: 100%;
 }
 .cycle-summary-top.no-ring {
@@ -264,6 +264,10 @@
   width: 100%;
   min-width: 0;
 }
+.cycle-summary-top.has-ring .cycle-summary-header {
+  flex: 0 1 300px;
+  max-width: 340px;
+}
 .cycle-summary-top.no-ring .cycle-summary-header {
   align-items: flex-start;
   text-align: left;
@@ -278,7 +282,7 @@
   text-align: left;
   margin: 0 0 4px 0;
   max-width: 100%;
-  font-size: clamp(19px, 2.3vh, 25px);
+  font-size: clamp(20px, 2.5vh, 27px);
   line-height: 1.18;
 }
 .cycle-summary-top.has-ring .cycle-copy {
@@ -288,25 +292,26 @@
   line-height: 1.35;
 }
 .cycle-ring-wrap {
+  flex: 1 1 auto;
   display: flex;
   justify-content: center;
   align-items: center;
   width: auto;
-  margin: 0 auto;
+  margin: 0;
 }
 .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(220px, 32vh, 300px);
-  height: clamp(220px, 32vh, 300px);
+  width: clamp(260px, 38vh, 350px);
+  height: clamp(260px, 38vh, 350px);
 }
 .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(56px, 7vh, 76px);
+  font-size: clamp(62px, 8.2vh, 84px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(230px, 33vh, 310px);
-  height: clamp(230px, 33vh, 310px);
+  width: clamp(270px, 40vh, 370px);
+  height: clamp(270px, 40vh, 370px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(60px, 7.5vh, 80px);
+  font-size: clamp(66px, 8.8vh, 90px);
 }
 .cycle-summary-side-actions {
   display: flex;
@@ -665,7 +670,16 @@
 }
 .cycle-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .cycle-ring svg circle { transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.3s ease; }
-.cycle-ring-label { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 12px; }
+.cycle-ring-label {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding-top: 14px;
+}
 .cycle-ring-label span:first-child { letter-spacing: 0.11em; font-weight: 700; text-transform: uppercase; font-size: 11.5px; opacity: 0.85; transition: font-size 0.3s ease; }
 .cycle-ring-label strong { font-size: clamp(52px, 6.8vh, 68px); font-weight: 700; color: var(--text-primary); line-height: 1; font-family: var(--font-display); font-style: italic; letter-spacing: -0.02em; transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 .cycle-ring-label span:last-child { font-size: 13px; font-weight: 600; margin-top: 2px; opacity: 0.9; transition: font-size 0.3s ease; }

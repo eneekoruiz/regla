@@ -173,13 +173,13 @@ export function HeroStatus({
         title = 'Se espera tu regla este día';
         copy = 'Previsión según tus ciclos';
       } else if (day.isOvulationDay) {
-        title = 'Día de máxima fertilidad estimado';
-        copy = 'Ovulación estimada';
+        title = 'Día estimado de ovulación';
+        copy = 'Máxima fertilidad';
       } else if (day.isFertileWindow) {
         title = daysToOvu > 1
-          ? `Ovulación máxima en ${daysToOvu} días`
-          : daysToOvu === 1 ? 'Ovulación máxima mañana' : 'Ventana fértil';
-        copy = 'Ventana fértil';
+          ? `Ovulación estimada en ${daysToOvu} días`
+          : daysToOvu === 1 ? 'Ovulación estimada mañana' : 'Ventana fértil';
+        copy = '';
       } else if (daysToNext > 1 && daysToNext <= 5) {
         title = `Tu regla llega en ${daysToNext} días`;
         copy = '';
@@ -205,15 +205,15 @@ export function HeroStatus({
         title = elapsedDays === cycleLength ? 'Fecha estimada de regla: hoy' : 'Tu ciclo está tardando un poco más';
         copy = elapsedDays === cycleLength ? 'La fecha es orientativa. Registra cuando empiece.' : 'Normal, cada ciclo es diferente. Registra cuando baje.';
       } else if (day.isOvulationDay) {
-        title = 'Hoy es tu día de máxima fertilidad';
-        copy = 'Ovulación estimada';
+        title = 'Hoy es tu día de ovulación';
+        copy = 'Máxima fertilidad';
       } else if (day.isFertileWindow) {
         title = daysToOvu > 1
-          ? `Ovulación máxima en ${daysToOvu} días`
+          ? `Ovulación estimada en ${daysToOvu} días`
           : daysToOvu === 1
-            ? 'Ovulación máxima estimada mañana'
-            : 'Alta probabilidad de concepción hoy';
-        copy = 'Ventana fértil';
+            ? 'Ovulación estimada mañana'
+            : 'Ventana de alta fertilidad';
+        copy = '';
       } else if (daysToOvu > 0 && daysToOvu <= 5) {
         title = `Tu ventana fértil empieza en ${daysToOvu} ${daysToOvu === 1 ? 'día' : 'días'}`;
         copy = '';
@@ -268,20 +268,21 @@ export function HeroStatus({
             >
               <span className="phase-dot"/>
               {awaitingPeriod
-                ? 'Ciclo en curso'
-                : day.isOvulationDay
-                  ? 'Ovulación estimada'
-                  : day.isFertileWindow && !day.isPeriod
-                    ? 'Ventana Fértil'
-                    : day.phaseName}
-              <ChevronDown size={14}/>
-              <span className="sr-only"> · Entender las fases</span>
+                ? 'Retraso'
+                : day.isPeriod
+                  ? 'Regla'
+                  : day.isOvulationDay
+                    ? 'Ovulación estimada'
+                    : day.isFertileWindow
+                      ? 'Ventana Fértil'
+                      : day.phase === 'follicular'
+                        ? 'Fase Folicular'
+                        : 'Fase Lútea'}
+              <ChevronDown size={13} aria-hidden="true" style={{ opacity: 0.7 }}/>
             </button>
-          ) : (
-            <p className="eyebrow"><Droplets size={15}/>Un espacio para ti</p>
-          )}
+          ) : null}
           <h2 id="cycle-title" className="cycle-headline">{title}</h2>
-          {copy ? <p className="cycle-copy" style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{copy}</p> : null}
+          {copy && <p className="cycle-copy">{copy}</p>}
         </div>
 
         {/* Flanco Central: La rueda como elemento principal y protagonista */}
@@ -308,16 +309,16 @@ export function HeroStatus({
                         : `Día ${cycleDay} del ciclo`
               }
             >
-              <svg viewBox="0 0 140 140" aria-hidden="true">
+              <svg viewBox="0 0 140 155" aria-hidden="true">
                 <path
-                  d="M 70 15 C 70 15 20 65 20 95 A 50 50 0 0 0 120 95 C 120 65 70 15 70 15 Z"
+                  d="M 70 12 C 70 12 24 64 24 92 A 46 46 0 0 0 116 92 C 116 64 70 12 70 12 Z"
                   fill="none"
                   stroke="var(--border-subtle)"
                   strokeWidth="10"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M 70 15 C 70 15 20 65 20 95 A 50 50 0 0 0 120 95 C 120 65 70 15 70 15 Z"
+                  d="M 70 12 C 70 12 24 64 24 92 A 46 46 0 0 0 116 92 C 116 64 70 12 70 12 Z"
                   fill="none"
                   stroke={hasCycle && daysToNext <= 5 && !day.isPeriod ? 'var(--rose)' : 'var(--phase-ink)'}
                   strokeWidth="10"
