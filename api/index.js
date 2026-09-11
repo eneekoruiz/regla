@@ -29,22 +29,6 @@ function getProductionApp() {
 }
 
 export default async function handler(req, res) {
-  const path = new URL(req.url || '/', 'https://aura.invalid').pathname.replace(/\/$/, '');
-  
-  if (path === '/api/debug-db' && req.method === 'GET') {
-    let dbError = 'None';
-    try {
-      const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
-      const { Pool } = require('pg');
-      const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
-      await pool.query('SELECT 1');
-      dbError = 'Success';
-    } catch (err) {
-      dbError = err.message || String(err);
-    }
-    return res.status(200).json({ error: dbError });
-  }
-
   const app = getProductionApp();
   if (app) return app(req, res);
   if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
