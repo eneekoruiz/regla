@@ -336,22 +336,13 @@ function MainScreen() {
                     <div className="quick-log-grid">
                       <button
                         type="button"
-                        className="quick-log primary-add"
-                        onClick={() => openModal('daily')}
-                        title="Añadir registro (+)"
-                      >
-                        <Plus size={18} className="stroke-[2.5]" />
-                        <span>Añadir (+)</span>
-                      </button>
-                      <button
-                        type="button"
                         className="quick-log period"
                         aria-pressed={hasPeriod || hasIrregularBleeding}
                         onClick={() => openModal('daily')}
                         title="Registro de sangrado (normal, irregular o sin sangrado)"
                       >
                         <Droplets size={18}/>
-                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado anotado' : 'Sangrado'}</span>
+                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado registrado' : 'Registro de sangrado'}</span>
                       </button>
                       <button
                         type="button"
@@ -361,7 +352,7 @@ function MainScreen() {
                         title="Síntomas y notas"
                       >
                         <NotebookPen size={18}/>
-                        <span>Síntomas</span>
+                        <span>Síntomas y notas</span>
                       </button>
                       <button
                         type="button"

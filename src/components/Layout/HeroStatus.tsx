@@ -309,16 +309,16 @@ export function HeroStatus({
                         : `Día ${cycleDay} del ciclo`
               }
             >
-              <svg viewBox="0 0 140 155" aria-hidden="true">
+              <svg viewBox="0 0 160 170" aria-hidden="true">
                 <path
-                  d="M 70 12 C 70 12 24 64 24 92 A 46 46 0 0 0 116 92 C 116 64 70 12 70 12 Z"
+                  d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                   fill="none"
                   stroke="var(--border-subtle)"
                   strokeWidth="10"
                   strokeLinejoin="round"
                 />
                 <path
-                  d="M 70 12 C 70 12 24 64 24 92 A 46 46 0 0 0 116 92 C 116 64 70 12 70 12 Z"
+                  d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                   fill="none"
                   stroke={
                     hasCycle && daysToNext <= 5 && !day.isPeriod
