@@ -7,8 +7,9 @@ import { LegacyLocalBackup } from './LegacyLocalBackup';
 import { getApiBase } from '../../utils/apiBase';
 
 type AuthMode = 'login' | 'signup' | 'forgot_password' | 'reset_password';
-const fieldClass = 'min-h-12 w-full rounded-lg border border-[#A5B6B0] bg-white pl-11 pr-12 text-base text-[#22312F] placeholder:text-[#596B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60]';
+const fieldClass = 'box-border min-h-12 w-full max-w-full rounded-lg border border-[#A5B6B0] bg-white pl-11 pr-12 text-base text-[#22312F] placeholder:text-[#596B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60]';
 const buttonClass = 'min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60] disabled:cursor-not-allowed disabled:opacity-60';
+const linkButtonClass = 'min-h-10 py-1.5 px-0 text-left text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60] disabled:cursor-not-allowed disabled:opacity-60';
 
 export function AuthScreens() {
   const { setSession } = useAuth();
@@ -190,9 +191,9 @@ export function AuthScreens() {
         <LegacyLocalBackup />
         <nav aria-label="Opciones de acceso" className="mt-5 flex flex-col items-start gap-1">
           {mode === 'login' ? <>
-            <button type="button" onClick={() => switchMode('forgot_password')} className={`${buttonClass} -ml-4 text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
-            <button type="button" onClick={() => switchMode('signup')} className={`${buttonClass} -ml-4 text-[#176B60] hover:underline`}>Crear una cuenta</button>
-          </> : <button type="button" onClick={() => switchMode('login')} className={`${buttonClass} -ml-4 flex items-center gap-2 text-[#176B60] hover:underline`}>
+            <button type="button" onClick={() => switchMode('forgot_password')} className={`${linkButtonClass} text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
+            <button type="button" onClick={() => switchMode('signup')} className={`${linkButtonClass} text-[#176B60] hover:underline`}>Crear una cuenta</button>
+          </> : <button type="button" onClick={() => switchMode('login')} className={`${linkButtonClass} flex items-center gap-2 text-[#176B60] hover:underline`}>
             <ArrowLeft aria-hidden="true" className="size-4" />Volver a iniciar sesión
           </button>}
         </nav>

@@ -12,8 +12,9 @@ export default defineConfig({
     watch: { ignored: ['**/artifacts/**'] },
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true
+        target: process.env.LOCAL_API === 'true' ? 'http://localhost:3001' : 'https://ayudandonos.vercel.app',
+        changeOrigin: true,
+        secure: false
       }
     }
   },
