@@ -193,6 +193,7 @@ export function AuthScreens() {
           {mode === 'login' ? <>
             <button type="button" onClick={() => switchMode('forgot_password')} className={`${linkButtonClass} text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
             <button type="button" onClick={() => switchMode('signup')} className={`${linkButtonClass} text-[#176B60] hover:underline`}>Crear una cuenta</button>
+            <button type="button" onClick={() => setSession('local-session', { id: 'local_user', email: 'modo_privado@dispositivo.local' })} className={`${linkButtonClass} mt-2 text-[#52655F] hover:underline font-normal`}>Continuar en modo local (sin nube)</button>
           </> : <button type="button" onClick={() => switchMode('login')} className={`${linkButtonClass} flex items-center gap-2 text-[#176B60] hover:underline`}>
             <ArrowLeft aria-hidden="true" className="size-4" />Volver a iniciar sesión
           </button>}

@@ -23,7 +23,7 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/((?!assets/|.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
