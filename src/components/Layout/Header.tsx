@@ -164,14 +164,10 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
         </div>
 
         <div className="navigation-bottom">
-          <div className="navigation-note">
-            <ShieldCheck size={16} aria-hidden="true" className="text-[var(--text-secondary)]"/>
-            <span>Tus datos se guardan de forma segura y privada en este dispositivo.</span>
-          </div>
           <div className="navigation-footer">
             <span className="sidebar-connection-status" role="status">
               {online ? <CheckCircle2 size={13} aria-hidden="true" style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} aria-hidden="true" style={{ color: 'var(--rose)' }}/>}
-              <span>{online ? 'Conectado' : 'Sin conexión'}</span>
+              <span>{online ? 'Conectado · Privado' : 'Sin conexión'}</span>
             </span>
           </div>
         </div>

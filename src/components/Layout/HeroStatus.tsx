@@ -245,90 +245,108 @@ export function HeroStatus({
   const circumference = 2 * Math.PI * 55;
   const showRing = hasCycle && (isToday || isFuture);
 
+  // Cuando se muestran los diales visuales gemelos, la cabecera indica el día y fase sin repetir la cuenta atrás
+  if (showRing && !isPast) {
+    if (isRecorded) {
+      title = `Día ${cycleDay} de regla`;
+      copy = flowName ? `Flujo ${flowName} registrado` : 'Fase menstrual activa';
+    } else if (isPeriodDay) {
+      title = `Día ${cycleDay} de regla`;
+      copy = 'Previsión de periodo según tu ciclo';
+    } else if (awaitingPeriod) {
+      title = 'Esperando tu regla';
+      copy = 'Tu ciclo se recalcula sin prisas';
+    } else {
+      title = `Día ${cycleDay} de tu ciclo`;
+      copy = day.isFertileWindow
+        ? 'Ventana fértil activa'
+        : day.isOvulationDay
+          ? 'Pico de máxima fertilidad'
+          : day.phase === 'luteal'
+            ? 'Fase lútea en curso'
+            : 'Fase folicular en curso';
+    }
+  }
+
   const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
   const isAnnotated = Boolean(hasAnyLog);
   const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
 
-  // 4 fases del ciclo: cada esquina corresponde a una fase con su color característico
-  // Esquinas: Top-Left (Menstrual), Top-Right (Folicular), Bottom-Right (Ovulación), Bottom-Left (Lútea)
-  const isMenstrualActive = day.isPeriod || day.phase === 'menstrual';
-  const isFollicularActive = !day.isPeriod && day.phase === 'follicular';
-  const isOvulationActive = !day.isPeriod && (day.isOvulationDay || day.phase === 'ovulation');
-  const isLutealActive = !day.isPeriod && !day.isOvulationDay && day.phase === 'luteal';
+  // 4 fases del ciclo con colores sincronizados al 100% con el calendario superior:
+  // 1. Menstruación (Rosa - var(--rose))
+  // 2. Folicular (Verde - var(--accent))
+  // 3. Ventana Fértil y Ovulación (Naranja / Ámbar dorado - #f59e0b)
+  // 4. Lútea (Morado / Lavanda - #8b5cf6)
+  const isMenstrualActive = day.isPeriod || (day.phase === 'menstrual' && !day.isFertileWindow);
+  const isFertileOvulationActive = !day.isPeriod && (day.isFertileWindow || day.isOvulationDay);
+  const isFollicularActive = !day.isPeriod && !day.isFertileWindow && !day.isOvulationDay && day.phase === 'follicular';
+  const isLutealActive = !day.isPeriod && !day.isFertileWindow && !day.isOvulationDay && day.phase === 'luteal';
 
   const phaseQuadrants = [
     {
       id: 'menstrual',
       name: 'Regla',
-      corner: 'Arriba izq.',
       color: 'var(--rose)',
       active: isMenstrualActive,
-      path: 'M 22.32 73.94 A 58 58 0 0 1 73.94 22.32',
-      dotX: 26,
-      dotY: 26
+      path: 'M 22.32 91.94 A 58 58 0 0 1 73.94 40.32'
     },
     {
       id: 'follicular',
       name: 'Folicular',
-      corner: 'Arriba der.',
-      color: '#10b981',
+      color: 'var(--accent)',
       active: isFollicularActive,
-      path: 'M 86.06 22.32 A 58 58 0 0 1 137.68 73.94',
-      dotX: 134,
-      dotY: 26
+      path: 'M 86.06 40.32 A 58 58 0 0 1 137.68 91.94'
     },
     {
       id: 'ovulation',
-      name: 'Ovulación',
-      corner: 'Abajo der.',
-      color: '#3b82f6',
-      active: isOvulationActive,
-      path: 'M 137.68 86.06 A 58 58 0 0 1 86.06 137.68',
-      dotX: 134,
-      dotY: 134
+      name: 'Ventana fértil / Ovulación',
+      color: '#f59e0b',
+      active: isFertileOvulationActive,
+      path: 'M 137.68 104.06 A 58 58 0 0 1 86.06 155.68'
     },
     {
       id: 'luteal',
-      name: 'Lútea',
-      corner: 'Abajo izq.',
-      color: '#f59e0b',
+      name: 'Fase Lútea',
+      color: '#8b5cf6',
       active: isLutealActive,
-      path: 'M 73.94 137.68 A 58 58 0 0 1 22.32 86.06',
-      dotX: 26,
-      dotY: 134
+      path: 'M 73.94 155.68 A 58 58 0 0 1 22.32 104.06'
     }
   ];
 
   const wheelInfo = (() => {
-    if (day.isPeriod) {
+    if (day.isPeriod || isPeriodDay) {
       return {
-        tag: 'FASE MENSTRUAL',
-        title: 'Próxima ovulación',
-        highlight: daysToOvu > 0 ? `en ${daysToOvu} días` : 'estimando...',
-        tip: 'Fase de descanso y renovación'
+        kicker: 'OVULACIÓN',
+        number: daysToOvu > 0 ? daysToOvu : '—',
+        isText: false,
+        unit: 'días',
+        context: 'estimada'
       };
     }
     if (day.isOvulationDay || daysToOvu === 0) {
       return {
-        tag: 'MÁXIMA FERTILIDAD',
-        title: 'Ovulación estimada',
-        highlight: 'Hoy',
-        tip: 'Ventana de máxima probabilidad'
+        kicker: 'OVULACIÓN',
+        number: 'Hoy',
+        isText: true,
+        unit: 'pico fértil',
+        context: 'máxima probabilidad'
       };
     }
     if (daysToOvu > 0) {
       return {
-        tag: day.isFertileWindow ? 'VENTANA FÉRTIL' : 'PRÓXIMO HITO',
-        title: 'Ovulación estimada',
-        highlight: daysToOvu === 1 ? 'mañana' : `en ${daysToOvu} días`,
-        tip: day.isFertileWindow ? 'Probabilidad fértil alta' : 'Fase folicular en curso'
+        kicker: 'OVULACIÓN',
+        number: daysToOvu,
+        isText: false,
+        unit: daysToOvu === 1 ? 'día' : 'días',
+        context: 'estimada'
       };
     }
     return {
-      tag: 'FASE LÚTEA',
-      title: 'Regla prevista',
-      highlight: daysToNext === 1 ? 'mañana' : `en ${daysToNext} días`,
-      tip: 'Ovulación completada'
+      kicker: 'FASE LÚTEA',
+      number: daysToNext,
+      isText: false,
+      unit: daysToNext === 1 ? 'día' : 'días',
+      context: 'para la regla'
     };
   })();
 
@@ -491,9 +509,9 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            <div className="cycle-phase-wheel-wrap">
+            <div className="cycle-ring-wrap">
               <div
-                className="cycle-phase-wheel"
+                className="cycle-ring cycle-phase-wheel hero-prominent-ring"
                 role="button"
                 tabIndex={0}
                 onClick={onOpenLegend}
@@ -503,72 +521,45 @@ export function HeroStatus({
                     onOpenLegend();
                   }
                 }}
-                title="Toca para ver la guía completa de fases y colores"
-                aria-label={`Rueda de 4 fases del ciclo. Fase actual: ${day.phase}. ${wheelInfo.title} ${wheelInfo.highlight}`}
+                title="Toca para ver la leyenda de fases del ciclo"
+                aria-label={`Rueda de 4 fases del ciclo. Fase activa: ${day.phase}. ${wheelInfo.kicker} ${wheelInfo.number} ${wheelInfo.unit}`}
               >
-                <svg viewBox="0 0 160 160" aria-hidden="true">
-                  {/* Pista circular guía en el fondo */}
+                <svg viewBox="0 0 160 170" aria-hidden="true">
+                  {/* Pista circular guía idéntica a la gota */}
                   <circle
                     cx="80"
-                    cy="80"
+                    cy="98"
                     r="58"
                     fill="none"
                     stroke="var(--border-subtle)"
-                    strokeWidth="5"
-                    strokeDasharray="4 6"
-                    opacity="0.35"
+                    strokeWidth="10"
+                    strokeLinejoin="round"
                   />
 
-                  {/* 4 cuadrantes correspondientes a cada esquina / fase */}
+                  {/* 4 cuadrantes correspondientes a cada fase del calendario */}
                   {phaseQuadrants.map(q => (
-                    <g key={q.id}>
-                      <path
-                        d={q.path}
-                        fill="none"
-                        stroke={q.color}
-                        strokeWidth={q.active ? 13 : 8}
-                        strokeLinecap="round"
-                        opacity={q.active ? 1 : 0.28}
-                        style={{
-                          transition: 'stroke-width 0.35s ease, opacity 0.35s ease, filter 0.35s ease',
-                          filter: q.active ? `drop-shadow(0 0 7px ${q.color})` : 'none',
-                          color: q.color
-                        }}
-                      />
-                      {/* Marcador en la esquina */}
-                      <circle
-                        cx={q.dotX}
-                        cy={q.dotY}
-                        r={q.active ? 5 : 3.5}
-                        fill={q.color}
-                        opacity={q.active ? 1 : 0.45}
-                        style={{
-                          transition: 'all 0.3s ease',
-                          filter: q.active ? `drop-shadow(0 0 5px ${q.color})` : 'none'
-                        }}
-                      />
-                      {q.active && (
-                        <circle
-                          cx={q.dotX}
-                          cy={q.dotY}
-                          r="8"
-                          fill="none"
-                          stroke={q.color}
-                          strokeWidth="1.5"
-                          opacity="0.6"
-                        />
-                      )}
-                    </g>
+                    <path
+                      key={q.id}
+                      d={q.path}
+                      fill="none"
+                      stroke={q.color}
+                      strokeWidth={q.active ? 10 : 6}
+                      strokeLinecap="round"
+                      opacity={q.active ? 1 : 0.22}
+                      style={{
+                        transition: 'stroke-width 0.35s ease, opacity 0.35s ease'
+                      }}
+                    />
                   ))}
                 </svg>
 
-                {/* Texto central en el interior del círculo */}
-                <div className="phase-wheel-label">
-                  <span className="phase-wheel-kicker">{wheelInfo.tag}</span>
-                  <span className="phase-wheel-title">{wheelInfo.title}</span>
-                  <strong className="phase-wheel-highlight">{wheelInfo.highlight}</strong>
-                  <span className="phase-wheel-tip">{wheelInfo.tip}</span>
-                </div>
+                {/* Texto central con la misma familia tipográfica que la gota */}
+                <span className="cycle-ring-label">
+                  <span>{wheelInfo.kicker}</span>
+                  <strong className={`cycle-ring-day-number${wheelInfo.isText ? ' is-text' : ''}`}>{wheelInfo.number}</strong>
+                  <span>{wheelInfo.unit}</span>
+                  <span className="cycle-ring-context">{wheelInfo.context}</span>
+                </span>
               </div>
             </div>
           </div>
