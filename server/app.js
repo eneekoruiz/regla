@@ -205,19 +205,21 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     const databaseReady = await ensureReady();
     const recoveryReady = Boolean(recoveryConfiguration(env));
     const readyForProduction = databaseReady && recoveryReady;
-    res.status(readyForProduction ? 200 : 503).json({
-      status: readyForProduction ? 'ready' : 'unavailable',
-      database: databaseReady ? 'ready' : 'unavailable',
-      recovery: recoveryReady ? 'configured' : 'unavailable',
-      debug: {
-        PoolType: typeof Pool,
-        poolInstance: !!pool,
-        secretReady,
-        poolInitError,
-        queryError,
-        dbUrlStart: dbUrl ? dbUrl.substring(0, 15) : 'none'
-      }
-    });
+      res.status(readyForProduction ? 200 : 503).json({
+        status: readyForProduction ? 'ready' : 'unavailable',
+        database: databaseReady ? 'ready' : 'unavailable',
+        recovery: recoveryReady ? 'configured' : 'unavailable',
+        debug: {
+          PoolType: typeof Pool,
+          poolInstance: !!pool,
+          secretReady,
+          secretLength: secret ? secret.length : 0,
+          secretMatchedRegex: /dev_jwt_secret|change_in_production|your_custom/i.test(secret),
+          poolInitError,
+          queryError,
+          dbUrlStart: dbUrl ? dbUrl.substring(0, 15) : 'none'
+        }
+      });
   });
 
   async function requireDatabase(req, res, next) {
