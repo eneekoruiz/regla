@@ -249,6 +249,89 @@ export function HeroStatus({
   const isAnnotated = Boolean(hasAnyLog);
   const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
 
+  // 4 fases del ciclo: cada esquina corresponde a una fase con su color característico
+  // Esquinas: Top-Left (Menstrual), Top-Right (Folicular), Bottom-Right (Ovulación), Bottom-Left (Lútea)
+  const isMenstrualActive = day.isPeriod || day.phase === 'menstrual';
+  const isFollicularActive = !day.isPeriod && day.phase === 'follicular';
+  const isOvulationActive = !day.isPeriod && (day.isOvulationDay || day.phase === 'ovulation');
+  const isLutealActive = !day.isPeriod && !day.isOvulationDay && day.phase === 'luteal';
+
+  const phaseQuadrants = [
+    {
+      id: 'menstrual',
+      name: 'Regla',
+      corner: 'Arriba izq.',
+      color: 'var(--rose)',
+      active: isMenstrualActive,
+      path: 'M 22.32 73.94 A 58 58 0 0 1 73.94 22.32',
+      dotX: 26,
+      dotY: 26
+    },
+    {
+      id: 'follicular',
+      name: 'Folicular',
+      corner: 'Arriba der.',
+      color: '#10b981',
+      active: isFollicularActive,
+      path: 'M 86.06 22.32 A 58 58 0 0 1 137.68 73.94',
+      dotX: 134,
+      dotY: 26
+    },
+    {
+      id: 'ovulation',
+      name: 'Ovulación',
+      corner: 'Abajo der.',
+      color: '#3b82f6',
+      active: isOvulationActive,
+      path: 'M 137.68 86.06 A 58 58 0 0 1 86.06 137.68',
+      dotX: 134,
+      dotY: 134
+    },
+    {
+      id: 'luteal',
+      name: 'Lútea',
+      corner: 'Abajo izq.',
+      color: '#f59e0b',
+      active: isLutealActive,
+      path: 'M 73.94 137.68 A 58 58 0 0 1 22.32 86.06',
+      dotX: 26,
+      dotY: 134
+    }
+  ];
+
+  const wheelInfo = (() => {
+    if (day.isPeriod) {
+      return {
+        tag: 'FASE MENSTRUAL',
+        title: 'Próxima ovulación',
+        highlight: daysToOvu > 0 ? `en ${daysToOvu} días` : 'estimando...',
+        tip: 'Fase de descanso y renovación'
+      };
+    }
+    if (day.isOvulationDay || daysToOvu === 0) {
+      return {
+        tag: 'MÁXIMA FERTILIDAD',
+        title: 'Ovulación estimada',
+        highlight: 'Hoy',
+        tip: 'Ventana de máxima probabilidad'
+      };
+    }
+    if (daysToOvu > 0) {
+      return {
+        tag: day.isFertileWindow ? 'VENTANA FÉRTIL' : 'PRÓXIMO HITO',
+        title: 'Ovulación estimada',
+        highlight: daysToOvu === 1 ? 'mañana' : `en ${daysToOvu} días`,
+        tip: day.isFertileWindow ? 'Probabilidad fértil alta' : 'Fase folicular en curso'
+      };
+    }
+    return {
+      tag: 'FASE LÚTEA',
+      title: 'Regla prevista',
+      highlight: daysToNext === 1 ? 'mañana' : `en ${daysToNext} días`,
+      tip: 'Ovulación completada'
+    };
+  })();
+
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
@@ -285,66 +368,102 @@ export function HeroStatus({
           {copy && <p className="cycle-copy">{copy}</p>}
         </div>
 
-        {/* Flanco Central: La rueda como elemento principal y protagonista */}
+        {/* Visuales complementarios: Gota principal + Círculo dividido de 4 fases */}
         {showRing && (
-          <div className="cycle-ring-wrap cycle-summary-flank is-center">
-            <div
-              className="cycle-ring hero-prominent-ring"
-              role="img"
-              aria-label={
-                isFuture
-                  ? isPeriodDay
-                    ? `Regla prevista este día (día ${cycleDay} estimado)`
-                    : daysToNext === 1
-                      ? 'Queda 1 día para la regla estimada'
-                      : daysToNext > 0
-                        ? `Quedan ${daysToNext} días para la regla estimada`
-                        : `Día ${cycleDay} estimado del ciclo`
-                  : isPeriodDay
-                    ? `Día ${cycleDay} de regla`
-                    : daysToNext === 1
-                      ? 'Queda 1 día para la regla'
-                      : daysToNext > 0
-                        ? `Quedan ${daysToNext} días para la regla`
-                        : `Día ${cycleDay} del ciclo`
-              }
-            >
-              <svg viewBox="0 0 160 170" aria-hidden="true">
-                <path
-                  d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
-                  fill="none"
-                  stroke="var(--border-subtle)"
-                  strokeWidth="10"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
-                  fill="none"
-                  stroke={
-                    hasCycle && daysToNext <= 5 && !day.isPeriod
-                      ? 'var(--rose)'
-                      : hasCycle && day.isOvulationDay
-                        ? '#2563eb'
-                        : hasCycle && day.isFertileWindow && !day.isPeriod
-                          ? '#d97706'
-                          : 'var(--phase-ink)'
-                  }
-                  strokeWidth="10"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  pathLength="100"
-                  strokeDasharray="100"
-                  strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
-                  style={{ transition: 'stroke 0.4s ease' }}
-                />
-              </svg>
-              <span className="cycle-ring-label">
-                {isFuture ? (
-                  isPeriodDay ? (
+          <div className="cycle-summary-visuals">
+            {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
+            <div className="cycle-ring-wrap">
+              <div
+                className="cycle-ring hero-prominent-ring"
+                role="img"
+                aria-label={
+                  isFuture
+                    ? isPeriodDay
+                      ? `Regla prevista este día (día ${cycleDay} estimado)`
+                      : daysToNext === 1
+                        ? 'Queda 1 día para la regla estimada'
+                        : daysToNext > 0
+                          ? `Quedan ${daysToNext} días para la regla estimada`
+                          : `Día ${cycleDay} estimado del ciclo`
+                    : isPeriodDay
+                      ? `Día ${cycleDay} de regla`
+                      : daysToNext === 1
+                        ? 'Queda 1 día para la regla'
+                        : daysToNext > 0
+                          ? `Quedan ${daysToNext} días para la regla`
+                          : `Día ${cycleDay} del ciclo`
+                }
+              >
+                <svg viewBox="0 0 160 170" aria-hidden="true">
+                  <path
+                    d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
+                    fill="none"
+                    stroke="var(--border-subtle)"
+                    strokeWidth="10"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
+                    fill="none"
+                    stroke={
+                      hasCycle && daysToNext <= 5 && !day.isPeriod
+                        ? 'var(--rose)'
+                        : hasCycle && day.isOvulationDay
+                          ? '#2563eb'
+                          : hasCycle && day.isFertileWindow && !day.isPeriod
+                            ? '#d97706'
+                            : 'var(--phase-ink)'
+                    }
+                    strokeWidth="10"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    pathLength="100"
+                    strokeDasharray="100"
+                    strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
+                    style={{ transition: 'stroke 0.4s ease' }}
+                  />
+                </svg>
+                <span className="cycle-ring-label">
+                  {isFuture ? (
+                    isPeriodDay ? (
+                      <>
+                        <span>REGLA</span>
+                        <strong className="cycle-ring-day-number is-text">Prevista</strong>
+                        <span>este día</span>
+                      </>
+                    ) : daysToNext === 1 ? (
+                      <>
+                        <span>QUEDA</span>
+                        <strong className="cycle-ring-day-number">1</strong>
+                        <span>día</span>
+                        <span className="cycle-ring-context">para la regla</span>
+                      </>
+                    ) : daysToNext > 1 ? (
+                      <>
+                        <span>QUEDAN</span>
+                        <strong className="cycle-ring-day-number">{daysToNext}</strong>
+                        <span>días</span>
+                        <span className="cycle-ring-context">para la regla</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>DÍA</span>
+                        <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                        <span>estimado</span>
+                      </>
+                    )
+                  ) : isPeriodDay ? (
                     <>
-                      <span>REGLA</span>
-                      <strong className="cycle-ring-day-number is-text">Prevista</strong>
-                      <span>este día</span>
+                      <span>DÍA</span>
+                      <strong className="cycle-ring-day-number">{cycleDay}</strong>
+                      <span>de regla</span>
+                    </>
+                  ) : awaitingPeriod ? (
+                    <>
+                      <span>ESPERANDO</span>
+                      <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
+                      <span>días</span>
+                      <span className="cycle-ring-context">de retraso</span>
                     </>
                   ) : daysToNext === 1 ? (
                     <>
@@ -362,46 +481,95 @@ export function HeroStatus({
                     </>
                   ) : (
                     <>
-                      <span>DÍA</span>
-                      <strong className="cycle-ring-day-number">{cycleDay}</strong>
-                      <span>estimado</span>
+                      <span>PREVISIÓN</span>
+                      <strong className="cycle-ring-day-number is-text">Hoy</strong>
+                      <span>de regla</span>
                     </>
-                  )
-                ) : isPeriodDay ? (
-                  <>
-                    <span>DÍA</span>
-                    <strong className="cycle-ring-day-number">{cycleDay}</strong>
-                    <span>de regla</span>
-                  </>
-                ) : awaitingPeriod ? (
-                  <>
-                    <span>ESPERANDO</span>
-                    <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
-                    <span>días</span>
-                    <span className="cycle-ring-context">de retraso</span>
-                  </>
-                ) : daysToNext === 1 ? (
-                  <>
-                    <span>QUEDA</span>
-                    <strong className="cycle-ring-day-number">1</strong>
-                    <span>día</span>
-                    <span className="cycle-ring-context">para la regla</span>
-                  </>
-                ) : daysToNext > 1 ? (
-                  <>
-                    <span>QUEDAN</span>
-                    <strong className="cycle-ring-day-number">{daysToNext}</strong>
-                    <span>días</span>
-                    <span className="cycle-ring-context">para la regla</span>
-                  </>
-                ) : (
-                  <>
-                    <span>PREVISIÓN</span>
-                    <strong className="cycle-ring-day-number is-text">Hoy</strong>
-                    <span>de regla</span>
-                  </>
-                )}
-              </span>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* Elemento 2: Círculo dividido para las fases del ciclo */}
+            <div className="cycle-phase-wheel-wrap">
+              <div
+                className="cycle-phase-wheel"
+                role="button"
+                tabIndex={0}
+                onClick={onOpenLegend}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onOpenLegend();
+                  }
+                }}
+                title="Toca para ver la guía completa de fases y colores"
+                aria-label={`Rueda de 4 fases del ciclo. Fase actual: ${day.phase}. ${wheelInfo.title} ${wheelInfo.highlight}`}
+              >
+                <svg viewBox="0 0 160 160" aria-hidden="true">
+                  {/* Pista circular guía en el fondo */}
+                  <circle
+                    cx="80"
+                    cy="80"
+                    r="58"
+                    fill="none"
+                    stroke="var(--border-subtle)"
+                    strokeWidth="5"
+                    strokeDasharray="4 6"
+                    opacity="0.35"
+                  />
+
+                  {/* 4 cuadrantes correspondientes a cada esquina / fase */}
+                  {phaseQuadrants.map(q => (
+                    <g key={q.id}>
+                      <path
+                        d={q.path}
+                        fill="none"
+                        stroke={q.color}
+                        strokeWidth={q.active ? 13 : 8}
+                        strokeLinecap="round"
+                        opacity={q.active ? 1 : 0.28}
+                        style={{
+                          transition: 'stroke-width 0.35s ease, opacity 0.35s ease, filter 0.35s ease',
+                          filter: q.active ? `drop-shadow(0 0 7px ${q.color})` : 'none',
+                          color: q.color
+                        }}
+                      />
+                      {/* Marcador en la esquina */}
+                      <circle
+                        cx={q.dotX}
+                        cy={q.dotY}
+                        r={q.active ? 5 : 3.5}
+                        fill={q.color}
+                        opacity={q.active ? 1 : 0.45}
+                        style={{
+                          transition: 'all 0.3s ease',
+                          filter: q.active ? `drop-shadow(0 0 5px ${q.color})` : 'none'
+                        }}
+                      />
+                      {q.active && (
+                        <circle
+                          cx={q.dotX}
+                          cy={q.dotY}
+                          r="8"
+                          fill="none"
+                          stroke={q.color}
+                          strokeWidth="1.5"
+                          opacity="0.6"
+                        />
+                      )}
+                    </g>
+                  ))}
+                </svg>
+
+                {/* Texto central en el interior del círculo */}
+                <div className="phase-wheel-label">
+                  <span className="phase-wheel-kicker">{wheelInfo.tag}</span>
+                  <span className="phase-wheel-title">{wheelInfo.title}</span>
+                  <strong className="phase-wheel-highlight">{wheelInfo.highlight}</strong>
+                  <span className="phase-wheel-tip">{wheelInfo.tip}</span>
+                </div>
+              </div>
             </div>
           </div>
         )}

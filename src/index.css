@@ -293,28 +293,110 @@
   font-size: 13.5px;
   line-height: 1.35;
 }
-.cycle-ring-wrap {
+.cycle-summary-visuals {
   flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 2.5vw, 36px);
+  min-width: 0;
+}
+.cycle-ring-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
   width: auto;
   margin: 0;
+  flex: 0 0 auto;
 }
 .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(270px, 38vw, 380px);
-  height: clamp(290px, 44vh, 410px);
+  width: clamp(210px, 25vw, 290px);
+  height: clamp(230px, 28vw, 315px);
   max-width: 100%;
 }
 .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(66px, 9vh, 94px);
+  font-size: clamp(54px, 6.5vw, 76px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-  width: clamp(285px, 40vw, 400px);
-  height: clamp(305px, 46vh, 430px);
+  width: clamp(220px, 27vw, 310px);
+  height: clamp(240px, 30vw, 335px);
 }
 .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring-label strong {
-  font-size: clamp(70px, 9.5vh, 98px);
+  font-size: clamp(58px, 7vw, 82px);
+}
+
+.cycle-phase-wheel-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.cycle-phase-wheel {
+  width: clamp(210px, 25vw, 290px);
+  height: clamp(210px, 25vw, 290px);
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+  user-select: none;
+}
+.cycle-phase-wheel:hover {
+  transform: scale(1.02);
+}
+.cycle-phase-wheel:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cycle-phase-wheel svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.phase-wheel-label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 12px;
+  max-width: 82%;
+  pointer-events: none;
+}
+.phase-wheel-kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+.phase-wheel-title {
+  font-size: clamp(12.5px, 1.5vw, 14.5px);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+.phase-wheel-highlight {
+  font-size: clamp(20px, 2.8vw, 30px);
+  font-weight: 750;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  line-height: 1.12;
+  margin: 3px 0 2px;
+}
+.phase-wheel-tip {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  line-height: 1.25;
+  margin-top: 1px;
 }
 .cycle-summary-side-actions {
   display: flex;
@@ -1277,27 +1359,64 @@
     text-align: center !important;
     font-size: 13px !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring-wrap {
+  .cycle-summary-visuals {
     display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     justify-content: center !important;
+    gap: clamp(8px, 2.5vw, 16px) !important;
     width: 100% !important;
+    margin: 4px auto !important;
+  }
+  .cycle-summary-top.has-ring .cycle-ring-wrap,
+  .cycle-summary-top.has-ring .cycle-phase-wheel-wrap {
+    flex: 0 0 auto !important;
+    width: auto !important;
   }
   .cycle-summary-top.has-ring .cycle-ring {
     grid-column: auto !important;
     grid-row: auto !important;
     justify-self: center !important;
-    margin: 2px auto !important;
-    width: clamp(260px, 75vw, 345px) !important;
-    height: clamp(280px, 80vw, 375px) !important;
-    max-height: 48vh !important;
+    margin: 0 auto !important;
+    width: clamp(140px, 43vw, 175px) !important;
+    height: clamp(152px, 46vw, 188px) !important;
+    max-height: 38vh !important;
   }
   .cycle-summary.is-annotated .cycle-summary-top.has-ring .cycle-ring {
-    width: clamp(270px, 78vw, 360px) !important;
-    height: clamp(290px, 84vw, 390px) !important;
-    max-height: 50vh !important;
+    width: clamp(145px, 44vw, 180px) !important;
+    height: clamp(156px, 47vw, 194px) !important;
+    max-height: 40vh !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-label strong {
-    font-size: clamp(66px, 16vw, 84px) !important;
+    font-size: clamp(38px, 10vw, 50px) !important;
+  }
+  .cycle-summary-top.has-ring .cycle-ring-label span:first-child {
+    font-size: 9.5px !important;
+  }
+  .cycle-summary-top.has-ring .cycle-ring-label span:last-child {
+    font-size: 11px !important;
+  }
+  .cycle-summary.is-annotated .cycle-ring-label strong {
+    font-size: clamp(40px, 11vw, 54px) !important;
+  }
+  .cycle-phase-wheel {
+    width: clamp(140px, 43vw, 175px) !important;
+    height: clamp(140px, 43vw, 175px) !important;
+    margin: 0 auto !important;
+  }
+  .phase-wheel-kicker {
+    font-size: 8.5px !important;
+    letter-spacing: 0.08em !important;
+  }
+  .phase-wheel-title {
+    font-size: 11px !important;
+  }
+  .phase-wheel-highlight {
+    font-size: clamp(15px, 4vw, 19px) !important;
+    margin: 1px 0 !important;
+  }
+  .phase-wheel-tip {
+    font-size: 9.5px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
