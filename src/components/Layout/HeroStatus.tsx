@@ -178,13 +178,8 @@ export function HeroStatus({
       } else if (day.isFertileWindow) {
         title = daysToOvu > 1
           ? `Ovulación máxima en ${daysToOvu} días`
-          : daysToOvu === 1
-            ? 'Ovulación máxima estimada mañana'
-            : 'Alta probabilidad de concepción hoy';
+          : daysToOvu === 1 ? 'Ovulación máxima mañana' : 'Ventana fértil';
         copy = 'Ventana fértil';
-      } else if (daysToOvu > 0 && daysToOvu <= 5) {
-        title = `Tu ventana fértil empieza en ${daysToOvu} días`;
-        copy = '';
       } else if (daysToNext > 1 && daysToNext <= 5) {
         title = `Tu regla llega en ${daysToNext} días`;
         copy = '';
@@ -314,17 +309,24 @@ export function HeroStatus({
               }
             >
               <svg viewBox="0 0 140 140" aria-hidden="true">
-                <circle cx="70" cy="70" r="55" fill="none" stroke="var(--border-subtle)" strokeWidth="10"/>
-                <circle
-                  cx="70"
-                  cy="70"
-                  r="55"
+                <path
+                  d="M 70 15 C 70 15 20 65 20 95 A 50 50 0 0 0 120 95 C 120 65 70 15 70 15 Z"
                   fill="none"
-                  stroke="var(--phase-ink)"
+                  stroke="var(--border-subtle)"
                   strokeWidth="10"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M 70 15 C 70 15 20 65 20 95 A 50 50 0 0 0 120 95 C 120 65 70 15 70 15 Z"
+                  fill="none"
+                  stroke={hasCycle && daysToNext <= 5 && !day.isPeriod ? 'var(--rose)' : 'var(--phase-ink)'}
+                  strokeWidth="10"
+                  strokeLinejoin="round"
                   strokeLinecap="round"
-                  strokeDasharray={`${progress * circumference} ${circumference}`}
-                  transform="rotate(-90 70 70)"
+                  pathLength="100"
+                  strokeDasharray="100"
+                  strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
+                  style={{ transition: 'stroke 0.4s ease' }}
                 />
               </svg>
               <span className="cycle-ring-label">
@@ -507,26 +509,6 @@ export function HeroStatus({
                   <RotateCcw size={13} />
                   Volver a hoy
                 </button>
-              </div>
-            )}
-
-            {hasCycle && (
-              <div className="cycle-side-stats">
-                <div className="cycle-stat-pill">
-                  <span className="cycle-stat-label">Ciclo medio</span>
-                  <strong className="cycle-stat-val">~{cycleLength} días</strong>
-                </div>
-                {daysToOvu > 0 && daysToOvu <= 10 && !day.isOvulationDay && !day.isPeriod ? (
-                  <div className="cycle-stat-pill">
-                    <span className="cycle-stat-label">Ovulación</span>
-                    <strong className="cycle-stat-val">en ~{daysToOvu} {daysToOvu === 1 ? 'día' : 'días'}</strong>
-                  </div>
-                ) : daysToNext > 0 && !day.isPeriod ? (
-                  <div className="cycle-stat-pill">
-                    <span className="cycle-stat-label">Próxima regla</span>
-                    <strong className="cycle-stat-val">en ~{daysToNext} {daysToNext === 1 ? 'día' : 'días'}</strong>
-                  </div>
-                ) : null}
               </div>
             )}
           </div>
@@ -720,33 +702,7 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Aviso de registro diario para HOY: estilo advice-card con contraste sutil */}
-      {isToday && !hasAnyLog && (
-        <div className="urgent-today-banner" role="region" aria-label="Aviso de registro diario">
-          <div className="urgent-today-left">
-            <div className="urgent-today-symbol">
-              <Sparkles size={17} aria-hidden="true" />
-            </div>
-            <div className="urgent-today-text">
-              <div className="advice-category urgent-today-cat">
-                <Sparkles size={11} aria-hidden="true" />
-                <span>Tu bienestar de hoy</span>
-              </div>
-              <h3 className="urgent-today-headline">¿Cómo te encuentras hoy?</h3>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="aura-button sm primary urgent-today-btn"
-            onClick={onOpenDailyModal}
-          >
-            <Plus size={14} aria-hidden="true" />
-            Anotar
-          </button>
-        </div>
-      )}
-
-      {/* Banner de recuperación de ciclo perdido (1 mes) */}
+      {/* Banner de recuperacin de ciclo perdido (1 mes) */}
       {isLikelyMissedOnePeriod && (
         <div className="past-catchup-banner" style={{ background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' }} role="region" aria-label="Aviso de regla olvidada">
           <div className="past-catchup-body">

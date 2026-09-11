@@ -92,6 +92,16 @@ function MainScreen() {
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
+  const [hasAutoOpenedDaily, setHasAutoOpenedDaily] = useState(false);
+
+  useEffect(() => {
+    if (!hasAutoOpenedDaily && view === 'diary' && todayDate) {
+      if (!logs[todayDate]) {
+        setModal('daily');
+      }
+      setHasAutoOpenedDaily(true);
+    }
+  }, [hasAutoOpenedDaily, view, logs, todayDate]);
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   const toast = useToast();
   useEffect(() => {
@@ -258,17 +268,6 @@ function MainScreen() {
                       <h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2>
                       <p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p>
                     </div>
-                    {!isFuture && (
-                      <button
-                        type="button"
-                        className="aura-icon-button sm hero-add-quick-btn"
-                        title="Abrir registro diario"
-                        aria-label="Abrir registro diario"
-                        onClick={() => openModal('daily')}
-                      >
-                        <Plus size={16}/>
-                      </button>
-                    )}
                   </div>
                   {isFuture ? (
                     <div className="future-forecast-container">
@@ -328,22 +327,10 @@ function MainScreen() {
                     </div>
                   ) : (
                     <div className="quick-log-grid">
-                      {hasPeriod ? (
-                        <button type="button" className="quick-log period" aria-pressed={true} onClick={() => openBleedingModal(hasIrregularBleeding ? 'irregular' : 'period')} title="Editar registro de sangrado">
-                          <Droplets size={18}/>
-                          <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Regla registrada'}</span>
-                        </button>
-                      ) : isApproachingPeriod ? (
-                        <button type="button" className="quick-log period" aria-pressed={false} onClick={() => openBleedingModal('period')} title="Confirmar si te ha bajado la regla hoy">
-                          <Droplets size={18}/>
-                          <span>{daysToNext > 1 ? 'Se me ha adelantado' : 'Me ha bajado hoy'}</span>
-                        </button>
-                      ) : (
-                        <button type="button" className="quick-log period" aria-pressed={hasIrregularBleeding} onClick={() => openBleedingModal('irregular')} title="Anotar sangrado imprevisto o manchado">
-                          <Droplets size={18}/>
-                          <span>{hasIrregularBleeding ? 'Sangrado irregular' : 'Sangrado irregular'}</span>
-                        </button>
-                      )}
+                      <button type="button" className="quick-log period" aria-pressed={hasPeriod || hasIrregularBleeding} onClick={() => openBleedingModal(hasIrregularBleeding ? 'irregular' : 'period')} title="Registro de sangrado">
+                        <Droplets size={18}/>
+                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado registrado' : 'Registro de sangrado'}</span>
+                      </button>
                       <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length || log?.notes)} onClick={() => openModal('daily')}>
                         <NotebookPen size={18}/>
                         <span>Síntomas y notas</span>
