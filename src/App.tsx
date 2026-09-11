@@ -96,8 +96,21 @@ function MainScreen() {
 
   useEffect(() => {
     if (!hasAutoOpenedDaily && view === 'diary' && todayDate) {
-      if (!logs[todayDate]) {
-        setModal('daily');
+      const todayLog = logs[todayDate];
+      const hasLoggedToday = Boolean(
+        todayLog?.isPeriod ||
+        todayLog?.isIrregularBleeding ||
+        (todayLog?.symptoms && todayLog.symptoms.length > 0) ||
+        todayLog?.notes ||
+        todayLog?.bbt ||
+        (todayLog?.intimacyLog && todayLog.intimacyLog.activity !== 'none')
+      );
+      if (!hasLoggedToday) {
+        const timer = setTimeout(() => {
+          setModal('daily');
+        }, 350);
+        setHasAutoOpenedDaily(true);
+        return () => clearTimeout(timer);
       }
       setHasAutoOpenedDaily(true);
     }
@@ -321,21 +334,54 @@ function MainScreen() {
                     </div>
                   ) : (
                     <div className="quick-log-grid">
-                      <button type="button" className="quick-log period" aria-pressed={hasPeriod || hasIrregularBleeding} onClick={() => openBleedingModal(hasIrregularBleeding ? 'irregular' : 'period')} title="Registro de sangrado">
+                      <button
+                        type="button"
+                        className="quick-log primary-add"
+                        onClick={() => openModal('daily')}
+                        title="Añadir registro (+)"
+                      >
+                        <Plus size={18} className="stroke-[2.5]" />
+                        <span>Añadir (+)</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="quick-log period"
+                        aria-pressed={hasPeriod || hasIrregularBleeding}
+                        onClick={() => openModal('daily')}
+                        title="Registro de sangrado (normal, irregular o sin sangrado)"
+                      >
                         <Droplets size={18}/>
-                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado registrado' : 'Registro de sangrado'}</span>
+                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado anotado' : 'Sangrado'}</span>
                       </button>
-                      <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length || log?.notes)} onClick={() => openModal('daily')}>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={Boolean(log?.symptoms.length || log?.notes)}
+                        onClick={() => openModal('daily')}
+                        title="Síntomas y notas"
+                      >
                         <NotebookPen size={18}/>
-                        <span>Síntomas y notas</span>
+                        <span>Síntomas</span>
                       </button>
-                      <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={hasIntimacy}
+                        onClick={() => openModal('intimacy')}
+                        title="Intimidad"
+                      >
                         <Heart size={18}/>
                         <span>Intimidad</span>
                       </button>
-                      <button type="button" className="quick-log" aria-pressed={hasMedications} onClick={() => openModal('medication')}>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={hasMedications}
+                        onClick={() => openModal('medication')}
+                        title="Pastillas y tomas"
+                      >
                         <Pill size={18}/>
-                        <span>{hasMedications ? 'Tomas registradas' : 'Pastillas y tomas'}</span>
+                        <span>Pastillas</span>
                       </button>
                     </div>
                   )}
