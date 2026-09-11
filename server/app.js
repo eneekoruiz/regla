@@ -103,14 +103,17 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   const secret = (env.JWT_SECRET || defaultSecret || '').trim();
   const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production|your_custom/i.test(secret);
   let pool = suppliedPool;
+  let poolInitError = 'none';
   if (!pool && dbUrl && secretReady) {
-    try { pool = new Pool(databaseOptions(dbUrl)); } catch {
+    try { pool = new Pool(databaseOptions(dbUrl)); } catch (e) {
+      poolInitError = e.message || String(e);
       console.error('Pool initialization failed. Check DATABASE_URL configuration.');
     }
   }
   const configured = Boolean(pool && secretReady);
   let ready = false;
   let initialization;
+  let queryError = 'none';
   const ensureReady = async () => {
     if (!configured) return false;
     if (ready) return true;
@@ -126,6 +129,7 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
         ready = true;
         return true;
       } catch (err) {
+        queryError = err?.message || String(err);
         console.error('Database initialization failed:', err?.message || err);
         return false;
       } finally {
@@ -204,7 +208,15 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     res.status(readyForProduction ? 200 : 503).json({
       status: readyForProduction ? 'ready' : 'unavailable',
       database: databaseReady ? 'ready' : 'unavailable',
-      recovery: recoveryReady ? 'configured' : 'unavailable'
+      recovery: recoveryReady ? 'configured' : 'unavailable',
+      debug: {
+        PoolType: typeof Pool,
+        poolInstance: !!pool,
+        secretReady,
+        poolInitError,
+        queryError,
+        dbUrlStart: dbUrl ? dbUrl.substring(0, 15) : 'none'
+      }
     });
   });
 
