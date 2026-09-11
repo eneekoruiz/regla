@@ -10,7 +10,10 @@ function getProductionApp() {
 
   const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
   const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;
-  const jwtSecret = process.env.JWT_SECRET || Buffer.from(B64_SECRET, 'base64').toString('utf8');
+  let jwtSecret = (process.env.JWT_SECRET || '').trim();
+  if (jwtSecret.length < 32 || /dev_jwt_secret|change_in_production|your_custom/i.test(jwtSecret)) {
+    jwtSecret = Buffer.from(B64_SECRET, 'base64').toString('utf8');
+  }
 
   if (!productionApp) {
     try {
