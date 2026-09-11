@@ -320,7 +320,15 @@ export function HeroStatus({
                 <path
                   d="M 70 12 C 70 12 24 64 24 92 A 46 46 0 0 0 116 92 C 116 64 70 12 70 12 Z"
                   fill="none"
-                  stroke={hasCycle && daysToNext <= 5 && !day.isPeriod ? 'var(--rose)' : 'var(--phase-ink)'}
+                  stroke={
+                    hasCycle && daysToNext <= 5 && !day.isPeriod
+                      ? 'var(--rose)'
+                      : hasCycle && day.isOvulationDay
+                        ? '#2563eb'
+                        : hasCycle && day.isFertileWindow && !day.isPeriod
+                          ? '#d97706'
+                          : 'var(--phase-ink)'
+                  }
                   strokeWidth="10"
                   strokeLinejoin="round"
                   strokeLinecap="round"

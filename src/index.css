@@ -1125,18 +1125,18 @@
 [data-phase="menstrual"] { --phase-ink: var(--rose); }
 [data-phase="follicular"] { --phase-ink: var(--accent); }
 [data-phase="ovulation"] { --phase-ink: #285bbb; }
-[data-phase="luteal"] { --phase-ink: #785299; }
+[data-phase="luteal"] { --phase-ink: #c25e2e; }
 .dark [data-phase="ovulation"] { --phase-ink: #a9c5ff; }
-.dark [data-phase="luteal"] { --phase-ink: #d1b4ef; }
+.dark [data-phase="luteal"] { --phase-ink: #fb923c; }
 /* Mejora 3: hero-surface (fondo de la tarjeta verde) adapta su tono según la fase del ciclo */
 [data-phase="menstrual"] .cycle-summary,
 [data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)); }
 [data-phase="follicular"] .cycle-summary { background: var(--hero-surface); }
 [data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, #dbeafe 50%, var(--hero-surface)); }
-[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #ede9fe 50%, var(--hero-surface)); }
+[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #fef3c7 40%, var(--hero-surface)); }
 .dark [data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 55%, var(--hero-surface)); }
 .dark [data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)); }
-.dark [data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, rgba(160,100,220,0.18) 80%, var(--hero-surface)); }
+.dark [data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)); }
 /* Mejora 4: tipografía serif en el número grande del anillo */
 .cycle-ring-label strong { font-family: var(--font-display); font-style: italic; }
 .phase-chip.is-fertile { color: #b45309; background: #fef3c7; border-radius: 12px; }
