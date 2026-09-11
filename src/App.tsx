@@ -262,13 +262,7 @@ function MainScreen() {
                 onOpenDailyModal={() => openModal('daily')}
                 onOpenRecoveryModal={() => openModal('recovery')}
               >
-                <div className="diary-record-inner" aria-labelledby="record-title">
-                  <div className="section-heading">
-                    <div>
-                      <h2 id="record-title">{selectedDate === todayDate ? '¿Cómo estás hoy?' : isFuture ? 'Previsión del día' : 'Tu registro del día'}</h2>
-                      <p className="section-caption">{isFuture ? 'Este día todavía no ha llegado.' : 'Un pequeño momento para escucharte.'}</p>
-                    </div>
-                  </div>
+                <div className="diary-record-inner">
                   {isFuture ? (
                     <div className="future-forecast-container">
                       <div className="future-forecast-card" data-phase={currentDayInfo.phase}>
