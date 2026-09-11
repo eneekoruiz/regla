@@ -8,7 +8,8 @@ import { modalChoice, modalField, modalPrimaryButton, modalSecondaryButton, moda
 
 const mucusOptions: { type: CervicalMucusType; label: string; desc: string }[] = [
   { type: 'dry', label: 'Seco', desc: 'Sin humedad visible.' }, { type: 'sticky', label: 'Pegajoso', desc: 'Denso o pastoso.' },
-  { type: 'creamy', label: 'Cremoso', desc: 'Blanquecino, similar a una loción.' }, { type: 'egg_white', label: 'Clara de huevo', desc: 'Transparente y elástico.' }
+  { type: 'creamy', label: 'Cremoso', desc: 'Blanquecino, similar a una loción.' }, { type: 'egg_white', label: 'Clara de huevo', desc: 'Transparente y elástico.' },
+  { type: 'unusual_brown', label: 'Marrón / Raro', desc: 'Flujo oscuro, marrón o rosado irregular.' }
 ];
 export function SymptothermalModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { selectedDate, logs, logSymptothermalForDate } = useCycle();

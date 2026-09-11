@@ -51,7 +51,7 @@ export interface MedicalBiomarkers {
   notes?: string;
 }
 
-export type CervicalMucusType = 'dry' | 'sticky' | 'creamy' | 'egg_white';
+export type CervicalMucusType = 'dry' | 'sticky' | 'creamy' | 'egg_white' | 'unusual_brown';
 
 export interface MedicationItem {
   id: string;

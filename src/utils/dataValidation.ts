@@ -102,7 +102,7 @@ export function validateLogs(value: unknown): Record<string, DailyLog> {
     check(candidate, {
       date: v => v === date, isPeriod: bool, flow, isIrregularBleeding: bool, isCycleStart: bool,
       notes: text, weight: number(1, 600), sleepHours: number(0, 24), hydrationGlasses: number(0, 100),
-      intimacy: oneOf('protected', 'unprotected', 'none'), cervicalMucus: oneOf('dry', 'sticky', 'creamy', 'egg_white'),
+      intimacy: oneOf('protected', 'unprotected', 'none'), cervicalMucus: oneOf('dry', 'sticky', 'creamy', 'egg_white', 'unusual_brown'),
       bbt: number(25, 45), recordedAt: v => typeof v === 'string' && Number.isFinite(Date.parse(v))
     }, 'Registro');
     if (typeof candidate.isPeriod !== 'boolean') throw new Error('Falta el estado menstrual del registro.');
