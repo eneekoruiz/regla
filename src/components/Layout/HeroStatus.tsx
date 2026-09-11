@@ -313,17 +313,17 @@ export function HeroStatus({
     }
   ];
 
-  // Si quedan muchos días para la regla (ej. más de 5 días y estamos en ventana fértil, folicular o lútea temprana),
-  // el círculo de ovulación/fase toma el protagonismo (más grande, primer plano),
-  // y la gota pasa a segundo plano (más pequeña).
-  // Cuando quedan pocos días (<= 5 días) o estamos en regla/retraso, la gota toma el protagonismo (más grande)
-  // y el círculo pasa a segundo plano.
-  const isPeriodPriority = Boolean(
-    day.isPeriod ||
-    isPeriodDay ||
-    awaitingPeriod ||
-    (daysToNext <= 5 && !day.isFertileWindow && !day.isOvulationDay)
+  // ¿Es la ventana fértil / ovulación el siguiente evento relevante?
+  // Durante la ventana fértil, fase folicular y ovulación: el Círculo de ovulación es el protagonista
+  // (más grande y situado en la posición principal).
+  // Una vez pasa la ventana fértil (fase lútea, premenstrual, regla o retraso):
+  // cambian de posiciones y la Gota de regla pasa a ser la protagonista (más grande y en posición principal).
+  const isFertilePriority = Boolean(
+    !day.isPeriod &&
+    !awaitingPeriod &&
+    (day.isFertileWindow || day.isOvulationDay || (day.phase === 'follicular' && daysToOvu > 0))
   );
+  const isPeriodPriority = !isFertilePriority;
 
   const wheelInfo = (() => {
     if (day.isPeriod || isPeriodDay) {
@@ -546,9 +546,9 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            <div className={`cycle-ring-wrap ${!isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
+            <div className={`cycle-ring-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
               <div
-                className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${!isPeriodPriority ? 'is-primary' : 'is-secondary'}`}
+                className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
                 tabIndex={0}
                 onClick={onOpenLegend}
@@ -604,9 +604,9 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* Flanco Derecho: Acciones contextuales y métricas de ciclo */}
-        {showRing && (
-          <div className="cycle-summary-side-actions cycle-summary-flank is-right">
+        {/* Acciones contextuales centradas debajo de los diales cuando son requeridas */}
+        {showRing && ((isToday && hasCycle && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4)) || isFuture) && (
+          <div className="cycle-summary-bottom-actions">
             {isToday && hasCycle && (
               <div className="hero-quick-actions">
                 {isRecorded ? (

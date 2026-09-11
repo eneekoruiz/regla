@@ -240,17 +240,15 @@
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
-.cycle-summary { padding: 16px 20px 14px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; }
-.cycle-summary-motion { display: flex; flex-direction: column; justify-content: space-between; height: 100%; width: 100%; gap: 10px; }
+.cycle-summary { padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
+.cycle-summary-motion { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; gap: 6px; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
+  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 10px;
   width: 100%;
   min-height: 0;
 }
@@ -301,14 +299,15 @@
   line-height: 1.35;
 }
 .cycle-summary-visuals {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(18px, 3.2vw, 44px);
+  gap: clamp(14px, 2.8vw, 38px);
   width: 100%;
   min-width: 0;
-  margin: auto 0;
+  margin: 0;
 }
 .cycle-ring-wrap {
   display: flex;
@@ -317,6 +316,14 @@
   width: auto;
   margin: 0;
   flex: 0 0 auto;
+  transition: order 0.3s ease;
+}
+/* Posicionamiento dinámico: el instrumento principal siempre va en la 1ª posición (izquierda) */
+.cycle-ring-wrap.is-primary {
+  order: 1;
+}
+.cycle-ring-wrap.is-secondary {
+  order: 2;
 }
 
 .cycle-phase-wheel {
@@ -692,22 +699,22 @@
   transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease, opacity 0.35s ease;
 }
 
-/* Dial Protagonista (Primer Plano) */
+/* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
 .cycle-ring.is-primary {
-  width: clamp(200px, 24vw, 265px);
-  height: clamp(215px, 26vw, 285px);
+  width: clamp(235px, 28vw, 330px);
+  height: clamp(250px, 30vw, 355px);
   opacity: 1;
   z-index: 2;
-  filter: drop-shadow(0 6px 22px color-mix(in srgb, var(--phase-ink) 25%, transparent));
+  filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--phase-ink) 26%, transparent));
 }
 
-/* Dial en Segundo Plano (Más pequeño y sutil) */
+/* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
 .cycle-ring.is-secondary {
-  width: clamp(140px, 16.5vw, 180px);
-  height: clamp(150px, 17.5vw, 195px);
-  opacity: 0.65;
+  width: clamp(165px, 19.5vw, 230px);
+  height: clamp(175px, 21vw, 245px);
+  opacity: 0.72;
   z-index: 1;
-  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--phase-ink) 12%, transparent));
+  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
 }
 .cycle-ring.is-secondary:hover {
   opacity: 0.95;
@@ -733,15 +740,15 @@
   letter-spacing: 0.12em;
   font-weight: 750;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.15;
   margin-bottom: 2px;
-  opacity: 0.9;
+  opacity: 0.92;
   transition: font-size 0.3s ease;
 }
 .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-  font-size: 8px;
-  letter-spacing: 0.08em;
+  font-size: 9px;
+  letter-spacing: 0.09em;
   margin-bottom: 1px;
 }
 
@@ -756,45 +763,45 @@
   transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cycle-ring.is-primary .cycle-ring-label strong {
-  font-size: clamp(42px, 5vw, 58px);
+  font-size: clamp(48px, 6vw, 72px);
 }
 .cycle-ring.is-secondary .cycle-ring-label strong {
-  font-size: clamp(28px, 3.5vw, 38px);
+  font-size: clamp(32px, 4vw, 46px);
 }
 .cycle-ring.is-primary .cycle-ring-day-number.is-text {
-  font-size: clamp(20px, 2.5vw, 26px) !important;
+  font-size: clamp(24px, 3vw, 32px) !important;
   font-style: normal !important;
 }
 .cycle-ring.is-secondary .cycle-ring-day-number.is-text {
-  font-size: clamp(15px, 1.8vw, 18px) !important;
+  font-size: clamp(17px, 2.2vw, 22px) !important;
   font-style: normal !important;
 }
 
 /* 3. Unidad */
 .cycle-ring-label span:nth-of-type(2) {
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.15;
   margin-top: 2px;
-  opacity: 0.88;
+  opacity: 0.9;
   transition: font-size 0.3s ease;
 }
 .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-  font-size: 9.5px;
+  font-size: 10.5px;
   margin-top: 1px;
 }
 
 /* 4. Contexto / Aclaración */
 .cycle-ring-context {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
-  opacity: 0.8;
+  opacity: 0.82;
   line-height: 1.15;
   margin-top: 1px;
 }
 .cycle-ring.is-secondary .cycle-ring-context {
-  font-size: 8.5px;
+  font-size: 9.5px;
   margin-top: 0px;
 }
 .period-registered-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-left: 4px solid var(--rose); border-radius: var(--radius-md); margin-top: 10px; }
@@ -1099,10 +1106,10 @@
   .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
   .cycle-summary-motion { gap: 6px; }
   .cycle-headline { font-size: 20px; }
-  .cycle-ring.is-primary { width: clamp(175px, 23vh, 220px); height: clamp(185px, 25vh, 235px); }
-  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(36px, 4.8vh, 48px); }
-  .cycle-ring.is-secondary { width: clamp(125px, 17vh, 160px); height: clamp(135px, 18.5vh, 170px); }
-  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(24px, 3.5vh, 32px); }
+  .cycle-ring.is-primary { width: clamp(200px, 28vh, 260px); height: clamp(215px, 30vh, 280px); }
+  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(42px, 5.8vh, 58px); }
+  .cycle-ring.is-secondary { width: clamp(145px, 20vh, 190px); height: clamp(155px, 22vh, 205px); }
+  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(28px, 4vh, 38px); }
   .hero-quick-actions { margin-top: 2px !important; }
   .advice-card { min-height: 125px; padding: 10px 14px; }
   .advice-card h3 { font-size: 16px; margin: 0 0 3px; }
@@ -1369,38 +1376,48 @@
     flex-direction: row !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: clamp(8px, 2.5vw, 16px) !important;
+    gap: clamp(6px, 1.8vw, 12px) !important;
     width: 100% !important;
-    margin: 4px auto !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-wrap {
     flex: 0 0 auto !important;
     width: auto !important;
   }
   .cycle-ring.is-primary {
-    width: clamp(155px, 47vw, 190px) !important;
-    height: clamp(165px, 50vw, 205px) !important;
+    width: clamp(180px, 52vw, 215px) !important;
+    height: clamp(192px, 55vw, 228px) !important;
     max-height: 38vh !important;
   }
   .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(36px, 9.2vw, 46px) !important;
+    font-size: clamp(40px, 10.5vw, 54px) !important;
+  }
+  .cycle-ring.is-primary .cycle-ring-label span:first-child {
+    font-size: 10px !important;
+  }
+  .cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
+    font-size: 12px !important;
+  }
+  .cycle-ring.is-primary .cycle-ring-context {
+    font-size: 10.5px !important;
   }
   .cycle-ring.is-secondary {
-    width: clamp(118px, 35vw, 142px) !important;
-    height: clamp(128px, 38vw, 152px) !important;
+    width: clamp(135px, 38vw, 155px) !important;
+    height: clamp(144px, 40vw, 165px) !important;
     max-height: 30vh !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(24px, 6.8vw, 30px) !important;
+    font-size: clamp(26px, 7vw, 34px) !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 7.5px !important;
+    font-size: 8px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 9px !important;
+    font-size: 9.5px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 8px !important;
+    font-size: 8.5px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
