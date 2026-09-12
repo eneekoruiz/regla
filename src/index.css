@@ -709,8 +709,8 @@
 
 /* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
 .cycle-ring.is-primary {
-  width: clamp(340px, 45vw, 480px);
-  height: clamp(360px, 48vw, 510px);
+  width: clamp(450px, 55vw, 650px);
+  height: clamp(480px, 58vw, 680px);
   opacity: 1;
   z-index: 2;
   filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
@@ -718,8 +718,8 @@
 
 /* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
 .cycle-ring.is-secondary {
-  width: clamp(165px, 19.5vw, 230px);
-  height: clamp(175px, 21vw, 245px);
+  width: clamp(180px, 20vw, 250px);
+  height: clamp(190px, 21vw, 265px);
   opacity: 0.72;
   z-index: 1;
   filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
@@ -1126,9 +1126,9 @@
   .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
   .cycle-summary-motion { gap: 6px; }
   .cycle-headline { font-size: 20px; }
-  .cycle-ring.is-primary { width: clamp(200px, 28vh, 260px); height: clamp(215px, 30vh, 280px); }
+  .cycle-ring.is-primary { width: clamp(400px, 55vh, 550px); height: clamp(425px, 58vh, 580px); }
   .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(42px, 5.8vh, 58px); }
-  .cycle-ring.is-secondary { width: clamp(145px, 20vh, 190px); height: clamp(155px, 22vh, 205px); }
+  .cycle-ring.is-secondary { width: clamp(180px, 24vh, 240px); height: clamp(190px, 25vh, 255px); }
   .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(28px, 4vh, 38px); }
   .hero-quick-actions { margin-top: 2px !important; }
   .advice-card { min-height: 125px; padding: 10px 14px; }
@@ -1406,9 +1406,9 @@
     width: auto !important;
   }
   .cycle-ring.is-primary {
-    width: clamp(180px, 52vw, 215px) !important;
-    height: clamp(192px, 55vw, 228px) !important;
-    max-height: 38vh !important;
+    width: clamp(280px, 75vw, 360px) !important;
+    height: clamp(290px, 78vw, 380px) !important;
+    max-height: 55vh !important;
   }
   .cycle-ring.is-primary .cycle-ring-label strong {
     font-size: clamp(52px, 14vw, 76px) !important;
@@ -1423,9 +1423,9 @@
     font-size: 10.5px !important;
   }
   .cycle-ring.is-secondary {
-    width: clamp(90px, 26vw, 107px) !important;
-    height: clamp(96px, 27.5vw, 114px) !important;
-    max-height: 20vh !important;
+    width: clamp(120px, 35vw, 160px) !important;
+    height: clamp(128px, 37vw, 170px) !important;
+    max-height: 25vh !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label strong {
     font-size: clamp(20px, 5vw, 26px) !important;
