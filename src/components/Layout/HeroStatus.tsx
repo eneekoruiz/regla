@@ -376,6 +376,8 @@ export function HeroStatus({
     };
   })();
 
+  const remainingPeriodDays = Math.max(0, periodLength - cycleDay);
+
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
@@ -491,8 +493,10 @@ export function HeroStatus({
                       ) : (
                         <>
                           <span>REGLA ESTIMADA</span>
-                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Día {cycleDay}</strong>
-                          <span>en {diffDays(parseDateKey(todayDate), parseDateKey(selectedDate))} {diffDays(parseDateKey(todayDate), parseDateKey(selectedDate)) === 1 ? 'día' : 'días'}</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>
+                            {remainingPeriodDays === 0 ? 'Último día' : `Quedan ${remainingPeriodDays}`}
+                          </strong>
+                          <span>{remainingPeriodDays === 0 ? 'de regla' : remainingPeriodDays === 1 ? 'día de regla' : 'días de regla'}</span>
                         </>
                       )
                     ) : daysToNext === 1 ? (
@@ -518,9 +522,11 @@ export function HeroStatus({
                     )
                   ) : isPeriodDay ? (
                     <>
-                      <span>DÍA</span>
-                      <strong className="cycle-ring-day-number">{cycleDay}</strong>
-                      <span>de regla</span>
+                      <span>REGLA</span>
+                      <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>
+                        {remainingPeriodDays === 0 ? 'Último día' : `Quedan ${remainingPeriodDays}`}
+                      </strong>
+                      <span>{remainingPeriodDays === 0 ? 'de regla' : remainingPeriodDays === 1 ? 'día de regla' : 'días de regla'}</span>
                     </>
                   ) : awaitingPeriod ? (
                     <>

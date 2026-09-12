@@ -315,44 +315,34 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: auto;
-  margin: 0;
   flex: 0 0 auto;
-  transition: order 0.3s ease;
-}
-/* Drop (Gota) Offsets */
-.cycle-ring-wrap.drop-wrap.is-primary {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-6.87%, -0.58%);
-}
-.cycle-summary-visuals.single-ring .cycle-ring-wrap.drop-wrap.is-primary {
-  top: 42%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.cycle-ring-wrap.drop-wrap.is-secondary {
-  position: absolute;
-  top: 45%;
-  bottom: auto;
-  right: -3%;
-  transform: translate(6.87%, -50%);
+  transition: all 0.4s ease-in-out;
+  /* Reset previous absolute positioning */
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
 }
 
-/* Circle (Rueda) Offsets */
-.cycle-ring-wrap.wheel-wrap.is-primary {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform: translate(-10.62%, -20.58%);
+/* Dial Protagonista (Primer Plano) */
+.cycle-ring.is-primary {
+  width: clamp(240px, 30vw, 360px);
+  height: clamp(260px, 32vw, 380px);
+  max-height: 50vh;
+  opacity: 1;
+  z-index: 2;
+  filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
 }
-.cycle-ring-wrap.wheel-wrap.is-secondary {
-  position: absolute;
-  top: 45%;
-  bottom: auto;
-  right: -3%;
-  transform: translate(10.62%, -50%);
+
+/* Dial en Segundo Plano */
+.cycle-ring.is-secondary {
+  width: clamp(120px, 15vw, 170px);
+  height: clamp(130px, 16vw, 180px);
+  opacity: 0.72;
+  z-index: 1;
+  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
 }
 
 .cycle-phase-wheel {

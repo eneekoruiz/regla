@@ -403,12 +403,12 @@ function MainScreen() {
                 {
                   title: 'Conoce tu ciclo',
                   description: 'Observa tus patrones y entiende tus registros.',
-                  ids: ['analytics', 'symptothermal', 'legend']
+                  ids: ['medication', 'symptothermal', 'legend']
                 },
                 {
                   title: 'Cuídate a tu manera',
                   description: 'Un poco de apoyo para tu día a día.',
-                  ids: ['medication', 'care', 'chat']
+                  ids: ['analytics', 'care', 'chat']
                 }
               ].map(group => {
                 const isOpen = openToolGroup === group.title;
