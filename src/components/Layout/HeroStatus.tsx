@@ -418,7 +418,7 @@ export function HeroStatus({
         {showRing && (
           <div className="cycle-summary-visuals">
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
-            <div className={`cycle-ring-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
+            <div className={`cycle-ring-wrap drop-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
                 className={`cycle-ring hero-prominent-ring ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
@@ -546,7 +546,7 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            <div className={`cycle-ring-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
+            <div className={`cycle-ring-wrap wheel-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
               <div
                 className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
