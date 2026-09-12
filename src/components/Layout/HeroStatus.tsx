@@ -481,11 +481,20 @@ export function HeroStatus({
                 <span className="cycle-ring-label">
                   {isFuture ? (
                     isPeriodDay ? (
-                      <>
-                        <span>REGLA</span>
-                        <strong className="cycle-ring-day-number is-text">Prevista</strong>
-                        <span>este día</span>
-                      </>
+                      cycleDay === 1 ? (
+                        <>
+                          <span>REGLA PREVISTA</span>
+                          <strong className="cycle-ring-day-number">{diffDays(parseDateKey(todayDate), parseDateKey(selectedDate))}</strong>
+                          <span>{diffDays(parseDateKey(todayDate), parseDateKey(selectedDate)) === 1 ? 'día' : 'días'}</span>
+                          <span className="cycle-ring-context">para que empiece</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>REGLA ESTIMADA</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Día {cycleDay}</strong>
+                          <span>en {diffDays(parseDateKey(todayDate), parseDateKey(selectedDate))} {diffDays(parseDateKey(todayDate), parseDateKey(selectedDate)) === 1 ? 'día' : 'días'}</span>
+                        </>
+                      )
                     ) : daysToNext === 1 ? (
                       <>
                         <span>QUEDA</span>
