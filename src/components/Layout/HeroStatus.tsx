@@ -592,8 +592,8 @@ export function HeroStatus({
 
                 {/* Texto central con la misma familia tipográfica que la gota */}
                 <span className="cycle-ring-label">
-                  <span style={wheelInfo.kickerColor ? { color: wheelInfo.kickerColor } : undefined}>
-                    {wheelInfo.kicker}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', ...(wheelInfo.kickerColor ? { color: wheelInfo.kickerColor } : {}) }}>
+                    {wheelInfo.kicker} <ChevronDown size={14} aria-hidden="true" style={{ opacity: 0.7, marginTop: '-2px' }} />
                   </span>
                   <strong className={`cycle-ring-day-number${wheelInfo.isText ? ' is-text' : ''}`}>{wheelInfo.number}</strong>
                   <span>{wheelInfo.unit}</span>
