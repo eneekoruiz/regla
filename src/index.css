@@ -240,7 +240,7 @@
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
-.cycle-summary { overflow: hidden; padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
+.cycle-summary { position: relative; overflow: hidden; padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
 .cycle-summary-motion { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; gap: 6px; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
@@ -299,7 +299,6 @@
   line-height: 1.35;
 }
 .cycle-summary-visuals {
-  position: relative;
   flex: 1 1 100%;
   height: 100%;
   min-height: 280px;
@@ -694,14 +693,14 @@
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
 }
-.cycle-ring svg {
+.cycle-ring > svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
-.cycle-ring svg circle,
-.cycle-ring svg path {
+.cycle-ring > svg circle,
+.cycle-ring > svg path {
   transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease, opacity 0.35s ease;
 }
 
