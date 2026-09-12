@@ -327,6 +327,14 @@
   transform: none !important;
 }
 
+.cycle-ring-wrap.is-primary {
+  order: 1;
+}
+
+.cycle-ring-wrap.is-secondary {
+  order: 2;
+}
+
 /* Dial Protagonista (Primer Plano) */
 .cycle-ring.is-primary {
   height: 100%;
