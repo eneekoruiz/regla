@@ -722,19 +722,7 @@ export function HeroStatus({
               </div>
             )}
 
-            {isFuture && (
-              <div className="hero-quick-actions">
-                <button
-                  type="button"
-                  className="aura-button sm"
-                  onClick={() => setSelectedDate(todayDate)}
-                  style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 5 }}
-                >
-                  <RotateCcw size={13} />
-                  Volver a hoy
-                </button>
-              </div>
-            )}
+
           </div>
         )}
 
