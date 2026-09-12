@@ -266,26 +266,6 @@ export function DailyLogBottomSheet({
             </div>
           )}
 
-          {bleedingChoice === 'none' && (
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card-inner)] p-3">
-              <div>
-                <p className="text-xs font-semibold text-[var(--text-primary)]">¿Todo en calma hoy?</p>
-                <p className="text-[11px] text-[var(--text-secondary)]">
-                  Puedes registrar el día como normal o añadir sensaciones abajo.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleToggleCalmDay}
-                className={`aura-button sm ${isCalmDay ? 'primary' : ''}`}
-                style={{ fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 6, flexShrink: 0 }}
-              >
-                <Sparkles size={13} aria-hidden="true" />
-                {isCalmDay ? 'Día tranquilo marcado' : 'Día normal sin dolor'}
-              </button>
-            </div>
-          )}
-
           {/* SECCIÓN 2: Síntomas y sensaciones */}
           <div className="border-t border-[var(--border-subtle)] pt-3">
             <CycleStatusCard />
