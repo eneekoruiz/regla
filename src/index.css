@@ -730,23 +730,10 @@
 }
 
 /* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
-.cycle-ring.is-primary {
-  width: clamp(260px, 35vw, 400px);
-  height: clamp(280px, 37vw, 425px);
-  max-height: 55vh;
-  opacity: 1;
-  z-index: 2;
-  filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
-}
+
 
 /* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
-.cycle-ring.is-secondary {
-  width: clamp(130px, 16vw, 180px);
-  height: clamp(140px, 17vw, 190px);
-  opacity: 0.72;
-  z-index: 1;
-  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
-}
+
 .cycle-ring.is-secondary:hover {
   opacity: 0.95;
   transform: scale(1.03);
@@ -1149,9 +1136,9 @@
   .cycle-summary { padding: 10px 16px 8px; min-height: 200px; }
   .cycle-summary-motion { gap: 6px; }
   .cycle-headline { font-size: 20px; }
-  .cycle-ring.is-primary { width: clamp(400px, 55vh, 550px); height: clamp(425px, 58vh, 580px); }
+  
   .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(42px, 5.8vh, 58px); }
-  .cycle-ring.is-secondary { width: clamp(180px, 24vh, 240px); height: clamp(190px, 25vh, 255px); }
+  
   .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(28px, 4vh, 38px); }
   .hero-quick-actions { margin-top: 2px !important; }
   .advice-card { min-height: 125px; padding: 10px 14px; }
@@ -1433,11 +1420,7 @@
     flex: 0 0 auto !important;
     width: auto !important;
   }
-  .cycle-ring.is-primary {
-    width: clamp(280px, 75vw, 360px) !important;
-    height: clamp(290px, 78vw, 380px) !important;
-    max-height: 55vh !important;
-  }
+  
   .cycle-ring.is-primary .cycle-ring-label strong {
     font-size: clamp(52px, 14vw, 76px) !important;
   }
@@ -1450,11 +1433,7 @@
   .cycle-ring.is-primary .cycle-ring-context {
     font-size: 10.5px !important;
   }
-  .cycle-ring.is-secondary {
-    width: clamp(120px, 35vw, 160px) !important;
-    height: clamp(128px, 37vw, 170px) !important;
-    max-height: 25vh !important;
-  }
+  
   .cycle-ring.is-secondary .cycle-ring-label strong {
     font-size: clamp(20px, 5vw, 26px) !important;
   }
