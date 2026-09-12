@@ -102,24 +102,14 @@ test.describe('Hero dials dynamic hierarchy and space usage', () => {
     const wheel = page.locator('.cycle-phase-wheel');
     const gota = page.locator('.cycle-ring.hero-prominent-ring:not(.cycle-phase-wheel)');
 
-    await expect(wheel).toBeVisible();
+    await expect(wheel).not.toBeVisible();
     await expect(gota).toBeVisible();
 
-    // Gota should now be primary, wheel should be secondary
+    // Gota should now be primary
     await expect(gota).toHaveClass(/is-primary/);
-    await expect(wheel).toHaveClass(/is-secondary/);
 
-    const wheelBox = await wheel.boundingBox();
     const gotaBox = await gota.boundingBox();
-    expect(wheelBox).not.toBeNull();
     expect(gotaBox).not.toBeNull();
-
-    // Gota must be strictly bigger than Wheel
-    expect(gotaBox!.width).toBeGreaterThan(wheelBox!.width);
-    expect(gotaBox!.height).toBeGreaterThan(wheelBox!.height);
-
-    // Position check: Gota must be to the left of Wheel
-    expect(gotaBox!.x).toBeLessThan(wheelBox!.x);
 
     // Overflow check on viewport
     const overflow = await page.evaluate(() => ({

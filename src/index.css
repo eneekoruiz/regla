@@ -327,6 +327,11 @@
   left: 0;
   transform: translate(-6.87%, -0.58%);
 }
+.cycle-summary-visuals.single-ring .cycle-ring-wrap.drop-wrap.is-primary {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .cycle-ring-wrap.drop-wrap.is-secondary {
   position: absolute;
   bottom: 0;

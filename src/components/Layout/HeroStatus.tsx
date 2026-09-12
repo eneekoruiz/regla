@@ -416,7 +416,7 @@ export function HeroStatus({
 
         {/* Visuales: ÚNICAMENTE los dos instrumentos (Gota y Círculo) con jerarquía dinámica */}
         {showRing && (
-          <div className="cycle-summary-visuals">
+          <div className={`cycle-summary-visuals ${!isFertilePriority ? 'single-ring' : ''}`}>
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
             <div className={`cycle-ring-wrap drop-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
@@ -546,7 +546,8 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            <div className={`cycle-ring-wrap wheel-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
+            {isFertilePriority && (
+              <div className={`cycle-ring-wrap wheel-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
               <div
                 className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
@@ -598,9 +599,10 @@ export function HeroStatus({
                   <strong className={`cycle-ring-day-number${wheelInfo.isText ? ' is-text' : ''}`}>{wheelInfo.number}</strong>
                   <span>{wheelInfo.unit}</span>
                   <span className="cycle-ring-context">{wheelInfo.context}</span>
-                </span>
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
