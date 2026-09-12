@@ -328,15 +328,16 @@
   transform: translate(-6.87%, -0.58%);
 }
 .cycle-summary-visuals.single-ring .cycle-ring-wrap.drop-wrap.is-primary {
-  top: 50%;
+  top: 42%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 .cycle-ring-wrap.drop-wrap.is-secondary {
   position: absolute;
-  bottom: 70px;
-  right: 0;
-  transform: translate(6.87%, 1.76%);
+  top: 45%;
+  bottom: auto;
+  right: -3%;
+  transform: translate(6.87%, -50%);
 }
 
 /* Circle (Rueda) Offsets */
@@ -348,9 +349,10 @@
 }
 .cycle-ring-wrap.wheel-wrap.is-secondary {
   position: absolute;
-  bottom: 70px;
-  right: 0;
-  transform: translate(10.62%, 5.29%);
+  top: 45%;
+  bottom: auto;
+  right: -3%;
+  transform: translate(10.62%, -50%);
 }
 
 .cycle-phase-wheel {
@@ -728,8 +730,9 @@
 
 /* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
 .cycle-ring.is-primary {
-  width: clamp(450px, 55vw, 650px);
-  height: clamp(480px, 58vw, 680px);
+  width: clamp(260px, 35vw, 400px);
+  height: clamp(280px, 37vw, 425px);
+  max-height: 55vh;
   opacity: 1;
   z-index: 2;
   filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
@@ -737,8 +740,8 @@
 
 /* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
 .cycle-ring.is-secondary {
-  width: clamp(180px, 20vw, 250px);
-  height: clamp(190px, 21vw, 265px);
+  width: clamp(130px, 16vw, 180px);
+  height: clamp(140px, 17vw, 190px);
   opacity: 0.72;
   z-index: 1;
   filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
