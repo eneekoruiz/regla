@@ -302,12 +302,13 @@
   flex: 1 1 100%;
   height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(14px, 2.8vw, 38px);
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0;
   width: 100%;
   min-width: 0;
   margin: 0;
+  padding: 10px 0;
 }
 .cycle-ring-wrap {
   display: flex;
@@ -321,9 +322,13 @@
 /* Posicionamiento dinámico: el instrumento principal siempre va en la 1ª posición (izquierda) */
 .cycle-ring-wrap.is-primary {
   order: 1;
+  align-self: flex-start;
+  margin-right: -8%;
 }
 .cycle-ring-wrap.is-secondary {
   order: 2;
+  align-self: flex-end;
+  margin-left: -8%;
 }
 
 .cycle-phase-wheel {
@@ -766,14 +771,14 @@
   font-size: clamp(48px, 6vw, 72px);
 }
 .cycle-ring.is-secondary .cycle-ring-label strong {
-  font-size: clamp(32px, 4vw, 46px);
+  font-size: clamp(24px, 2.5vw, 32px);
 }
 .cycle-ring.is-primary .cycle-ring-day-number.is-text {
   font-size: clamp(24px, 3vw, 32px) !important;
   font-style: normal !important;
 }
 .cycle-ring.is-secondary .cycle-ring-day-number.is-text {
-  font-size: clamp(17px, 2.2vw, 22px) !important;
+  font-size: clamp(13px, 1.5vw, 16px) !important;
   font-style: normal !important;
 }
 
@@ -1403,21 +1408,21 @@
     font-size: 10.5px !important;
   }
   .cycle-ring.is-secondary {
-    width: clamp(135px, 38vw, 155px) !important;
-    height: clamp(144px, 40vw, 165px) !important;
-    max-height: 30vh !important;
+    width: clamp(90px, 26vw, 107px) !important;
+    height: clamp(96px, 27.5vw, 114px) !important;
+    max-height: 20vh !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(26px, 7vw, 34px) !important;
+    font-size: clamp(20px, 5vw, 26px) !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 8px !important;
+    font-size: 6px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 9.5px !important;
+    font-size: 7px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 8.5px !important;
+    font-size: 6px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
