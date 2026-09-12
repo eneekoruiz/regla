@@ -240,7 +240,7 @@
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
-.cycle-summary { padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
+.cycle-summary { overflow: hidden; padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
 .cycle-summary-motion { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; gap: 6px; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
@@ -322,8 +322,8 @@
 .cycle-ring-wrap.is-primary {
   order: 1;
   align-self: flex-start;
-  margin-top: -12px;
-  margin-left: -14px;
+  margin-top: -30px;
+  margin-left: -35px;
   margin-right: -10%;
 }
 .cycle-ring-wrap.is-secondary {
@@ -709,11 +709,11 @@
 
 /* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
 .cycle-ring.is-primary {
-  width: clamp(235px, 28vw, 330px);
-  height: clamp(250px, 30vw, 355px);
+  width: clamp(340px, 45vw, 480px);
+  height: clamp(360px, 48vw, 510px);
   opacity: 1;
   z-index: 2;
-  filter: drop-shadow(0 8px 26px color-mix(in srgb, var(--phase-ink) 26%, transparent));
+  filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
 }
 
 /* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
@@ -754,6 +754,11 @@
   opacity: 0.92;
   transition: font-size 0.3s ease;
 }
+.cycle-ring.is-primary .cycle-ring-label span:first-child {
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  margin-bottom: 6px;
+}
 .cycle-ring.is-secondary .cycle-ring-label span:first-child {
   font-size: 9px;
   letter-spacing: 0.09em;
@@ -771,13 +776,13 @@
   transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .cycle-ring.is-primary .cycle-ring-label strong {
-  font-size: clamp(48px, 6vw, 72px);
+  font-size: clamp(68px, 9vw, 120px);
 }
 .cycle-ring.is-secondary .cycle-ring-label strong {
   font-size: clamp(24px, 2.5vw, 32px);
 }
 .cycle-ring.is-primary .cycle-ring-day-number.is-text {
-  font-size: clamp(24px, 3vw, 32px) !important;
+  font-size: clamp(34px, 4.5vw, 56px) !important;
   font-style: normal !important;
 }
 .cycle-ring.is-secondary .cycle-ring-day-number.is-text {
@@ -794,6 +799,10 @@
   opacity: 0.9;
   transition: font-size 0.3s ease;
 }
+.cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
+  font-size: 18px;
+  margin-top: 6px;
+}
 .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
   font-size: 10.5px;
   margin-top: 1px;
@@ -807,6 +816,9 @@
   opacity: 0.82;
   line-height: 1.15;
   margin-top: 1px;
+}
+.cycle-ring.is-primary .cycle-ring-context {
+  font-size: 16px;
 }
 .cycle-ring.is-secondary .cycle-ring-context {
   font-size: 9.5px;
@@ -1399,7 +1411,7 @@
     max-height: 38vh !important;
   }
   .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(40px, 10.5vw, 54px) !important;
+    font-size: clamp(52px, 14vw, 76px) !important;
   }
   .cycle-ring.is-primary .cycle-ring-label span:first-child {
     font-size: 10px !important;
