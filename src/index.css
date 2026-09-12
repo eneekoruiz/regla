@@ -6,48 +6,48 @@
     font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     color-scheme: light;
     --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    --bg-root: #f7f8f4;
+    --bg-root: #fdfaf9; /* Warmer, softer background */
     --bg-card: #ffffff;
-    --bg-card-inner: #f0f3ec;
-    --bg-pill-selected: #205c51;
-    --bg-pill: #edf3f0;
+    --bg-card-inner: #f8f3f2; /* Soft blush gray */
+    --bg-pill-selected: #b86e6e; /* Muted rose */
+    --bg-pill: #f7ecec;
     --bg-input-bar: #ffffff;
-    --bg-chip: #edf3f0;
+    --bg-chip: #f7ecec;
     --bg-glow: transparent;
-    --border-card: #dde3d9;
-    --border-subtle: #dde3d9;
-    --text-primary: #203b33;
-    --text-secondary: #4d635a;
-    --text-tertiary: #58695f;
-    --text-muted: #58695f;
-    --accent: #176b5d;
-    --accent-soft: #e5f1eb;
+    --border-card: #ebdcdb;
+    --border-subtle: #ebdcdb;
+    --text-primary: #453838; /* Warm dark brown/grey instead of harsh green */
+    --text-secondary: #7a6868;
+    --text-tertiary: #9c8a8a;
+    --text-muted: #9c8a8a;
+    --accent: #b86e6e; /* Soft feminine rose */
+    --accent-soft: #f7e6e6;
     --accent-on: #ffffff;
-    --rose: #a93651;
-    --rose-soft: #fae9ee;
-    --gold: #846017;
-    --gold-soft: #f8f0d8;
-    --focus-ring: #176b5d;
-    --shadow-soft: 0 8px 28px #203b330d;
+    --rose: #cc546f;
+    --rose-soft: #fceef1;
+    --gold: #b37e22;
+    --gold-soft: #fbf5e6;
+    --focus-ring: #e3a6a6;
+    --shadow-soft: 0 8px 28px #4538380d;
     --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
-    --hero-surface: #edf2e8;
-    --phase-ink: #176b5d;
+    --hero-surface: #fcf4f3; /* Delicate blush for the hero card */
+    --phase-ink: #b86e6e;
   }
   .dark, html.theme-refugio {
     color-scheme: dark;
-    --bg-root: #141b18;
-    --bg-card: #1d2822;
-    --bg-card-inner: #25332b;
-    --bg-pill-selected: #adddca;
-    --bg-pill: #29372f;
-    --bg-input-bar: #1d2822;
-    --bg-chip: #29372f;
-    --border-card: #405548;
-    --border-subtle: #405548;
-    --text-primary: #edf5ef;
-    --text-secondary: #c3d2c8;
-    --text-tertiary: #a5b9ac;
-    --text-muted: #a5b9ac;
+    --bg-root: #1f1a1a;
+    --bg-card: #292222;
+    --bg-card-inner: #362c2c;
+    --bg-pill-selected: #e3a6a6;
+    --bg-pill: #403434;
+    --bg-input-bar: #292222;
+    --bg-chip: #403434;
+    --border-card: #544545;
+    --border-subtle: #544545;
+    --text-primary: #faefef;
+    --text-secondary: #d6c6c6;
+    --text-tertiary: #b8a5a5;
+    --text-muted: #b8a5a5;
     --accent: #adddca;
     --accent-soft: #273e32;
     --accent-on: #14271d;
@@ -334,7 +334,7 @@
 }
 .cycle-ring-wrap.drop-wrap.is-secondary {
   position: absolute;
-  bottom: 0;
+  bottom: 70px;
   right: 0;
   transform: translate(6.87%, 1.76%);
 }
@@ -348,7 +348,7 @@
 }
 .cycle-ring-wrap.wheel-wrap.is-secondary {
   position: absolute;
-  bottom: 0;
+  bottom: 70px;
   right: 0;
   transform: translate(10.62%, 5.29%);
 }
@@ -1241,18 +1241,20 @@
 .phase-chip:hover { background: var(--bg-card); }
 .phase-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 /* Phase-specific ink colors */
-[data-phase="menstrual"] { --phase-ink: var(--rose); }
-[data-phase="follicular"] { --phase-ink: var(--accent); }
-[data-phase="ovulation"] { --phase-ink: #285bbb; }
-[data-phase="luteal"] { --phase-ink: #c25e2e; }
-.dark [data-phase="ovulation"] { --phase-ink: #a9c5ff; }
-.dark [data-phase="luteal"] { --phase-ink: #fb923c; }
-/* Mejora 3: hero-surface (fondo de la tarjeta verde) adapta su tono según la fase del ciclo */
-[data-phase="menstrual"] .cycle-summary,
-[data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)); }
-[data-phase="follicular"] .cycle-summary { background: var(--hero-surface); }
-[data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, #dbeafe 50%, var(--hero-surface)); }
-[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #fef3c7 40%, var(--hero-surface)); }
+[data-phase="menstrual"] { --phase-ink: #cc546f; } /* Rose */
+[data-phase="follicular"] { --phase-ink: #8da698; } /* Soft sage */
+[data-phase="ovulation"] { --phase-ink: #dba365; } /* Soft peach/amber */
+[data-phase="luteal"] { --phase-ink: #c49681; } /* Soft sand/terracotta */
+.dark [data-phase="menstrual"] { --phase-ink: #e3889e; }
+.dark [data-phase="follicular"] { --phase-ink: #abc2b5; }
+.dark [data-phase="ovulation"] { --phase-ink: #f0c390; }
+.dark [data-phase="luteal"] { --phase-ink: #dfb29e; }
+
+/* Mejora 3: hero-surface adapta su tono */
+[data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, #fceef1 60%, var(--hero-surface)); }
+[data-phase="follicular"] .cycle-summary { background: color-mix(in srgb, #f0f5f2 60%, var(--hero-surface)); }
+[data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, #fdf6ed 60%, var(--hero-surface)); }
+[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #fdf5f0 60%, var(--hero-surface)); }
 .dark [data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 55%, var(--hero-surface)); }
 .dark [data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)); }
 .dark [data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)); }
