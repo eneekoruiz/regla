@@ -485,18 +485,31 @@ export function HeroStatus({
                     isPeriodDay ? (
                       cycleDay === 1 ? (
                         <>
-                          <span>REGLA PREVISTA</span>
-                          <strong className="cycle-ring-day-number">{diffDays(parseDateKey(todayDate), parseDateKey(selectedDate))}</strong>
-                          <span>{diffDays(parseDateKey(todayDate), parseDateKey(selectedDate)) === 1 ? 'día' : 'días'}</span>
-                          <span className="cycle-ring-context">para que empiece</span>
+                          <span>PREVISIÓN</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Empieza hoy</strong>
+                          <span>tu regla</span>
+                          <span className="cycle-ring-context">prepara tus cosas</span>
+                        </>
+                      ) : remainingPeriodDays === 0 ? (
+                        <>
+                          <span>PREVISIÓN</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Último día</strong>
+                          <span>de regla</span>
+                          <span className="cycle-ring-context">¡ya casi estás!</span>
+                        </>
+                      ) : remainingPeriodDays === 1 ? (
+                        <>
+                          <span>PREVISIÓN</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Queda 1 día</strong>
+                          <span>con la regla</span>
+                          <span className="cycle-ring-context">ya falta muy poco</span>
                         </>
                       ) : (
                         <>
-                          <span>REGLA ESTIMADA</span>
-                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>
-                            {remainingPeriodDays === 0 ? 'Último día' : `Quedan ${remainingPeriodDays}`}
-                          </strong>
-                          <span>{remainingPeriodDays === 0 ? 'de regla' : remainingPeriodDays === 1 ? 'día de regla' : 'días de regla'}</span>
+                          <span>PREVISIÓN</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Quedan {remainingPeriodDays}</strong>
+                          <span>días con la regla</span>
+                          <span className="cycle-ring-context">ve a tu ritmo</span>
                         </>
                       )
                     ) : daysToNext === 1 ? (
@@ -521,13 +534,35 @@ export function HeroStatus({
                       </>
                     )
                   ) : isPeriodDay ? (
-                    <>
-                      <span>REGLA</span>
-                      <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>
-                        {remainingPeriodDays === 0 ? 'Último día' : `Quedan ${remainingPeriodDays}`}
-                      </strong>
-                      <span>{remainingPeriodDays === 0 ? 'de regla' : remainingPeriodDays === 1 ? 'día de regla' : 'días de regla'}</span>
-                    </>
+                    cycleDay === 1 ? (
+                      <>
+                        <span>REGLA</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Te baja hoy</strong>
+                        <span>la regla</span>
+                        <span className="cycle-ring-context">tómatelo con calma</span>
+                      </>
+                    ) : remainingPeriodDays === 0 ? (
+                      <>
+                        <span>REGLA</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Último día</strong>
+                        <span>de regla</span>
+                        <span className="cycle-ring-context">¡ya casi estás!</span>
+                      </>
+                    ) : remainingPeriodDays === 1 ? (
+                      <>
+                        <span>REGLA</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Queda 1 día</strong>
+                        <span>con la regla</span>
+                        <span className="cycle-ring-context">ya falta muy poco</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>REGLA</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Quedan {remainingPeriodDays}</strong>
+                        <span>días con la regla</span>
+                        <span className="cycle-ring-context">ve a tu ritmo</span>
+                      </>
+                    )
                   ) : awaitingPeriod ? (
                     <>
                       <span>ESPERANDO</span>

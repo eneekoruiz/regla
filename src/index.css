@@ -337,10 +337,12 @@
 
 /* Dial Protagonista (Primer Plano) */
 .cycle-ring.is-primary {
-  height: 100%;
-  max-height: 100%;
+  width: 100%;
+  max-width: clamp(240px, 70vw, 360px);
+  max-height: 50vh;
+  height: auto;
   aspect-ratio: 160 / 170;
-  width: auto;
+  margin: 0 auto;
   opacity: 1;
   z-index: 2;
   filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
@@ -348,9 +350,11 @@
 
 /* Dial en Segundo Plano */
 .cycle-ring.is-secondary {
-  height: 65%;
+  width: 100%;
+  max-width: clamp(120px, 30vw, 160px);
+  height: auto;
   aspect-ratio: 160 / 170;
-  width: auto;
+  margin: 0 auto;
   opacity: 0.72;
   z-index: 1;
   filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
