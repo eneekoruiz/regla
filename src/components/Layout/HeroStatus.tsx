@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles, RotateCcw } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import type { LoggedDay, PeriodFlow } from '../../types';
+import { calculateCycleStats } from '../../utils/cycleCalculations';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
@@ -111,9 +114,17 @@ export function HeroStatus({
     )
   );
 
-  // Handler para confirmar fin de regla en el día de hoy y recalcular
   const handleConfirmPeriodEndToday = () => {
     try { navigator.vibrate?.(20); } catch {}
+    
+    // Celebración visual de fin de regla (Wellness Premium Update)
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#b86e6e', '#f7ecec', '#fdfaf9', '#e3a6a6']
+    });
+
     if (isRecorded) {
       denyPeriodOnDate(todayDate);
     }

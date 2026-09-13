@@ -6,6 +6,7 @@
     font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     color-scheme: light;
     --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    --font-display: 'Playfair Display', serif;
     --bg-root: #fdfaf9; /* Warmer, softer background */
     --bg-card: #ffffff;
     --bg-card-inner: #f8f3f2; /* Soft blush gray */
@@ -23,42 +24,41 @@
     --accent: #b86e6e; /* Soft feminine rose */
     --accent-soft: #f7e6e6;
     --accent-on: #ffffff;
-    --rose: #cc546f;
-    --rose-soft: #fceef1;
-    --gold: #b37e22;
-    --gold-soft: #fbf5e6;
+    --rose: #b86e6e;
+    --rose-soft: #f7ecec;
+    --gold: #b45309;
+    --gold-soft: #fef3c7;
     --focus-ring: #e3a6a6;
     --shadow-soft: 0 8px 28px #4538380d;
-    --font-display: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
     --hero-surface: #fcf4f3; /* Delicate blush for the hero card */
     --phase-ink: #b86e6e;
   }
   .dark, html.theme-refugio {
     color-scheme: dark;
-    --bg-root: #1f1a1a;
-    --bg-card: #292222;
-    --bg-card-inner: #362c2c;
+    --bg-root: #23191d; /* Deep Plum instead of generic black */
+    --bg-card: #2e2227; /* Rich Plum */
+    --bg-card-inner: #3a2b32;
     --bg-pill-selected: #e3a6a6;
-    --bg-pill: #403434;
-    --bg-input-bar: #292222;
-    --bg-chip: #403434;
-    --border-card: #544545;
-    --border-subtle: #544545;
-    --text-primary: #faefef;
-    --text-secondary: #d6c6c6;
-    --text-tertiary: #b8a5a5;
-    --text-muted: #b8a5a5;
-    --accent: #adddca;
-    --accent-soft: #273e32;
-    --accent-on: #14271d;
-    --rose: #ffadc0;
-    --rose-soft: #472d36;
-    --gold: #e4c779;
-    --gold-soft: #3c3523;
-    --focus-ring: #adddca;
-    --shadow-soft: 0 8px 28px #00000020;
-    --hero-surface: #24372d;
-    --phase-ink: #adddca;
+    --bg-pill: #423038;
+    --bg-input-bar: #2e2227;
+    --bg-chip: #3a2b32;
+    --border-card: #45323a;
+    --border-subtle: #45323a;
+    --text-primary: #f0e6eb; /* Soft pearl pink/white */
+    --text-secondary: #c2b2b9;
+    --text-tertiary: #8f7f86;
+    --text-muted: #8f7f86;
+    --accent: #e3a6a6;
+    --accent-soft: #4a343b;
+    --accent-on: #1a1216;
+    --rose: #e3a6a6;
+    --rose-soft: #4a343b;
+    --gold: #fbbf24;
+    --gold-soft: #574116;
+    --focus-ring: #e3a6a6;
+    --shadow-soft: 0 8px 28px #00000030;
+    --hero-surface: #2e2227;
+    --phase-ink: #e3a6a6;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { min-width: 320px; scroll-behavior: smooth; height: 100%; overflow: hidden; }
@@ -1245,16 +1245,41 @@
 .dark [data-phase="ovulation"] { --phase-ink: #f0c390; }
 .dark [data-phase="luteal"] { --phase-ink: #dfb29e; }
 
-/* Mejora 3: hero-surface adapta su tono */
-[data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, #fceef1 60%, var(--hero-surface)); }
-[data-phase="follicular"] .cycle-summary { background: color-mix(in srgb, #f0f5f2 60%, var(--hero-surface)); }
-[data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, #fdf6ed 60%, var(--hero-surface)); }
-[data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, #fdf5f0 60%, var(--hero-surface)); }
-.dark [data-phase="menstrual"] .cycle-summary { background: color-mix(in srgb, var(--rose-soft) 55%, var(--hero-surface)); }
-.dark [data-phase="ovulation"] .cycle-summary { background: color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)); }
-.dark [data-phase="luteal"] .cycle-summary { background: color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)); }
-/* Mejora 4: tipografía serif en el número grande del anillo */
-.cycle-ring-label strong { font-family: var(--font-display); font-style: italic; }
+@keyframes meshBreathing {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+[data-phase] .cycle-summary {
+  background-size: 200% 200%;
+  animation: meshBreathing 14s ease-in-out infinite;
+  transition: background 1s ease;
+}
+
+/* Mejora 3: Ambient Phase Gradients */
+.cycle-summary[data-phase="menstrual"] { background: linear-gradient(135deg, color-mix(in srgb, #fceef1 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #f8d7df 40%, var(--hero-surface))); }
+.cycle-summary[data-phase="follicular"] { background: linear-gradient(135deg, color-mix(in srgb, #f0f5f2 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #d9ebe0 40%, var(--hero-surface))); }
+.cycle-summary[data-phase="ovulation"] { background: linear-gradient(135deg, color-mix(in srgb, #fdf6ed 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #fae3c5 40%, var(--hero-surface))); }
+.cycle-summary[data-phase="luteal"] { background: linear-gradient(135deg, color-mix(in srgb, #fcf4f9 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #f2e3ed 40%, var(--hero-surface))); }
+
+.dark .cycle-summary[data-phase="menstrual"] { background: linear-gradient(135deg, color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #4a1f2c 60%, var(--hero-surface))); }
+.dark .cycle-summary[data-phase="follicular"] { background: linear-gradient(135deg, color-mix(in srgb, #1a2e26 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #15261d 60%, var(--hero-surface))); }
+.dark .cycle-summary[data-phase="ovulation"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(100,140,255,0.05) 80%, var(--hero-surface))); }
+.dark .cycle-summary[data-phase="luteal"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(234, 88, 12, 0.05) 80%, var(--hero-surface))); }
+
+/* Mejora 4: tipografía editorial */
+.cycle-headline, .page-title, .cycle-ring-label strong, .date-heading { font-family: var(--font-display); font-weight: 600; }
+.cycle-ring-label strong { font-style: italic; font-weight: 500; letter-spacing: -0.5px; }
+
+@keyframes gentleBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.hero-prominent-ring {
+  animation: gentleBreathe 8s ease-in-out infinite;
+  will-change: transform;
+}
 .phase-chip.is-fertile { color: #b45309; background: #fef3c7; border-radius: 12px; }
 .dark .phase-chip.is-fertile { color: #fcd34d; background: rgba(245, 158, 11, 0.2); }
 .phase-chip.is-ovulation { color: #1e40af; background: #dbeafe; border-radius: 12px; }
