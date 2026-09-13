@@ -1,8 +1,9 @@
 # Aura · Ciclo menstrual
 
-[![Live Demo](https://img.shields.io/badge/Demo-regla--gray.vercel.app-0070f3?style=flat&logo=vercel&logoColor=white)](https://regla-gray.vercel.app)
+[![Live Demo](https://img.shields.io/badge/Demo-ayudandonos.vercel.app-0070f3?style=flat&logo=vercel&logoColor=white)](https://ayudandonos.vercel.app)
 
-> 🌐 **Despliegue en vivo:** [https://regla-gray.vercel.app](https://regla-gray.vercel.app)
+> 🌐 **Despliegue en vivo:** [https://ayudandonos.vercel.app](https://ayudandonos.vercel.app)
+
 
 Aura es una app React/Vite para registrar ciclo menstrual, síntomas, bienestar diario, biomarcadores, intimidad, medicación y exportaciones médicas. Está pensada como experiencia mobile-first con funcionamiento local y soporte opcional para API sincronizada.
 
