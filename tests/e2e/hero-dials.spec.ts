@@ -102,7 +102,8 @@ test.describe('Hero dials dynamic hierarchy and space usage', () => {
     const wheel = page.locator('.cycle-phase-wheel');
     const gota = page.locator('.cycle-ring.hero-prominent-ring:not(.cycle-phase-wheel)');
 
-    await expect(wheel).not.toBeVisible();
+    await expect(wheel).toBeVisible();
+    await expect(wheel).toHaveClass(/is-secondary/);
     await expect(gota).toBeVisible();
 
     // Gota should now be primary

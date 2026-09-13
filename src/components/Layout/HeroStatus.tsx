@@ -369,10 +369,10 @@ export function HeroStatus({
     return {
       kicker: 'FASE LÚTEA',
       kickerColor: '#8b5cf6',
-      number: daysToNext,
+      number: cycleDay,
       isText: false,
-      unit: daysToNext === 1 ? 'día' : 'días',
-      context: 'para la regla'
+      unit: 'día del',
+      context: 'ciclo'
     };
   })();
 
@@ -561,8 +561,7 @@ export function HeroStatus({
             </div>
 
             {/* Elemento 2: Círculo dividido para las fases del ciclo */}
-            {isFertilePriority && (
-              <div className={`cycle-ring-wrap wheel-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
+            <div className={`cycle-ring-wrap wheel-wrap ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}>
               <div
                 className={`cycle-ring cycle-phase-wheel hero-prominent-ring ${isFertilePriority ? 'is-primary' : 'is-secondary'}`}
                 role="button"
@@ -582,31 +581,28 @@ export function HeroStatus({
                   <circle
                     cx="80"
                     cy="98"
-                    r="58"
+                    r="64"
                     fill="none"
                     stroke="var(--border-subtle)"
-                    strokeWidth="10"
-                    strokeLinejoin="round"
+                    strokeWidth="2"
                   />
-
-                  {/* 4 cuadrantes correspondientes a cada fase del calendario */}
-                  {phaseQuadrants.map(q => (
+                  
+                  {/* Segmentos de colores para cada fase */}
+                  {phases.map(p => (
                     <path
-                      key={q.id}
-                      d={q.path}
+                      key={p.id}
+                      d={p.path}
                       fill="none"
-                      stroke={q.color}
-                      strokeWidth={q.active ? 10 : 6}
+                      stroke={p.color}
+                      strokeWidth={p.active ? 10 : 3}
                       strokeLinecap="round"
-                      opacity={q.active ? 1 : 0.22}
                       style={{
-                        transition: 'stroke-width 0.35s ease, opacity 0.35s ease'
+                        opacity: p.active ? 1 : 0.25,
+                        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
                     />
                   ))}
                 </svg>
-
-                {/* Texto central con la misma familia tipográfica que la gota */}
                 <span className="cycle-ring-label">
                   <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px', ...(wheelInfo.kickerColor ? { color: wheelInfo.kickerColor } : {}) }}>
                     {wheelInfo.kicker} <ChevronDown size={14} aria-hidden="true" style={{ opacity: 0.7, marginTop: '-2px' }} />
@@ -614,10 +610,9 @@ export function HeroStatus({
                   <strong className={`cycle-ring-day-number${wheelInfo.isText ? ' is-text' : ''}`}>{wheelInfo.number}</strong>
                   <span>{wheelInfo.unit}</span>
                   <span className="cycle-ring-context">{wheelInfo.context}</span>
-                  </span>
-                </div>
+                </span>
               </div>
-            )}
+            </div>
           </div>
         )}
 
