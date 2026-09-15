@@ -12,12 +12,14 @@ export function HeroStatus({
   onOpenLegend,
   onOpenDailyModal,
   onOpenRecoveryModal,
+  topContent,
   children
 }: {
   onRecordPeriod: () => void;
   onOpenLegend: () => void;
   onOpenDailyModal: () => void;
   onOpenRecoveryModal?: () => void;
+  topContent?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
@@ -394,8 +396,13 @@ export function HeroStatus({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="cycle-summary-motion"
-    >
-      <div className={`cycle-summary-top${showRing ? ' has-ring' : ' no-ring'}`}>
+      >
+        {topContent && (
+          <div className="hero-top-content" style={{ width: '100%', marginBottom: '12px' }}>
+            {topContent}
+          </div>
+        )}
+        <div className={`cycle-summary-top${showRing ? ' has-ring' : ' no-ring'}`}>
         {/* Si no hay anillos (ej. días pasados o sin ciclo), mostramos la cabecera estándar */}
         {!showRing && (
           <div className="cycle-summary-header">

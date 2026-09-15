@@ -274,9 +274,8 @@ function MainScreen() {
                 onOpenLegend={() => openModal('legend')}
                 onOpenDailyModal={() => openModal('daily')}
                 onOpenRecoveryModal={() => openModal('recovery')}
-              >
-                <div className="diary-record-inner">
-                  {isFuture ? (
+                topContent={
+                  isFuture ? (
                     <div className="future-forecast-container">
                       <div className="future-forecast-card" data-phase={currentDayInfo.phase}>
                         <div className="future-forecast-icon">
@@ -314,7 +313,7 @@ function MainScreen() {
                                 : currentDayInfo.isPeriod
                                   ? `Fecha prevista para tu siguiente regla según tu ciclo medio de ${cycleLength} días.`
                                   : currentDayInfo.phase === 'luteal'
-                                    ? `Predominio de progesterona. Faltarán ${daysToNext} días para el siguiente ciclo.`
+                                    ? 'La progesterona toma el control preparándote para el final del ciclo. Un momento natural de recogimiento.'
                                     : 'Aumento paulatino de estrógenos y maduración folicular tras la regla.'}
                           </p>
                           <span className="future-forecast-tip">
@@ -323,15 +322,20 @@ function MainScreen() {
                               : currentDayInfo.isPeriod
                                 ? 'Ten a mano tus productos menstruales habituales.'
                                 : currentDayInfo.phase === 'luteal'
-                                  ? 'Prioriza el descanso y la hidratación.'
-                                  : 'Suele acompañarse de mayor vitalidad y energía.'}
+                                  ? 'El cuerpo empieza a pedirte bajar el ritmo, escúchalo.'
+                                  : 'Aprovecha este aumento de energía, ideal para proyectos activos.'}
                           </span>
                         </div>
                       </div>
-                      <p className="future-day-note">
-                        Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
-                      </p>
                     </div>
+                  ) : null
+                }
+              >
+                <div className="diary-record-inner">
+                  {isFuture ? (
+                    <p className="future-day-note">
+                      Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
+                    </p>
                   ) : (
                     <div className="quick-log-grid">
                       <button
