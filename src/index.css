@@ -1166,6 +1166,12 @@
   .diary-grid { grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr); column-gap: 16px; }
   .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+@media (min-width: 861px) {
+  .workspace { overflow-y: hidden !important; }
+  .cycle-summary, .cycle-summary-visuals, .advice-card { min-height: 0 !important; }
+  .advice-card { overflow-y: auto; scrollbar-width: none; }
+  .advice-card::-webkit-scrollbar { display: none; }
+}
 @media (max-width: 860px) {
   .quick-log-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .diary-grid { display: flex; flex-direction: column; }
