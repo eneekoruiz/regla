@@ -304,8 +304,8 @@
   height: 100%;
   min-height: 280px;
   display: flex;
-  align-items: stretch;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 0;
   width: 100%;
   min-width: 0;
@@ -334,6 +334,7 @@
 
 .cycle-ring-wrap.is-secondary {
   order: 2;
+  margin-left: -35px;
 }
 
 /* Dial Protagonista (Primer Plano) */
@@ -1450,6 +1451,9 @@
     flex: 0 0 auto !important;
     width: auto !important;
   }
+  .cycle-ring-wrap.is-secondary {
+    margin-left: 0;
+  }
   
   .cycle-ring.is-primary .cycle-ring-label strong {
     font-size: clamp(52px, 14vw, 76px) !important;
@@ -1887,3 +1891,4 @@
 .dark .aura-button.primary {
   background: linear-gradient(135deg, #f0b9b9, var(--accent)) !important;
 }
+@media (max-width: 899px) { .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; } }
