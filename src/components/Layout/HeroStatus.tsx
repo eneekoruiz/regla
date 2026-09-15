@@ -474,7 +474,7 @@ export function HeroStatus({
                           : `Día ${cycleDay} del ciclo`
                 }
               >
-                <svg viewBox="0 0 160 170" aria-hidden="true" style={{ width: '100%', height: '100%', minWidth: isPeriodPriority ? '150px' : 'auto', minHeight: isPeriodPriority ? '160px' : 'auto', maxHeight: '280px' }}>
+                <svg viewBox="0 0 160 170" aria-hidden="true">
                   <path
                     d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                     fill="none"
@@ -637,7 +637,7 @@ export function HeroStatus({
                 title="Toca para ver la leyenda de fases del ciclo"
                 aria-label={`Rueda de 4 fases del ciclo. Fase activa: ${day.phase}. ${wheelInfo.kicker} ${wheelInfo.number} ${wheelInfo.unit}`}
               >
-                <svg viewBox="0 0 160 170" aria-hidden="true" style={{ width: '100%', height: '100%', minWidth: isFertilePriority ? '150px' : 'auto', minHeight: isFertilePriority ? '160px' : 'auto', maxHeight: '280px' }}>
+                <svg viewBox="0 0 160 170" aria-hidden="true">
                   {/* Pista circular guía idéntica a la gota */}
                   <circle
                     cx="80"

@@ -237,7 +237,7 @@
 .fertile-indicator { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; display: inline-block; }
 .ovulation-sparkle { font-size: 11px; line-height: 1; font-weight: 900; color: #3b82f6; }
 .dark .ovulation-sparkle { color: #93c5fd; }
-.today-pill-button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; }
+.today-pill-button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
@@ -323,35 +323,43 @@
 
 .cycle-ring-wrap.is-primary {
   order: 1;
+  width: clamp(230px, 30vw, 290px);
+  z-index: 2;
 }
 
 .cycle-ring-wrap.is-secondary {
   order: 2;
+  width: clamp(125px, 17vw, 155px);
   margin-left: -35px;
+  z-index: 1;
+}
+
+.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary {
+  display: none !important;
+}
+
+.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
+  width: clamp(250px, 32vw, 320px);
+  margin: 0 auto;
 }
 
 /* Dial Protagonista (Primer Plano) */
 .cycle-ring.is-primary {
   width: 100%;
-  max-width: clamp(240px, 70vw, 360px);
-  max-height: 50vh;
   height: auto;
   aspect-ratio: 160 / 170;
   margin: 0 auto;
   opacity: 1;
-  z-index: 2;
   filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
 }
 
 /* Dial en Segundo Plano */
 .cycle-ring.is-secondary {
   width: 100%;
-  max-width: clamp(120px, 30vw, 160px);
   height: auto;
   aspect-ratio: 160 / 170;
   margin: 0 auto;
   opacity: 0.72;
-  z-index: 1;
   filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--phase-ink) 12%, transparent));
 }
 
@@ -1449,12 +1457,16 @@
     margin: 0 auto !important;
     padding: 0 !important;
   }
-  .cycle-summary-top.has-ring .cycle-ring-wrap {
-    flex: 0 0 auto !important;
-    width: auto !important;
+  .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
+    width: clamp(170px, 48vw, 215px) !important;
   }
-  .cycle-ring-wrap.is-secondary {
-    margin-left: 0;
+  .cycle-summary-top.has-ring .cycle-ring-wrap.is-secondary {
+    width: clamp(105px, 30vw, 135px) !important;
+    margin-left: -24px !important;
+  }
+  .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
+    width: clamp(200px, 55vw, 260px) !important;
+    margin: 0 auto !important;
   }
   
   .cycle-ring.is-primary .cycle-ring-label strong {
@@ -1894,6 +1906,4 @@
 .dark .aura-button.primary {
   background: linear-gradient(135deg, #f0b9b9, var(--accent)) !important;
 }
-@media (max-width: 899px) { .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; } }
-/* Also hide the secondary wheel on desktop when single-ring is active */
-@media (min-width: 900px) { .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; } }
+.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; }
