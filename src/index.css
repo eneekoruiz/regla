@@ -255,9 +255,9 @@
 }
 .cycle-summary-top.no-ring {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
 }
 .cycle-summary-header {
   display: flex;

@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import type { LoggedDay, PeriodFlow } from '../../types';
-import { calculateCycleStats } from '../../utils/cycleCalculations';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
@@ -293,7 +291,7 @@ export function HeroStatus({
   const isFollicularActive = !day.isPeriod && !day.isFertileWindow && !day.isOvulationDay && day.phase === 'follicular';
   const isLutealActive = !day.isPeriod && !day.isFertileWindow && !day.isOvulationDay && day.phase === 'luteal';
 
-  const phaseQuadrants = [
+  const phases = [
     {
       id: 'menstrual',
       name: 'Regla',
