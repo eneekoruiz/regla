@@ -403,7 +403,7 @@ export function HeroStatus({
       className="cycle-summary-motion"
       >
         {topContent && (
-          <div className="hero-top-content" style={{ width: '100%', marginBottom: '12px' }}>
+          <div className="hero-top-content" style={{ width: '100%', marginBottom: '6px' }}>
             {topContent}
           </div>
         )}
@@ -511,28 +511,28 @@ export function HeroStatus({
                       isPeriodDay ? (
                         cycleDay === 1 ? (
                           <>
-                            <span>PREVISIÓN</span>
-                            <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(32px, 5vw, 40px)', fontStyle: 'normal' }}>Inicio</strong>
+                            <span>Previsión</span>
+                            <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4.5vw, 36px)', fontStyle: 'normal' }}>Inicio</strong>
                             <span>de regla</span>
                             <span className="cycle-ring-context">prepara tus cosas</span>
                           </>
                         ) : remainingPeriodDays === 0 ? (
                           <>
-                            <span>PREVISIÓN</span>
-                            <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Último</strong>
+                            <span>Previsión</span>
+                            <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(24px, 3.8vw, 32px)', fontStyle: 'normal' }}>Último</strong>
                             <span>día de regla</span>
                             <span className="cycle-ring-context">¡ya casi estás!</span>
                           </>
                         ) : remainingPeriodDays === 1 ? (
                           <>
-                            <span>QUEDA</span>
+                            <span>Queda</span>
                             <strong className="cycle-ring-day-number">1</strong>
                             <span>día de regla</span>
                             <span className="cycle-ring-context">ya falta muy poco</span>
                           </>
                         ) : (
                           <>
-                            <span>QUEDAN</span>
+                            <span>Quedan</span>
                             <strong className="cycle-ring-day-number">{remainingPeriodDays}</strong>
                             <span>días de regla</span>
                             <span className="cycle-ring-context">ve a tu ritmo</span>
@@ -540,21 +540,21 @@ export function HeroStatus({
                         )
                       ) : daysToNext === 1 ? (
                         <>
-                          <span>QUEDA</span>
+                          <span>Queda</span>
                           <strong className="cycle-ring-day-number">1</strong>
                           <span>día</span>
                           <span className="cycle-ring-context">para la regla</span>
                         </>
                       ) : daysToNext > 1 ? (
                         <>
-                          <span>QUEDAN</span>
+                          <span>Quedan</span>
                           <strong className="cycle-ring-day-number">{daysToNext}</strong>
                           <span>días</span>
                           <span className="cycle-ring-context">para la regla</span>
                         </>
                       ) : (
                         <>
-                          <span>DÍA</span>
+                          <span>Día</span>
                           <strong className="cycle-ring-day-number">{cycleDay}</strong>
                           <span>estimado</span>
                         </>
@@ -562,28 +562,28 @@ export function HeroStatus({
                     ) : isPeriodDay ? (
                       cycleDay === 1 ? (
                         <>
-                          <span>DÍA</span>
+                          <span>Día</span>
                           <strong className="cycle-ring-day-number">1</strong>
                           <span>de regla</span>
                           <span className="cycle-ring-context">tómatelo con calma</span>
                         </>
                       ) : remainingPeriodDays === 0 ? (
                         <>
-                          <span>HOY ES EL</span>
-                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontStyle: 'normal' }}>Último</strong>
+                          <span>Hoy es el</span>
+                          <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(24px, 3.8vw, 32px)', fontStyle: 'normal' }}>Último</strong>
                           <span>día de regla</span>
                           <span className="cycle-ring-context">¡ya casi estás!</span>
                         </>
                       ) : remainingPeriodDays === 1 ? (
                         <>
-                          <span>QUEDA</span>
+                          <span>Queda</span>
                           <strong className="cycle-ring-day-number">1</strong>
                           <span>día de regla</span>
                           <span className="cycle-ring-context">ya falta muy poco</span>
                         </>
                       ) : (
                         <>
-                          <span>QUEDAN</span>
+                          <span>Quedan</span>
                           <strong className="cycle-ring-day-number">{remainingPeriodDays}</strong>
                           <span>días de regla</span>
                           <span className="cycle-ring-context">ve a tu ritmo</span>
@@ -591,28 +591,28 @@ export function HeroStatus({
                       )
                     ) : awaitingPeriod ? (
                     <>
-                      <span>ESPERANDO</span>
+                      <span>Esperando</span>
                       <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
                       <span>días</span>
                       <span className="cycle-ring-context">de retraso</span>
                     </>
                   ) : daysToNext === 1 ? (
                     <>
-                      <span>QUEDA</span>
+                      <span>Queda</span>
                       <strong className="cycle-ring-day-number">1</strong>
                       <span>día</span>
                       <span className="cycle-ring-context">para la regla</span>
                     </>
                   ) : daysToNext > 1 ? (
                     <>
-                      <span>QUEDAN</span>
+                      <span>Quedan</span>
                       <strong className="cycle-ring-day-number">{daysToNext}</strong>
                       <span>días</span>
                       <span className="cycle-ring-context">para la regla</span>
                     </>
                   ) : (
                     <>
-                      <span>PREVISIÓN</span>
+                      <span>Previsión</span>
                       <strong className="cycle-ring-day-number is-text">Hoy</strong>
                       <span>de regla</span>
                     </>
@@ -677,10 +677,10 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* Acciones contextuales centradas debajo de los diales cuando son requeridas */}
-        {showRing && ((isToday && hasCycle && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4)) || isFuture) && (
+        {/* Acciones contextuales o cápsulas de resumen del ciclo debajo de los diales */}
+        {showRing && hasCycle && (
           <div className="cycle-summary-bottom-actions">
-            {isToday && hasCycle && (
+            {isToday && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4) ? (
               <div className="hero-quick-actions">
                 {isRecorded ? (
                   <>
@@ -776,9 +776,45 @@ export function HeroStatus({
                   </button>
                 ) : null}
               </div>
+            ) : (
+              <div className="hero-cycle-highlights" aria-label="Resumen del ciclo">
+                <div className="hero-highlight-chip">
+                  <span
+                    className="hero-chip-dot"
+                    style={{
+                      background: day.isPeriod
+                        ? '#c9636b'
+                        : day.isFertileWindow || day.isOvulationDay
+                          ? '#e5a93c'
+                          : day.phase === 'follicular'
+                            ? '#7da87d'
+                            : '#9d8189'
+                    }}
+                  />
+                  <span className="hero-chip-text">
+                    {day.isPeriod
+                      ? 'Fase menstrual'
+                      : day.isOvulationDay
+                        ? 'Día de ovulación'
+                        : day.isFertileWindow
+                          ? 'Ventana fértil'
+                          : day.phase === 'follicular'
+                            ? 'Fase folicular'
+                            : 'Fase lútea'}
+                  </span>
+                </div>
+                <div className="hero-highlight-chip">
+                  <span className="hero-chip-text">
+                    {cycleDay > 0 ? `Día ${cycleDay} de ${cycleLength}` : `Ciclo de ${cycleLength} días`}
+                  </span>
+                </div>
+                <div className="hero-highlight-chip">
+                  <span className="hero-chip-text">
+                    {daysToNext === 1 ? '1 día para la regla' : `${daysToNext} días para la regla`}
+                  </span>
+                </div>
+              </div>
             )}
-
-
           </div>
         )}
 
