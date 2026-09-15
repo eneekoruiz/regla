@@ -245,14 +245,13 @@
 .cycle-summary-motion { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; gap: 6px; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
-  flex: 1;
+  flex: 1 0 auto;
   height: auto;
-  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 0;
+  min-height: 250px;
 }
 .cycle-summary-top.no-ring {
   display: flex;
@@ -301,15 +300,15 @@
   line-height: 1.35;
 }
 .cycle-summary-visuals {
-  flex: 1;
+  flex: 1 0 auto;
   height: auto;
-  min-height: 280px;
+  min-height: 220px;
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: center;
   gap: 0;
   width: 100%;
-  min-width: 0;
   margin: 0;
   padding: 0;
 }
@@ -317,17 +316,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 1;
-  height: auto;
-  min-height: 0;
+  flex: 0 0 auto;
   max-height: 100%;
   transition: all 0.4s ease-in-out;
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: none !important;
 }
 
 .cycle-ring-wrap.is-primary {
@@ -1172,10 +1163,10 @@
   .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 861px) {
-  .workspace { overflow-y: hidden !important; }
-  .cycle-summary, .cycle-summary-visuals { min-height: 0 !important; }
-  .advice-card { min-height: 0 !important; overflow-y: auto; scrollbar-width: none; }
-  .advice-card::-webkit-scrollbar { display: none; }
+  /* Safe single-page: reduce min-heights slightly to avoid mini-scroll,
+     but keep them large enough so SVGs render properly */
+  .cycle-summary-visuals { min-height: 220px !important; }
+  .advice-card { min-height: 120px !important; }
 }
 @media (max-width: 860px) {
   .quick-log-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1480,16 +1471,17 @@
   }
   
   .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(20px, 5vw, 26px) !important;
+    font-size: clamp(24px, 6vw, 28px) !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 6px !important;
+    font-size: 10px !important;
+    margin-bottom: 2px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 7px !important;
+    font-size: 11px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 6px !important;
+    font-size: 9px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
