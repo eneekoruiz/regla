@@ -358,23 +358,28 @@ export function HeroStatus({
       };
     }
     if (day.isFertileWindow) {
+      // During fertile window, show days to ovulation peak (capped to make sense)
+      const daysToOvuLocal = daysToOvu > 0 && daysToOvu <= 7 ? daysToOvu : 1;
       return {
         kicker: 'VENTANA FÉRTIL',
         kickerColor: '#f59e0b',
-        number: daysToOvu > 0 ? daysToOvu : 1,
+        number: daysToOvuLocal,
         isText: false,
-        unit: daysToOvu === 1 ? 'día' : 'días',
-        context: 'ovulación estimada'
+        unit: daysToOvuLocal === 1 ? 'día' : 'días',
+        context: 'para ovulación'
       };
     }
     if (day.phase === 'follicular') {
+      // Show days to fertile window (ovulation - ~5 days for window start), capped sensibly
+      const daysToFertile = daysToOvu > 5 ? daysToOvu - 5 : daysToOvu;
+      const displayDays = daysToFertile > 0 && daysToFertile <= 20 ? daysToFertile : daysToOvu > 0 && daysToOvu <= 20 ? daysToOvu : cycleDay;
       return {
         kicker: 'FASE FOLICULAR',
         kickerColor: 'var(--accent)',
-        number: daysToOvu > 0 ? daysToOvu : '—',
+        number: displayDays > 0 ? displayDays : cycleDay,
         isText: false,
-        unit: daysToOvu === 1 ? 'día' : 'días',
-        context: 'ovulación estimada'
+        unit: daysToFertile > 0 && daysToFertile <= 20 ? (daysToFertile === 1 ? 'día' : 'días') : 'día del',
+        context: daysToFertile > 0 && daysToFertile <= 20 ? 'para ventana fértil' : 'ciclo'
       };
     }
     return {
@@ -433,8 +438,10 @@ export function HeroStatus({
         )}
 
         {/* Visuales: ÚNICAMENTE los dos instrumentos (Gota y Círculo) con jerarquía dinámica */}
+        {/* Cuando hay topContent (días futuros con nota de fase), ocultamos el círculo de fases
+            en luteal y periodo porque la información ya está arriba — solo mostramos la gota */}
         {showRing && (
-          <div className={`cycle-summary-visuals ${!isFertilePriority ? 'single-ring' : ''}`}>
+          <div className={`cycle-summary-visuals ${(!isFertilePriority || (topContent && (day.phase === 'luteal' || day.isPeriod))) ? 'single-ring' : ''}`}>
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
             <div className={`cycle-ring-wrap drop-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div

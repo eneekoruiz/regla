@@ -1900,3 +1900,5 @@
   background: linear-gradient(135deg, #f0b9b9, var(--accent)) !important;
 }
 @media (max-width: 899px) { .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; } }
+/* Also hide the secondary wheel on desktop when single-ring is active */
+@media (min-width: 900px) { .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; } }

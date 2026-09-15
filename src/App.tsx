@@ -163,6 +163,7 @@ function MainScreen() {
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const isFuture = selectedDate > todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
+  const periodLength = Math.max(1, Math.round(cycleStats.estimatedPeriodLength || settings.averagePeriodLength || 5));
   const cycleDay = currentDayInfo.dayOfCycle;
   const selectedMilestones = useMemo(() => {
     return calculateUpcomingMilestones(cycleStats, selectedDate);
@@ -294,36 +295,52 @@ function MainScreen() {
                             {currentDayInfo.isOvulationDay
                               ? 'Día de ovulación estimada'
                               : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
-                                ? 'Ventana de fertilidad estimada'
+                                ? 'Ventana de fertilidad'
                                 : currentDayInfo.isPeriod
-                                  ? 'Inicio estimado de menstruación'
+                                  ? currentDayInfo.dayOfCycle === 1
+                                    ? 'Se espera tu regla este día'
+                                    : `Día ${currentDayInfo.dayOfCycle} de regla estimado`
                                   : currentDayInfo.phase === 'luteal'
-                                    ? 'Fase lútea (post-ovulación)'
-                                    : 'Fase folicular en desarrollo'}
+                                    ? daysToNext <= 5
+                                      ? `Tu regla llega en ${daysToNext} ${daysToNext === 1 ? 'día' : 'días'}`
+                                      : 'Fase lútea (post-ovulación)'
+                                    : 'Fase folicular'}
                           </h3>
                           <p className="future-forecast-desc">
                             {currentDayInfo.isOvulationDay
-                              ? 'Día con mayor probabilidad de concepción del ciclo. El óvulo permanece viable entre 12 y 24 horas.'
+                              ? 'Máxima fertilidad del ciclo. El óvulo permanece viable entre 12 y 24 horas.'
                               : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
-                                ? daysToOvu > 1
-                                  ? `Días fértiles estimados. El pico de máxima ovulación se prevé en ${daysToOvu} días.`
-                                  : daysToOvu === 1
-                                    ? 'Víspera del pico de máxima ovulación estimada. Probabilidad de concepción muy alta.'
-                                    : 'Pico de máxima probabilidad de concepción.'
+                                ? 'Tu cuerpo se prepara para ovular. Fertilidad alta durante estos días.'
                                 : currentDayInfo.isPeriod
-                                  ? `Fecha prevista para tu siguiente regla según tu ciclo medio de ${cycleLength} días.`
+                                  ? currentDayInfo.dayOfCycle === 1
+                                    ? 'Primera fecha prevista de sangrado. Ten todo preparado.'
+                                    : currentDayInfo.dayOfCycle >= periodLength
+                                      ? '¡Último día previsto! Ya casi estás, ánimo.'
+                                      : currentDayInfo.dayOfCycle >= periodLength - 1
+                                        ? 'Ya falta muy poco. Aguanta, lo estás haciendo genial.'
+                                        : 'Cuídate, hidrátate y descansa lo que necesites.'
                                   : currentDayInfo.phase === 'luteal'
-                                    ? 'La progesterona toma el control preparándote para el final del ciclo. Un momento natural de recogimiento.'
-                                    : 'Aumento paulatino de estrógenos y maduración folicular tras la regla.'}
+                                    ? daysToNext <= 2
+                                      ? 'Tu regla está a la vuelta de la esquina. Asegúrate de tener tus productos listos.'
+                                      : daysToNext <= 5
+                                        ? 'Ve preparando tus productos menstruales. Es buen momento para tenerlo todo a mano.'
+                                        : daysToNext <= 8
+                                          ? 'La progesterona marca el ritmo. Es normal sentir cambios de ánimo o apetito.'
+                                          : 'Tu cuerpo se prepara para cerrar el ciclo. Un momento natural de recogimiento.'
+                                    : 'Aumento paulatino de estrógenos y maduración folicular. Te sentirás con más energía.'}
                           </p>
                           <span className="future-forecast-tip">
                             {currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
                               ? 'Etapa clave si buscas concebir o si quieres evitar embarazo.'
                               : currentDayInfo.isPeriod
-                                ? 'Ten a mano tus productos menstruales habituales.'
+                                ? currentDayInfo.dayOfCycle >= periodLength
+                                  ? '¡Ya casi! Mañana deberías sentirte mucho mejor.'
+                                  : 'Ve a tu ritmo, no te exijas de más.'
                                 : currentDayInfo.phase === 'luteal'
-                                  ? 'El cuerpo empieza a pedirte bajar el ritmo, escúchalo.'
-                                  : 'Aprovecha este aumento de energía, ideal para proyectos activos.'}
+                                  ? daysToNext <= 5
+                                    ? 'Tampones, compresas, copa… lo que uses, tenlo cerca.'
+                                    : 'Prioriza el descanso, la hidratación y la comida que te apetezca.'
+                                  : 'Aprovecha esta energía para lo que más te motive.'}
                           </span>
                         </div>
                       </div>
