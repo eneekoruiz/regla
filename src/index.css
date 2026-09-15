@@ -241,7 +241,7 @@
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
-.cycle-summary { position: relative; overflow: hidden; padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; }
+.cycle-summary { position: relative; overflow: hidden; padding: 12px 14px 10px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; transition: background 0.6s ease, box-shadow 0.6s ease; }
 .cycle-summary-motion { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; width: 100%; gap: 6px; }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
@@ -761,31 +761,32 @@
   padding: 0 10px;
 }
 
-/* 1. Kicker / Etiqueta de fase */
+/* 1. Kicker / Etiqueta de fase — editorial italic, not industrial caps */
 .cycle-ring-label span:first-child {
-  letter-spacing: 0.12em;
-  font-weight: 750;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  text-transform: none;
+  font-family: var(--font-display);
+  font-style: italic;
   font-size: 11px;
   line-height: 1.15;
-  margin-bottom: 2px;
-  opacity: 0.92;
+  opacity: 0.85;
   transition: font-size 0.3s ease;
 }
 .cycle-ring.is-primary .cycle-ring-label span:first-child {
-  font-size: 16px;
-  letter-spacing: 0.15em;
-  margin-bottom: 6px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
 }
 .cycle-ring.is-secondary .cycle-ring-label span:first-child {
   font-size: 9px;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.02em;
   margin-bottom: 1px;
 }
 
 /* 2. Número central serif en cursiva */
 .cycle-ring-label strong {
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-primary);
   line-height: 0.92;
   font-family: var(--font-display);
@@ -829,11 +830,11 @@
 /* 4. Contexto / Aclaración */
 .cycle-ring-context {
   font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-tertiary);
   opacity: 0.82;
-  line-height: 1.15;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 .cycle-ring.is-primary .cycle-ring-context {
   font-size: 16px;
@@ -847,15 +848,17 @@
 .period-registered-badge strong { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: block; }
 .period-registered-badge span { font-size: 12px; color: var(--text-secondary); }
 .future-forecast-container { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.future-forecast-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--bg-card) 80%, transparent); border: 1px solid var(--border-subtle); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02); }
+.future-forecast-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 8px 24px -4px rgba(184, 110, 110, 0.08); }
+.dark .future-forecast-card { background: rgba(46, 34, 39, 0.75); border: 1px solid rgba(255, 255, 255, 0.06); }
 .future-forecast-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--accent-soft); color: var(--accent); margin-top: 2px; }
-.future-forecast-card[data-phase="menstrual"] .future-forecast-icon { background: var(--rose-soft); color: var(--rose); }
-.future-forecast-card[data-phase="ovulation"] .future-forecast-icon { background: #dbeafe; color: #2563eb; }
-.future-forecast-card[data-phase="luteal"] .future-forecast-icon { background: #ede9fe; color: #7c3aed; }
+.future-forecast-card[data-phase="menstrual"] .future-forecast-icon { background: #fce8e9; color: #c9636b; }
+.future-forecast-card[data-phase="ovulation"] .future-forecast-icon { background: #fef3e2; color: #e5a93c; }
+.future-forecast-card[data-phase="luteal"] .future-forecast-icon { background: #f0eaec; color: #9d8189; }
+.future-forecast-card[data-phase="follicular"] .future-forecast-icon { background: #e8f0e8; color: #7da87d; }
 .future-forecast-content { flex: 1; min-width: 0; }
-.future-forecast-title { font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin: 0 0 2px; }
-.future-forecast-desc { font-size: 12.5px; line-height: 1.4; color: var(--text-secondary); margin: 0 0 4px; }
-.future-forecast-tip { display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--accent); }
+.future-forecast-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 3px; font-family: var(--font-sans); }
+.future-forecast-desc { font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); margin: 0 0 5px; }
+.future-forecast-tip { display: inline-block; font-size: 11.5px; font-weight: 500; font-style: italic; color: var(--accent); }
 .future-day-note { font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 0; padding-left: 2px; opacity: 0.85; }
 .future-day-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 12.5px; line-height: 1.45; margin-top: 8px; }
 .future-day-card p { margin: 0; }

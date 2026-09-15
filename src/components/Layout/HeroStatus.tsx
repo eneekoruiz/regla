@@ -297,28 +297,28 @@ export function HeroStatus({
     {
       id: 'menstrual',
       name: 'Regla',
-      color: 'var(--rose)',
+      color: '#c9636b',
       active: isMenstrualActive,
       path: 'M 22.32 91.94 A 58 58 0 0 1 73.94 40.32'
     },
     {
       id: 'follicular',
       name: 'Folicular',
-      color: 'var(--accent)',
+      color: '#7da87d',
       active: isFollicularActive,
       path: 'M 86.06 40.32 A 58 58 0 0 1 137.68 91.94'
     },
     {
       id: 'ovulation',
       name: 'Ventana fértil / Ovulación',
-      color: '#f59e0b',
+      color: '#e5a93c',
       active: isFertileOvulationActive,
       path: 'M 137.68 104.06 A 58 58 0 0 1 86.06 155.68'
     },
     {
       id: 'luteal',
       name: 'Fase Lútea',
-      color: '#8b5cf6',
+      color: '#9d8189',
       active: isLutealActive,
       path: 'M 73.94 155.68 A 58 58 0 0 1 22.32 104.06'
     }
@@ -339,8 +339,8 @@ export function HeroStatus({
   const wheelInfo = (() => {
     if (day.isPeriod || isPeriodDay) {
       return {
-        kicker: 'FASE MENSTRUAL',
-        kickerColor: 'var(--rose)',
+        kicker: 'Fase menstrual',
+        kickerColor: '#c9636b',
         number: daysToOvu > 0 ? daysToOvu : '—',
         isText: false,
         unit: 'días',
@@ -349,8 +349,8 @@ export function HeroStatus({
     }
     if (day.isOvulationDay || daysToOvu === 0) {
       return {
-        kicker: 'VENTANA FÉRTIL',
-        kickerColor: '#f59e0b',
+        kicker: 'Ventana fértil',
+        kickerColor: '#e5a93c',
         number: 'Hoy',
         isText: true,
         unit: 'pico fértil',
@@ -361,8 +361,8 @@ export function HeroStatus({
       // During fertile window, show days to ovulation peak (capped to make sense)
       const daysToOvuLocal = daysToOvu > 0 && daysToOvu <= 7 ? daysToOvu : 1;
       return {
-        kicker: 'VENTANA FÉRTIL',
-        kickerColor: '#f59e0b',
+        kicker: 'Ventana fértil',
+        kickerColor: '#e5a93c',
         number: daysToOvuLocal,
         isText: false,
         unit: daysToOvuLocal === 1 ? 'día' : 'días',
@@ -374,8 +374,8 @@ export function HeroStatus({
       const daysToFertile = daysToOvu > 5 ? daysToOvu - 5 : daysToOvu;
       const displayDays = daysToFertile > 0 && daysToFertile <= 20 ? daysToFertile : daysToOvu > 0 && daysToOvu <= 20 ? daysToOvu : cycleDay;
       return {
-        kicker: 'FASE FOLICULAR',
-        kickerColor: 'var(--accent)',
+        kicker: 'Fase folicular',
+        kickerColor: '#7da87d',
         number: displayDays > 0 ? displayDays : cycleDay,
         isText: false,
         unit: daysToFertile > 0 && daysToFertile <= 20 ? (daysToFertile === 1 ? 'día' : 'días') : 'día del',
@@ -383,8 +383,8 @@ export function HeroStatus({
       };
     }
     return {
-      kicker: 'FASE LÚTEA',
-      kickerColor: '#8b5cf6',
+      kicker: 'Fase lútea',
+      kickerColor: '#9d8189',
       number: cycleDay,
       isText: false,
       unit: 'día del',
@@ -479,28 +479,31 @@ export function HeroStatus({
                     d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                     fill="none"
                     stroke="var(--border-subtle)"
-                    strokeWidth="10"
+                    strokeWidth="6"
                     strokeLinejoin="round"
+                    style={{ opacity: 0.5 }}
                   />
                   <path
                     d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                     fill="none"
                     stroke={
                       hasCycle && daysToNext <= 5 && !day.isPeriod
-                        ? 'var(--rose)'
+                        ? '#c9636b'
                         : hasCycle && day.isOvulationDay
-                          ? '#2563eb'
+                          ? '#7da87d'
                           : hasCycle && day.isFertileWindow && !day.isPeriod
-                            ? '#d97706'
-                            : 'var(--phase-ink)'
+                            ? '#e5a93c'
+                            : hasCycle && day.phase === 'luteal'
+                              ? '#9d8189'
+                              : 'var(--phase-ink)'
                     }
-                    strokeWidth="10"
+                    strokeWidth="6"
                     strokeLinejoin="round"
                     strokeLinecap="round"
                     pathLength="100"
                     strokeDasharray="100"
                     strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
-                    style={{ transition: 'stroke 0.4s ease' }}
+                    style={{ transition: 'stroke 0.6s ease, stroke-dashoffset 0.6s ease' }}
                   />
                 </svg>
                 <span className="cycle-ring-label">
@@ -652,11 +655,11 @@ export function HeroStatus({
                       d={p.path}
                       fill="none"
                       stroke={p.color}
-                      strokeWidth={p.active ? 10 : 3}
+                      strokeWidth={p.active ? 6 : 2.5}
                       strokeLinecap="round"
                       style={{
-                        opacity: p.active ? 1 : 0.25,
-                        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        opacity: p.active ? 1 : 0.3,
+                        transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
                     />
                   ))}
