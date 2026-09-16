@@ -1,17 +1,14 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, Check, CircleAlert, ClipboardList, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, RotateCcw, Thermometer, Upload, UserRound, X } from 'lucide-react';
-import { DeviceHealthModal } from './components/Modals/DeviceHealthModal';
-import { ModalFrame } from './components/Modals/ModalFrame';
-import { SmartGreetingBottomSheet } from './components/Modals/SmartGreetingBottomSheet';
-import { CycleRecoveryBottomSheet } from './components/Modals/CycleRecoveryBottomSheet';
-import { detectCycleRecovery } from './services/predictiveEngine';
-import { useDailyGreeting } from './hooks/useDailyGreeting';
-import { SyncStatus } from './components/Layout/SyncStatus';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
+import { ToastProvider } from './context/ToastContext';
+import { useToast } from './context/toast';
+import { ToastContainer } from './components/UI/ToastContainer';
 import { CycleProvider } from './context/CycleContext';
 import { useCycle } from './hooks/useCycle';
+import { usePwaInstall } from './hooks/usePwaInstall';
 import { AuthScreens } from './components/Auth/AuthScreens';
 import { Header } from './components/Layout/Header';
 import type { AppView } from './components/Layout/Header';
@@ -26,68 +23,176 @@ import { HEALTH_QUIZZES } from './data/healthQuizzes';
 import { parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, getDataStorageKey, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
+import type { ChatQuizKey } from './services/aiAgent';
+import type { QuizAnswer } from './components/Chat/chatHistory';
+import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
+import { calculateUpcomingMilestones, detectCycleRecovery } from './services/predictiveEngine';
 
-const AppleMonthlyCalendar = lazy(() => import('./components/Calendar/AppleMonthlyCalendar').then(m => ({ default: m.AppleMonthlyCalendar })));
-const DailyLogBottomSheet = lazy(() => import('./components/Modals/DailyLogBottomSheet').then(m => ({ default: m.DailyLogBottomSheet })));
-const SettingsDrawer = lazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
-const ColorLegendModal = lazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
-const ChatDrawer = lazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
-const InteractiveQuizModal = lazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
-const ModularOnboardingModal = lazy(() => import('./components/Modals/ModularOnboardingModal').then(m => ({ default: m.ModularOnboardingModal })));
-const PeriodFlowModal = lazy(() => import('./components/Modals/PeriodFlowModal').then(m => ({ default: m.PeriodFlowModal })));
-const IntimacyModal = lazy(() => import('./components/Modals/IntimacyModal').then(m => ({ default: m.IntimacyModal })));
-const CycleAnalyticsModal = lazy(() => import('./components/Modals/CycleAnalyticsModal').then(m => ({ default: m.CycleAnalyticsModal })));
-const SymptothermalModal = lazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
-const MedicationTrackerModal = lazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
-const CycleSyncingModal = lazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
-const UniversalImportModal = lazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
-const MedicalExportModal = lazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
-const PwaInstallModal = lazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
 
-type ModalName = 'device' | 'calendar' | 'tools' | 'history' | 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install';
+import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
+import { DailyLogBottomSheet } from './components/Modals/DailyLogBottomSheet';
+import { IntimacyModal } from './components/Modals/IntimacyModal';
+
+import { AppleMonthlyCalendar } from './components/Calendar/AppleMonthlyCalendar';
+
+function resilientLazy<T extends React.ComponentType<any>>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (error) {
+      const key = 'aura_chunk_reload_attempt';
+      const lastReload = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
+      if (!lastReload || Date.now() - Number(lastReload) > 10000) {
+        try { sessionStorage.setItem(key, String(Date.now())); } catch {}
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+}
+
+const SettingsDrawer = resilientLazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsDrawer })));
+const SettingsSection = resilientLazy(() => import('./components/Settings/SettingsDrawer').then(m => ({ default: m.SettingsSection })));
+const ColorLegendModal = resilientLazy(() => import('./components/Modals/ColorLegendModal').then(m => ({ default: m.ColorLegendModal })));
+const ChatDrawer = resilientLazy(() => import('./components/Chat/ChatDrawer').then(m => ({ default: m.ChatDrawer })));
+const InteractiveQuizModal = resilientLazy(() => import('./components/Modals/InteractiveQuizModal').then(m => ({ default: m.InteractiveQuizModal })));
+const ModularOnboardingModal = resilientLazy(() => import('./components/Modals/ModularOnboardingModal').then(m => ({ default: m.ModularOnboardingModal })));
+const CycleAnalyticsModal = resilientLazy(() => import('./components/Modals/CycleAnalyticsModal').then(m => ({ default: m.CycleAnalyticsModal })));
+const SymptothermalModal = resilientLazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
+const MedicationTrackerModal = resilientLazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
+const CycleSyncingModal = resilientLazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
+const UniversalImportModal = resilientLazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
+const MedicalExportModal = resilientLazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
+const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
+const PastCycleRecoveryModal = resilientLazy(() => import('./components/Modals/PastCycleRecoveryModal').then(m => ({ default: m.PastCycleRecoveryModal })));
+const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals/CycleRecoveryBottomSheet').then(m => ({ default: m.CycleRecoveryBottomSheet })));
+
+type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
-function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, cycleStats, recoverPeriod, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult } = useCycle();
-  const view = 'diary';
-  const [modal, setModal] = useState<ModalName | null>(null);
-  const [recoveryDismissed, setRecoveryDismissed] = useState('');
-  let recoveryKey = `regla_catchup_${todayDate}`;
-  let recoveryStored = false;
-  try { recoveryKey = getDataStorageKey(recoveryKey); recoveryStored = localStorage.getItem(recoveryKey) === 'true'; } catch { /* In-memory dismissal remains available. */ }
-  const recovery = !recoveryStored && recoveryDismissed !== recoveryKey ? detectCycleRecovery(cycleStats, todayDate) : null;
-  const skipRecovery = () => {
-    setRecoveryDismissed(recoveryKey);
-    try { localStorage.setItem(recoveryKey, 'true'); } catch { /* Skipping never changes health records. */ }
-  };
 
+function MainScreen() {
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, upcomingMilestones, recoverPeriod } = useCycle();
+  const { installed, canPrompt, isIos, install } = usePwaInstall();
+  const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    try {
+      return !sessionStorage.getItem('aura_dismiss_install_banner');
+    } catch {
+      return true;
+    }
+  });
+  const [view, setView] = useState<AppView>('diary');
+  const [modal, setModal] = useState<ModalName | null>(null);
+  const [online, setOnline] = useState(() => navigator.onLine);
   const [storageFailed, setStorageFailed] = useState(() => hasReportedStorageError());
   const [chatMessage, setChatMessage] = useState<string | null>(null);
+  const [chatQuizKey, setChatQuizKey] = useState<ChatQuizKey | null>(null);
+  const [completedQuizFeedback, setCompletedQuizFeedback] = useState<{ quizKey: ChatQuizKey; answers: Record<string, QuizAnswer> } | null>(null);
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
+  const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
+  const [hasAutoOpenedDaily, setHasAutoOpenedDaily] = useState(false);
+  const [recoveryDismissed, setRecoveryDismissed] = useState(false);
+  const recoveryKey = getDataStorageKey(`regla_catchup_${todayDate}`);
+  const recovery = recoveryDismissed || (typeof localStorage !== 'undefined' && localStorage.getItem(recoveryKey) === 'true')
+    ? null
+    : detectCycleRecovery(cycleStats, todayDate);
+
   useEffect(() => {
-
-    const storageError = () => setStorageFailed(true);
-
-
+    if (!hasAutoOpenedDaily && !recovery && view === 'diary' && todayDate) {
+      const todayLog = logs[todayDate];
+      const hasLoggedToday = Boolean(
+        todayLog?.isPeriod ||
+        todayLog?.isIrregularBleeding ||
+        (todayLog?.symptoms && todayLog.symptoms.length > 0) ||
+        todayLog?.notes ||
+        todayLog?.bbt ||
+        (todayLog?.intimacyLog && todayLog.intimacyLog.activity !== 'none')
+      );
+      if (!hasLoggedToday) {
+        const timer = setTimeout(() => {
+          setModal('daily');
+        }, 350);
+        setHasAutoOpenedDaily(true);
+        return () => clearTimeout(timer);
+      }
+      setHasAutoOpenedDaily(true);
+    }
+  }, [hasAutoOpenedDaily, recovery, view, logs, todayDate]);
+  useEffect(() => {
+    if (recovery && view === 'diary' && modal === null) setModal('recovery');
+  }, [modal, recovery, view]);
+  const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
+  const toast = useToast();
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    const storageError = () => {
+      setStorageFailed(true);
+      toast.error('Atención: El almacenamiento local ha fallado. Comprueba el espacio de tu navegador.');
+    };
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
     window.addEventListener('aura:storage-error', storageError);
-    return () => { window.removeEventListener('aura:storage-error', storageError); };
-  }, []);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); window.removeEventListener('aura:storage-error', storageError); };
+  }, [toast]);
   const openModal = (next: ModalName) => { setIsSettingsOpen(false); setModal(next); };
   const closeModal = () => setModal(null);
+  const dismissRecovery = () => {
+    setRecoveryDismissed(true);
+    try { localStorage.setItem(recoveryKey, 'true'); } catch { /* Dismissal remains local to this session. */ }
+    closeModal();
+  };
+  const confirmRecovery = (start: string, end: string) => {
+    recoverPeriod(start, end);
+    dismissRecovery();
+  };
+  const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
   const openChat = (message?: string) => { setChatMessage(message || null); openModal('chat'); };
+  const openChatWithQuiz = (quizKey: ChatQuizKey) => { setChatQuizKey(quizKey); openModal('chat'); };
+  const openChatWithCompletedQuiz = (quizKey: ChatQuizKey, answers: Record<string, QuizAnswer>) => { setCompletedQuizFeedback({ quizKey, answers }); openModal('chat'); };
   const openCare = (phase?: CyclePhase) => { setCarePhase(phase || currentDayInfo.phase); openModal('care'); };
-  const changeView = (next: AppView) => { if (next === 'diary') closeModal(); else openModal(next); };
-  const greeting = useDailyGreeting(todayDate, Boolean(logs[todayDate]), modal !== null || isSettingsOpen || Boolean(recovery));
+  const handleInstall = async () => {
+    if (canPrompt && !installed) {
+      try {
+        await install();
+        return;
+      } catch {
+        // Fallback to guided modal
+      }
+    }
+    openModal('install');
+  };
+  const changeView = (next: AppView) => { setView(next); window.scrollTo({ top: 0, behavior: 'instant' }); requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true })); };
   const log = logs[selectedDate];
   const healthAdvice = log?.flow === 'very_heavy' && selectedDate === todayDate ? generateDailyWellnessAdvice({ ...currentDayInfo, date: selectedDate, flow: log.flow }) : null;
-  const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding || log?.flow);
+  const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
-  const hasEntries = Boolean(log && (hasPeriod || hasIntimacy || log.symptoms.length || log.notes || log.bbt !== undefined || log.medications?.length || log.quizResults?.length));
+  const allQuizResults = useMemo(() => {
+    const list: QuizResult[] = [];
+    for (const l of Object.values(logs)) {
+      if (l.quizResults && l.quizResults.length > 0) {
+        list.push(...l.quizResults);
+      }
+    }
+    return list.sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
+  }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  const isFuture = selectedDate > todayDate;
+  const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
+  const periodLength = Math.max(1, Math.round(cycleStats.estimatedPeriodLength || settings.averagePeriodLength || 5));
+  const cycleDay = currentDayInfo.dayOfCycle;
+  const selectedMilestones = useMemo(() => {
+    return calculateUpcomingMilestones(cycleStats, selectedDate);
+  }, [cycleStats, selectedDate]);
+  const daysNext = selectedMilestones.daysUntilNextPeriod;
+  const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(0, cycleLength - cycleDay + 1);
+  const daysToOvu = selectedMilestones.daysUntilNextOvulation;
+  const isApproachingPeriod = (typeof daysNext === 'number' && daysNext <= 10) || (!daysNext && daysToNext <= 10) || hasPeriod;
+  const hasMedications = Boolean(log?.medications?.some(m => m.taken));
+  const hasIrregularBleeding = Boolean(log?.isIrregularBleeding);
   const tools = [
-    { id: 'device' as const, name: 'Salud y widgets', description: 'Apple Salud, Health Connect e inicio', icon: Heart },
     { id: 'analytics' as const, name: 'Tendencias del ciclo', description: 'Historial, duración y variaciones', icon: BarChart3 },
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
     { id: 'medication' as const, name: 'Medicación', description: 'Tomas, dosis y suplementos', icon: Pill },
@@ -99,50 +204,372 @@ function MainScreen() {
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onInstall={() => openModal('install')}/>
-    <main className="workspace studio-workspace" id="main-content" tabIndex={-1}>
-      <div className="workspace-inner studio-canvas">
+    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onOpenProfile={() => openModal('profile')} onInstall={handleInstall} online={online}/>
+    <main className="workspace" id="main-content" tabIndex={-1}>
+      <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
-        <div className="studio-topline"><div><h1 className="page-title">Mi diario</h1><p className="page-subtitle">{settings.userName ? settings.userName + ', un' : 'Un'} momento para escucharte.</p></div><SyncStatus/></div>
-        <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
-          {selectedDate !== todayDate && <button type="button" className="aura-icon-button" aria-label="Volver a hoy" onClick={() => setSelectedDate(todayDate)}><RotateCcw size={16}/></button>}
+        {!installed && isMobile && showInstallBanner && (
+          <aside className="install-banner" aria-label="Instalar aplicación">
+            <div className="install-banner-content">
+              <div className="install-banner-icon">
+                <Download size={20} aria-hidden="true" />
+              </div>
+              <div className="install-banner-text">
+                <strong>Instala Aura en tu {isIos ? 'iPhone' : 'móvil'}</strong>
+                <span>{isIos ? 'Añade la app a tu pantalla de inicio en 3 pasos rápidos.' : 'Instalación directa con un toque para acceder a tu diario.'}</span>
+              </div>
+            </div>
+            <div className="install-banner-actions">
+              <button
+                type="button"
+                className="aura-button primary sm"
+                onClick={handleInstall}
+              >
+                <Download size={15} aria-hidden="true" />
+                Instalar
+              </button>
+              <button
+                type="button"
+                className="aura-icon-button sm"
+                aria-label="Cerrar aviso de instalación"
+                onClick={() => {
+                  setShowInstallBanner(false);
+                  try { sessionStorage.setItem('aura_dismiss_install_banner', 'true'); } catch {}
+                }}
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+          </aside>
+        )}
+        <div className="page-topline">
+          <div>
+            <h1 className="page-title">
+              {view === 'diary' ? 'Mi diario' : view === 'calendar' ? 'Calendario' : view === 'tools' ? 'Herramientas' : 'Ajustes'}
+            </h1>
+            <p className="page-subtitle">
+              {view === 'diary'
+                ? (settings.userName ? `¡Hola, ${settings.userName}!` : 'Tu espacio de salud y bienestar.')
+                : view === 'calendar'
+                  ? 'Tus registros y las fechas que vienen.'
+                  : view === 'tools'
+                    ? 'Todo lo que necesitas para cuidar de ti.'
+                    : 'Personaliza tu ciclo, avisos y privacidad.'}
+            </p>
+          </div>
+          <span className="connection-status" role="status">
+            {online ? <CheckCircle2 size={15} aria-hidden="true" style={{ color: 'var(--accent)' }}/> : <WifiOff size={15} aria-hidden="true" style={{ color: 'var(--rose)' }}/>}
+            <span>{online ? 'Conectado' : 'Sin conexión'}</span>
+          </span>
+        </div>
+        {!online && (
+          <div className="mobile-connection-status" role="status">
+            <WifiOff size={14} aria-hidden="true" />
+            <span>Sin conexión</span>
+          </div>
+        )}
+        {view === 'diary' && <div className="date-toolbar"><p className="date-heading">{dateLabel}</p><div className="date-toolbar-actions">
+          {selectedDate !== todayDate && (
+            <button
+              type="button"
+              className="aura-button sm today-pill-button"
+              title="Volver a hoy"
+              aria-label="Volver a hoy"
+              onClick={() => setSelectedDate(todayDate)}
+            >
+              <RotateCcw size={14} aria-hidden="true"/>
+              <span>Hoy</span>
+            </button>
+          )}
           <input className="date-picker" type="date" aria-label="Fecha del registro" value={selectedDate} onChange={event => { if (/^\d{4}-\d{2}-\d{2}$/.test(event.target.value)) setSelectedDate(event.target.value); }}/>
-        </div></div>
-        <HorizontalTimeline/>
-        {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
-        <HeroStatus onRecordPeriod={() => openModal('period')} onOpenLegend={() => openModal('legend')}/>
-        <section className="daily-actions" aria-label="Registro rápido">
-          <button type="button" className="quick-log period" aria-pressed={hasPeriod} onClick={() => openModal('period')}><Droplets size={19}/><span>{hasPeriod ? 'Editar regla' : 'Registrar regla'}</span></button>
-          <button type="button" className="quick-log" aria-pressed={Boolean(log?.symptoms.length)} onClick={() => openModal('daily')}><NotebookPen size={19}/><span>Síntomas y notas</span></button>
-          <button type="button" className="quick-log" aria-pressed={hasIntimacy} onClick={() => openModal('intimacy')}><Heart size={19}/><span>Intimidad</span></button>
-        </section>
-        <div className="daily-status">{hasEntries ? <button type="button" className="text-action" onClick={() => openModal('history')}><Check size={14}/>Tu registro está guardado<ArrowRight size={14}/></button> : <span>Lo que sientas, cuando quieras.</span>}</div>
-        <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-        <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Tu Confidente</strong><small>Un espacio para hablar de cómo estás</small></span><ArrowRight size={18}/></button>
-        {!(settings.completedOnboardingCategories?.length) && <button type="button" className="profile-invitation text-action" onClick={() => openModal('profile')}>Haz Aura un poco más tuya <span>Perfil opcional</span><ArrowRight size={14}/></button>}
+        </div></div>}
+        {view === 'diary' && <HorizontalTimeline/>}
+        {view === 'diary' && <>
+          {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
+          <div className="diary-grid">
+            <div className="diary-primary">
+              <HeroStatus
+                onRecordPeriod={() => openBleedingModal('period')}
+                onOpenLegend={() => openModal('legend')}
+                onOpenDailyModal={() => openModal('daily')}
+                onOpenRecoveryModal={() => openModal('recovery')}
+                topContent={
+                  isFuture ? (
+                    <div className="future-forecast-container">
+                      <div className="future-forecast-card" data-phase={currentDayInfo.phase}>
+                        <div className="future-forecast-icon">
+                          {currentDayInfo.isOvulationDay || (currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod) ? (
+                            <Sparkles size={18} aria-hidden="true" />
+                          ) : currentDayInfo.isPeriod ? (
+                            <Droplets size={18} aria-hidden="true" />
+                          ) : currentDayInfo.phase === 'luteal' ? (
+                            <Clock size={18} aria-hidden="true" />
+                          ) : (
+                            <Leaf size={18} aria-hidden="true" />
+                          )}
+                        </div>
+                        <div className="future-forecast-content">
+                          <h3 className="future-forecast-title">
+                            {currentDayInfo.isOvulationDay
+                              ? 'Día de ovulación estimada'
+                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                                ? 'Ventana de fertilidad'
+                                : currentDayInfo.isPeriod
+                                  ? currentDayInfo.dayOfCycle === 1
+                                    ? 'Se espera tu regla este día'
+                                    : `Día ${currentDayInfo.dayOfCycle} de regla estimado`
+                                  : currentDayInfo.phase === 'luteal'
+                                    ? daysToNext <= 5
+                                      ? `Tu regla llega en ${daysToNext} ${daysToNext === 1 ? 'día' : 'días'}`
+                                      : 'Fase lútea (post-ovulación)'
+                                    : 'Fase folicular'}
+                          </h3>
+                          <p className="future-forecast-desc">
+                            {currentDayInfo.isOvulationDay
+                              ? 'Máxima fertilidad del ciclo. El óvulo permanece viable entre 12 y 24 horas.'
+                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                                ? 'Tu cuerpo se prepara para ovular. Fertilidad alta durante estos días.'
+                                : currentDayInfo.isPeriod
+                                  ? currentDayInfo.dayOfCycle === 1
+                                    ? 'Primera fecha prevista de sangrado. Ten todo preparado.'
+                                    : currentDayInfo.dayOfCycle >= periodLength
+                                      ? '¡Último día previsto! Ya casi estás, ánimo.'
+                                      : currentDayInfo.dayOfCycle >= periodLength - 1
+                                        ? 'Ya falta muy poco. Aguanta, lo estás haciendo genial.'
+                                        : 'Cuídate, hidrátate y descansa lo que necesites.'
+                                  : currentDayInfo.phase === 'luteal'
+                                    ? daysToNext <= 2
+                                      ? 'Tu regla está a la vuelta de la esquina. Asegúrate de tener tus productos listos.'
+                                      : daysToNext <= 5
+                                        ? 'Ve preparando tus productos menstruales. Es buen momento para tenerlo todo a mano.'
+                                        : daysToNext <= 8
+                                          ? 'La progesterona marca el ritmo. Es normal sentir cambios de ánimo o apetito.'
+                                          : 'Tu cuerpo se prepara para cerrar el ciclo. Un momento natural de recogimiento.'
+                                    : 'Aumento paulatino de estrógenos y maduración folicular. Te sentirás con más energía.'}
+                          </p>
+                          <span className="future-forecast-tip">
+                            {currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
+                              ? 'Etapa clave si buscas concebir o si quieres evitar embarazo.'
+                              : currentDayInfo.isPeriod
+                                ? currentDayInfo.dayOfCycle >= periodLength
+                                  ? '¡Ya casi! Mañana deberías sentirte mucho mejor.'
+                                  : 'Ve a tu ritmo, no te exijas de más.'
+                                : currentDayInfo.phase === 'luteal'
+                                  ? daysToNext <= 5
+                                    ? 'Tampones, compresas, copa… lo que uses, tenlo cerca.'
+                                    : 'Prioriza el descanso, la hidratación y la comida que te apetezca.'
+                                  : 'Aprovecha esta energía para lo que más te motive.'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null
+                }
+              >
+                <div className="diary-record-inner">
+                  {isFuture ? (
+                    <p className="future-day-note">
+                      Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
+                    </p>
+                  ) : (
+                    <div className="quick-log-grid">
+                      <button
+                        type="button"
+                        className="quick-log period"
+                        aria-pressed={hasPeriod || hasIrregularBleeding}
+                        onClick={() => openModal('daily')}
+                        title="Registro de sangrado (normal, irregular o sin sangrado)"
+                      >
+                        <Droplets size={18}/>
+                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado registrado' : 'Registro de sangrado'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={Boolean(log?.symptoms.length || log?.notes)}
+                        onClick={() => openModal('daily')}
+                        title="Síntomas y notas"
+                      >
+                        <NotebookPen size={18}/>
+                        <span>Síntomas y notas</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={hasIntimacy}
+                        onClick={() => openModal('intimacy')}
+                        title="Intimidad"
+                      >
+                        <Heart size={18}/>
+                        <span>Intimidad</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="quick-log"
+                        aria-pressed={hasMedications}
+                        onClick={() => openModal('medication')}
+                        title="Pastillas y tomas"
+                      >
+                        <Pill size={18}/>
+                        <span>Pastillas</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </HeroStatus>
+              <BiomarkersCard/>
+            </div>
+            <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
+              <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
+              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
+            </aside>
+          </div>
+        </>}
 
+        <ErrorBoundary fallbackTitle="No pudimos cargar esta sección" onReset={() => setView('diary')}>
+          {view === 'calendar' && (
+            <section className="calendar-workspace" aria-label="Calendario del ciclo">
+              <AppleMonthlyCalendar
+                onSelectDate={date => { setSelectedDate(date); openModal('daily'); }}
+                onOpenLegendModal={() => openModal('legend')}
+                onOpenCycleSyncing={openCare}
+              />
+            </section>
+          )}
+          {view === 'tools' && (
+            <div className="tools-workspace">
+              {[
+                {
+                  title: 'Conoce tu ciclo',
+                  description: 'Observa tus patrones y entiende tus registros.',
+                  ids: ['medication', 'symptothermal', 'legend']
+                },
+                {
+                  title: 'Cuídate a tu manera',
+                  description: 'Un poco de apoyo para tu día a día.',
+                  ids: ['analytics', 'care', 'chat']
+                }
+              ].map(group => {
+                const isOpen = openToolGroup === group.title;
+                return (
+                  <section className={`tool-group ${isOpen ? 'is-open' : ''}`} key={group.title} aria-label={group.title}>
+                    <button type="button" className="tool-group-heading" onClick={() => setOpenToolGroup(isOpen ? '' : group.title)} aria-expanded={isOpen}>
+                      <div className="tool-group-heading-text">
+                        <h2>{group.title}</h2>
+                        <p>{group.description}</p>
+                      </div>
+                      <ChevronDown className="tool-group-icon" size={20} />
+                    </button>
+                    {isOpen && (
+                      <div className="tool-group-content">
+                        <div className="tool-grid">
+                          {group.ids
+                            .map(id => tools.find(tool => tool.id === id))
+                            .filter((tool): tool is (typeof tools)[number] => Boolean(tool))
+                            .map(tool => (
+                              <button
+                                type="button"
+                                key={tool.id}
+                                className="tool-card"
+                                onClick={() =>
+                                  tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)
+                                }
+                              >
+                                <div className="tool-card-top">
+                                  <div className="tool-card-icon">
+                                    <tool.icon size={20} aria-hidden="true" />
+                                  </div>
+                                  <ArrowRight className="tool-arrow" size={17} aria-hidden="true" />
+                                </div>
+                                <div className="tool-card-body">
+                                  <strong>{tool.name}</strong>
+                                  <span>{tool.description}</span>
+                                </div>
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+
+              {(() => {
+                const title = 'Cuestionarios de bienestar';
+                const isOpen = openToolGroup === title;
+                return (
+                  <section className={`tool-group ${isOpen ? 'is-open' : ''}`} aria-label={title}>
+                    <button type="button" className="tool-group-heading" onClick={() => setOpenToolGroup(isOpen ? '' : title)} aria-expanded={isOpen}>
+                      <div className="tool-group-heading-text">
+                        <h2>{title}</h2>
+                        <p>Chequeos interactivos guiados por Confidente con feedback y recomendaciones.</p>
+                      </div>
+                      <ChevronDown className="tool-group-icon" size={20} />
+                    </button>
+                    {isOpen && (
+                      <div className="tool-group-content">
+                        <div className="quiz-grid">
+                          {Object.values(HEALTH_QUIZZES).map(quiz => {
+                            if (!quiz || !quiz.id) return null;
+                            const questionsCount = quiz.questions?.length ?? 0;
+                            const quizKey = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === quiz.id) || 'stress';
+                            return (
+                              <button
+                                type="button"
+                                key={quiz.id}
+                                className="quiz-card"
+                                data-quiz={quiz.id}
+                                onClick={() => openChatWithQuiz(quizKey)}
+                              >
+                                <div className="quiz-card-cover">
+                                  <span className="quiz-card-emoji" role="img" aria-label={quiz.title}>{quiz.iconEmoji || '📋'}</span>
+                                  <span className="quiz-card-time">{quiz.estimatedTime}</span>
+                                </div>
+                                <div className="quiz-card-body">
+                                  <div className="quiz-card-main">
+                                    <strong className="quiz-card-title">{quiz.title}</strong>
+                                    <span className="quiz-card-subtitle">{questionsCount} preguntas</span>
+                                  </div>
+                                  <div className="quiz-card-action">
+                                    <span>Comenzar</span>
+                                    <ArrowRight size={14} aria-hidden="true" />
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {allQuizResults.length > 0 && (
+                          <div className="mt-6 border-t border-[var(--border-subtle)] pt-4">
+                            <QuizHistory results={allQuizResults} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                );
+              })()}
+            </div>
+          )}
+          {view === 'settings' && (
+            <div className="settings-workspace max-w-2xl mx-auto py-1">
+              <Suspense fallback={<Loading/>}>
+                <SettingsSection onOpenModularProfile={() => openModal('profile')} />
+              </Suspense>
+            </div>
+          )}
+        </ErrorBoundary>
       </div>
     </main>
     <Suspense fallback={<Loading/>}>
-      {recovery && modal === null && !isSettingsOpen && <CycleRecoveryBottomSheet key={recovery.anchor} recovery={recovery} today={todayDate} onConfirm={recoverPeriod} onSkip={skipRecovery}/>}
-      {greeting.isOpen && <SmartGreetingBottomSheet isOpen onClose={greeting.dismiss} onOpenFull={() => { greeting.dismiss(); openModal('daily'); }}/>}
-      {modal === 'calendar' && <ModalFrame isOpen onClose={closeModal} title="Calendario" className="calendar-dialog"><AppleMonthlyCalendar onSelectDate={date => { setSelectedDate(date); openModal('daily'); }} onOpenLegendModal={() => openModal('legend')} onOpenCycleSyncing={openCare}/></ModalFrame>}
-      {modal === 'tools' && <ModalFrame isOpen onClose={closeModal} title="Herramientas">
-          {[
-            { title: 'Conoce tu ciclo', description: 'Observa tus patrones y entiende tus registros.', ids: ['analytics', 'symptothermal', 'legend'] },
-            { title: 'Cuídate a tu manera', description: 'Un poco de apoyo para tu día a día.', ids: ['medication', 'care', 'chat'] },
-            { title: 'Tu historia, bajo tu control', description: 'Personaliza, conserva y comparte lo que tú elijas.', ids: ['profile', 'import', 'export', 'device'] },
-          ].map(group => <section className="tool-group" key={group.title} aria-label={group.title}><div className="tool-group-heading"><h2>{group.title}</h2><p>{group.description}</p></div><div className="tool-grid">{group.ids.map(id => tools.find(tool => tool.id === id)!).map(tool => <button type="button" key={tool.id} className="tool-card" onClick={() => tool.id === 'care' ? openCare() : tool.id === 'chat' ? openChat() : openModal(tool.id)}><tool.icon size={24}/><strong>{tool.name}</strong><span>{tool.description}</span><ArrowRight className="tool-arrow" size={17} aria-hidden="true"/></button>)}</div></section>)}
-          <h2 className="tool-section-title">Cuestionarios de bienestar</h2>
-          <div className="tool-grid">{Object.values(HEALTH_QUIZZES).map(quiz => <button type="button" key={quiz.id} className="tool-card" onClick={() => { setQuizId(quiz.id); openModal('quiz'); }}><ClipboardList size={24}/><strong>{quiz.title}</strong><span>{quiz.questions.length} preguntas</span></button>)}</div>
-        </ModalFrame>}
-      {modal === 'history' && <ModalFrame isOpen onClose={closeModal} title="Tu registro del día"><ul className="symptom-list">{hasPeriod && <li>{log?.isPeriod ? 'Regla registrada' : log?.flow === 'spotting' ? 'Manchado registrado' : 'Sangrado irregular registrado'}</li>}{log?.symptoms.map(symptom => <li key={symptom.id}>{symptom.name}</li>)}</ul>{log?.notes && <p>{log.notes}</p>}<QuizHistory results={log?.quizResults || []}/><BiomarkersCard/><button type="button" className="aura-button" onClick={() => openModal('daily')}>Editar síntomas y notas</button></ModalFrame>}
-      {modal === 'device' && <DeviceHealthModal onClose={closeModal}/>}
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
-      {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen onClose={closeModal}/>}
+      {modal === 'recovery' && (recovery
+        ? <CycleRecoveryBottomSheet recovery={recovery} today={todayDate} onConfirm={confirmRecovery} onSkip={dismissRecovery}/>
+        : <PastCycleRecoveryModal isOpen onClose={closeModal}/>)}
+      {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen initialType={periodModalType} onClose={closeModal}/>}
       {modal === 'intimacy' && <IntimacyModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'daily' && <DailyLogBottomSheet key={selectedDate} isOpen onClose={closeModal} onOpenSymptothermal={() => openModal('symptothermal')} onOpenMedications={() => openModal('medication')}/>}
-      {modal === 'legend' && <ColorLegendModal isOpen onClose={closeModal}/>}
+      {modal === 'legend' && <ColorLegendModal isOpen onClose={closeModal} onOpenPhaseGuide={phase => { closeModal(); setTimeout(() => openCare(phase), 150); }}/>}
       {modal === 'profile' && <ModularOnboardingModal isOpen onClose={closeModal}/>}
       {modal === 'analytics' && <CycleAnalyticsModal isOpen onClose={closeModal}/>}
       {modal === 'symptothermal' && <SymptothermalModal key={selectedDate} isOpen onClose={closeModal}/>}
@@ -150,8 +577,33 @@ function MainScreen() {
       {modal === 'care' && <CycleSyncingModal isOpen initialPhase={carePhase} onClose={closeModal}/>}
       {modal === 'import' && <UniversalImportModal isOpen onClose={closeModal}/>}
       {modal === 'export' && <MedicalExportModal isOpen onClose={closeModal}/>}
-      {modal === 'chat' && <ChatDrawer isOpen onClose={closeModal} initialMessage={chatMessage} onInitialMessageConsumed={() => setChatMessage(null)} onOpenQuizModal={id => { setQuizId(id); openModal('quiz'); }}/>}
-      {modal === 'quiz' && <InteractiveQuizModal quiz={Object.values(HEALTH_QUIZZES).find(quiz => quiz.id === quizId) || HEALTH_QUIZZES.stress} isOpen onClose={closeModal} onComplete={result => { saveQuizResult(result, selectedDate); changeView('diary'); requestAnimationFrame(() => document.getElementById('main-content')?.focus({ preventScroll: true })); }}/>}
+      {modal === 'chat' && (
+        <ChatDrawer
+          isOpen
+          onClose={closeModal}
+          initialMessage={chatMessage}
+          onInitialMessageConsumed={() => setChatMessage(null)}
+          onOpenQuizModal={id => { setQuizId(id); openModal('quiz'); }}
+          initialQuizKey={chatQuizKey}
+          onInitialQuizConsumed={() => setChatQuizKey(null)}
+          initialCompletedQuiz={completedQuizFeedback}
+          onInitialCompletedQuizConsumed={() => setCompletedQuizFeedback(null)}
+        />
+      )}
+      {modal === 'quiz' && (
+        <InteractiveQuizModal
+          quiz={Object.values(HEALTH_QUIZZES).find(quiz => quiz.id === quizId) || HEALTH_QUIZZES.stress}
+          isOpen
+          onClose={closeModal}
+          onComplete={result => {
+            saveQuizResult(result, selectedDate);
+            closeModal();
+            toast.success('Chequeo guardado. Cuídate mucho 🌸');
+            const key = (Object.keys(HEALTH_QUIZZES) as ChatQuizKey[]).find(k => HEALTH_QUIZZES[k].id === result.quizId) || 'stress';
+            openChatWithCompletedQuiz(key, result.answers);
+          }}
+        />
+      )}
       {isSettingsOpen && <SettingsDrawer onOpenModularProfile={() => openModal('profile')}/>}
     </Suspense>
   </MobileContainer>;
@@ -165,5 +617,16 @@ function AuthenticatedApp() {
 }
 
 export default function App() {
-  return <ErrorBoundary><MotionConfig reducedMotion="user"><AuthProvider><AuthenticatedApp/></AuthProvider></MotionConfig></ErrorBoundary>;
+  return (
+    <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
+        <AuthProvider>
+          <ToastProvider>
+            <AuthenticatedApp />
+            <ToastContainer />
+          </ToastProvider>
+        </AuthProvider>
+      </MotionConfig>
+    </ErrorBoundary>
+  );
 }

@@ -1,8 +1,6 @@
-import { hasNativeHealth, readNativeHealth, writeNativeHealth, mergeHealthDays, publishNativeWidget } from '../services/nativeHealth';
-import { presentCycle } from '../services/cyclePresentation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChroniclerResponse, ChroniclerContext } from '../types/chronicler';
-import type { ProfileCategoryUpdate, CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
+import type { CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
 import type { NotificationPreference } from '../types/notifications';
 import type { QuizResult } from '../types/quiz';
 import { CycleContext } from './cycle-context';
@@ -16,21 +14,21 @@ import { calculateCycleStatistics, calculateUpcomingMilestones, extractPeriodClu
 import {
   getDefaultNotificationPreferences,
   scheduleLocalMilestones,
-  sendInstantTestNotification
+  sendInstantTestNotification,
+  sendLocalNotification
 } from '../services/localNotificationEngine';
 import {
   getAllLogsFromDB,
   getSettingsFromDB,
   saveAllLogsToDB,
   getRemoteToken,
-  retryPendingSync,
   saveSettingsToDB,
   wipeAllLocalData
 } from '../services/storageEngine';
 import { exportBackupJSON, getDefaultSettings, importBackupJSON, loadLogs, loadSettings, persistBackup, saveLogs, saveSettings } from '../utils/storage';
 import { isDateKey } from '../utils/dateKey';
 import { validateLogs, validateSettings } from '../utils/dataValidation';
-import { updateBleedingLog, updateSymptothermalLog } from '../utils/dailyLog';
+import { updateSymptothermalLog } from '../utils/dailyLog';
 
 
 
@@ -118,7 +116,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const updateProfileCategory = (...[category, data]: ProfileCategoryUpdate) => {
+  const updateProfileCategory = (category: 'cycle' | 'body' | 'lifestyle', data: any) => {
     commitSettings((prev) => {
       const prevCompleted = prev.completedOnboardingCategories || [];
       const nextCompleted = prevCompleted.includes(category)
@@ -131,7 +129,6 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (category === 'cycle') {
         patch.cycleProfile = { ...(prev.cycleProfile || {}), ...data };
-        patch.hasPCOS = data.regularity === 'pcos';
         if (data.regularity === 'pcos') {
           patch.hasPCOS = true;
           patch.regularityPreference = 'pcos';
@@ -139,8 +136,6 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           patch.regularityPreference = 'irregular';
         } else if (data.regularity === 'regular') {
           patch.regularityPreference = 'very_regular';
-        } else {
-          patch.regularityPreference = 'mostly_regular';
         }
       } else if (category === 'body') {
         patch.bodyProfile = { ...(prev.bodyProfile || {}), ...data };
@@ -153,11 +148,8 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const updateLogs = (updater: (prev: Record<string, DailyLog>) => Record<string, DailyLog>, fromHealth = false) => {
-    const previous = logsRef.current;
-    const draft = updater(previous);
-    const edited = fromHealth ? draft : Object.fromEntries(Object.entries(draft).map(([date, log]) => [date, previous[date]?.healthImported && previous[date] !== log ? { ...log, healthImported: false } : log]));
-    const updated = validateLogs(edited);
+  const updateLogs = (updater: (prev: Record<string, DailyLog>) => Record<string, DailyLog>) => {
+    const updated = validateLogs(updater(logsRef.current));
     saveLogs(updated);
     logsRef.current = updated;
     setLogsState(updated);
@@ -168,53 +160,10 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateLogs(previous => addQuizResultToLogs(previous, result, date));
   };
 
-  const recoverPeriod = (start: string, end: string) => {
-    updateLogs(previous => chronicleRecoveredPeriod(previous, start, end, todayDate));
-  };
-
   // Adaptive Cycle Statistics
   const cycleStats = useMemo(() => {
-    return calculateCycleStatistics(logs, settings, todayDate);
-  }, [logs, settings, todayDate]);
-
-  // Health access only runs after an explicit connection, never from the web.
-  useEffect(() => {
-    if (!settings.nativeHealthEnabled || !hasNativeHealth()) return;
-    let cancelled = false;
-    let running = false;
-    const importHistory = async () => {
-      if (running || document.visibilityState !== 'visible') return;
-      running = true;
-      try {
-        const days = await readNativeHealth();
-        if (cancelled) return;
-        const merged = mergeHealthDays(logsRef.current, days, todayDate);
-        if (Object.keys(merged).length !== Object.keys(logsRef.current).length) updateLogs(() => merged, true);
-      } catch { window.dispatchEvent(new Event('aura:health-error')); }
-      finally { running = false; }
-    };
-    void importHistory();
-    document.addEventListener('visibilitychange', importHistory);
-    return () => { cancelled = true; document.removeEventListener('visibilitychange', importHistory); };
-  // Reads latest snapshots through refs; changing logs must not start another import.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.nativeHealthEnabled, todayDate]);
-
-  useEffect(() => {
-    if (!settings.nativeHealthEnabled || !hasNativeHealth()) return;
-    const timer = window.setTimeout(() => {
-      void writeNativeHealth(logs, todayDate).catch(() => window.dispatchEvent(new Event('aura:health-error')));
-    }, 1000);
-    return () => window.clearTimeout(timer);
-  }, [logs, settings.nativeHealthEnabled, todayDate]);
-
-  useEffect(() => {
-    if (!hasNativeHealth()) return;
-    const today = getCycleDayInfo(todayDate, todayDate, settings, logs);
-    const presentation = presentCycle(today, cycleStats, calculateUpcomingMilestones(cycleStats, todayDate));
-    void publishNativeWidget(settings.nativeWidgetEnabled ? { date: todayDate, title: presentation.title, day: presentation.cycleDay, progress: presentation.progress } : null).catch(() => undefined);
-  }, [logs, settings, todayDate, cycleStats]);
-  useEffect(() => () => { void publishNativeWidget(null).catch(() => undefined); }, []);
+    return calculateCycleStatistics(logs, settings);
+  }, [logs, settings]);
 
   // Upcoming Milestones
   const upcomingMilestones = useMemo(() => {
@@ -235,6 +184,38 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const scheduledNotifications = useMemo(() => {
     return scheduleLocalMilestones(upcomingMilestones, notificationPrefs);
   }, [upcomingMilestones, notificationPrefs]);
+
+  // Automated background/local dispatch of scheduled notifications when due (e.g. 1 week before period)
+  useEffect(() => {
+    if (!notificationPrefs.enabled) return;
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    try {
+      const now = Date.now();
+      for (const notif of scheduledNotifications) {
+        if (!notif || !notif.triggerTimestamp) continue;
+        // Check if trigger time has passed (within past 36 hours) and not yet sent
+        const isDue = now >= notif.triggerTimestamp && (now - notif.triggerTimestamp) < 36 * 3600 * 1000;
+        const storageKey = `aura_notif_sent_${notif.id}`;
+        let alreadySent = false;
+        try {
+          alreadySent = Boolean(localStorage.getItem(storageKey));
+        } catch {}
+        if (isDue && !alreadySent) {
+          void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
+            if (sent) {
+              try {
+                localStorage.setItem(storageKey, 'true');
+              } catch {}
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Notification dispatch error', e);
+    }
+  }, [scheduledNotifications, notificationPrefs.enabled]);
 
   const sendTestNotification = async () => {
     return await sendInstantTestNotification(notificationPrefs);
@@ -385,7 +366,12 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const denyPeriodOnDate = (date: string) => {
     updateLogs((prev) => {
       const currentLog = prev[date] || { date, isPeriod: false, symptoms: [] };
-      const newLog = updateBleedingLog(currentLog);
+      const newLog = {
+        ...currentLog,
+        isPeriod: false,
+        flow: undefined,
+        recordedAt: new Date().toISOString()
+      };
       return { ...prev, [date]: newLog };
     });
   };
@@ -437,15 +423,49 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     dateStr: string,
     options: { flow: FlowIntensity; isCycleStart: boolean; isIrregular: boolean }
   ) => {
-    if (!isDateKey(dateStr) || dateStr > todayDate) throw new Error('El sangrado se registra en hoy o en una fecha pasada.');
-    updateLogs(prev => {
-      const current = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
-      return { ...prev, [dateStr]: updateBleedingLog(current, options) };
+    updateLogs((prev) => {
+      const currentLog = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
+      const isPeriod = !options.isIrregular && options.flow !== 'spotting';
+
+      // If irregular bleeding, add tag symptom
+      let updatedSymptoms = currentLog.symptoms;
+      if (options.isIrregular) {
+        const irregularSymptom: SymptomItem = {
+          id: 'irregular_bleeding',
+          name: 'Sangrado irregular',
+          category: 'flow',
+          emoji: '💧'
+        };
+        if (!updatedSymptoms.some(s => s.id === 'irregular_bleeding')) {
+          updatedSymptoms = [...updatedSymptoms, irregularSymptom];
+        }
+      }
+
+      const newLog: DailyLog = {
+        ...currentLog,
+        isPeriod,
+        flow: options.flow,
+        isIrregularBleeding: options.isIrregular,
+        isCycleStart: options.isCycleStart,
+        symptoms: updatedSymptoms,
+        recordedAt: new Date().toISOString()
+      };
+
+      return {
+        ...prev,
+        [dateStr]: newLog
+      };
     });
 
     if (options.isCycleStart && !options.isIrregular && options.flow !== 'spotting') {
       updateSettings({ lastPeriodStartDate: dateStr });
     }
+  };
+
+  const recoverPeriod = (start: string, end: string) => {
+    const recovered = chronicleRecoveredPeriod(logsRef.current, start, end, todayDate);
+    updateLogs(() => recovered);
+    updateSettings({ lastPeriodStartDate: end > settingsRef.current.lastPeriodStartDate ? start : settingsRef.current.lastPeriodStartDate });
   };
 
   const logIntimacyForDate = (dateStr: string, intimacyData: IntimacyLog | null) => {
@@ -678,33 +698,33 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLastChroniclerResponse(null);
   };
 
-  // Strict light appearance also migrates cached dark preferences visually.
+  // Theme application (Dark, Light, System, Refugio)
+  // When theme === 'system': night hours (21:00–07:00) automatically apply dark mode
   useEffect(() => {
-    document.documentElement.classList.remove('dark', 'theme-refugio');
-    document.documentElement.style.colorScheme = 'light';
-  }, [settings.theme]);
+    const applyTheme = () => {
+      const root = document.documentElement;
+      root.classList.remove('dark', 'theme-refugio');
 
-  // Retry durable writes while the app is active; reconnection hydrates as above.
-  useEffect(() => {
-    let cancelled = false;
-    let timer: number;
-    let delay = 15_000;
-    let running = false;
-    const retry = async () => {
-      if (running || cancelled) return;
-      running = true;
-      if (document.visibilityState === 'visible') {
-        try { await retryPendingSync(); delay = 15_000; } catch { delay = Math.min(delay * 2, 120_000); }
+      if (settings.theme === 'refugio') {
+        root.classList.add('dark', 'theme-refugio');
+      } else if (settings.theme === 'dark') {
+        root.classList.add('dark');
+      } else if (settings.theme === 'light') {
+        // Light is default, no class needed
+      } else {
+        // 'system': honor OS preference, but override to dark during night hours (21:00 – 07:00)
+        const hour = new Date().getHours();
+        const isNight = hour >= 21 || hour < 7;
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark || isNight) root.classList.add('dark');
       }
-      running = false;
-      if (!cancelled) timer = window.setTimeout(retry, delay);
     };
-    timer = window.setTimeout(retry, delay);
-    const resume = () => { window.clearTimeout(timer); void retry(); };
-    document.addEventListener('visibilitychange', resume);
-    return () => { cancelled = true; window.clearTimeout(timer); document.removeEventListener('visibilitychange', resume); };
-  }, []);
 
+    applyTheme();
+    // Recheck every minute so the transition happens automatically at 21:00 and 07:00
+    const interval = window.setInterval(applyTheme, 60_000);
+    return () => window.clearInterval(interval);
+  }, [settings.theme]);
 
   return (
     <CycleContext.Provider

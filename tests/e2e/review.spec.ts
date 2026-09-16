@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { seedLocal, enterLocal, checkAccessibility, checkLayout } from './helpers';
+import { enterAccount, seedAccount, checkAccessibility, checkLayout } from './helpers';
 
 test('el manchado se conserva como sangrado editable y se puede quitar tras recargar', async ({ page }) => {
   await seedLocal(page);
@@ -17,7 +17,7 @@ test('el manchado se conserva como sangrado editable y se puede quitar tras reca
 });
 
 test('instalación voluntaria con guía, foco y confirmación del navegador', async ({ page }, info) => {
-  await seedLocal(page);
+  await seedAccount(page);
   await expect(page.getByRole('dialog')).toHaveCount(0);
   const trigger = page.getByRole('button', { name: 'Instalar Aura', exact: true });
   await trigger.click();
@@ -47,11 +47,14 @@ test('instalación voluntaria con guía, foco y confirmación del navegador', as
 
 test('el diario no reinicia el ciclo al pasar la fecha estimada sin registro', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-09-05T12:00:00') });
-  await seedLocal(page);
+  await seedAccount(page);
   await page.evaluate(() => {
-    const settings = JSON.parse(localStorage.getItem('regla_user_settings_v1')!);
-    localStorage.setItem('regla_user_settings_v1', JSON.stringify({ ...settings, lastPeriodStartDate: '2026-08-07' }));
-    localStorage.setItem('regla_daily_logs_v1', JSON.stringify({ '2026-08-07': { date: '2026-08-07', isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [] } }));
+    const user = JSON.parse(localStorage.getItem('cached_user')!);
+    const settingsKey = `regla_user_settings_v1:${encodeURIComponent(user.id)}`;
+    const logsKey = `regla_daily_logs_v1:${encodeURIComponent(user.id)}`;
+    const settings = JSON.parse(localStorage.getItem(settingsKey)!);
+    localStorage.setItem(settingsKey, JSON.stringify({ ...settings, lastPeriodStartDate: '2026-08-07' }));
+    localStorage.setItem(logsKey, JSON.stringify({ '2026-08-07': { date: '2026-08-07', isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [] } }));
   });
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Tu ciclo sigue' })).toBeVisible();
@@ -67,7 +70,7 @@ test('el diario no reinicia el ciclo al pasar la fecha estimada sin registro', a
 });
 
 test('sangrado irregular muy abundante muestra orientación antes de los consejos', async ({ page }, info) => {
-  await enterLocal(page);
+  await enterAccount(page);
   await page.getByRole('button', { name: 'Registrar regla', exact: true }).click();
   await page.getByRole('button', { name: 'Sí, hubo sangrado' }).click();
   await page.getByRole('button', { name: 'Sangrado irregular', exact: true }).click();

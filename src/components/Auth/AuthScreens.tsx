@@ -3,10 +3,13 @@ import type { FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, CircleAlert, Eye, EyeOff, Heart, Loader2, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
 import { hapticSelect, hapticTick, hapticError } from '../../utils/haptics';
 import { useAuth } from '../../hooks/useAuth';
+import { LegacyLocalBackup } from './LegacyLocalBackup';
+import { getApiBase } from '../../utils/apiBase';
 
 type AuthMode = 'login' | 'signup' | 'forgot_password' | 'reset_password';
-const fieldClass = 'min-h-12 w-full rounded-lg border border-[#A5B6B0] bg-white pl-11 pr-12 text-base text-[#22312F] placeholder:text-[#596B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60]';
+const fieldClass = 'box-border min-h-12 w-full max-w-full rounded-lg border border-[#A5B6B0] bg-white pl-11 pr-12 text-base text-[#22312F] placeholder:text-[#596B65] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60]';
 const buttonClass = 'min-h-11 rounded-lg px-4 py-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60] disabled:cursor-not-allowed disabled:opacity-60';
+const linkButtonClass = 'min-h-10 py-1.5 px-0 text-left text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#176B60] disabled:cursor-not-allowed disabled:opacity-60';
 
 export function AuthScreens() {
   const { setSession } = useAuth();
@@ -63,9 +66,9 @@ export function AuthScreens() {
     activeRequest.current = controller;
     setIsLoading(true);
     hapticSelect();
-    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    const timeout = window.setTimeout(() => controller.abort(), 20000);
     try {
-      const apiBase = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+      const apiBase = getApiBase();
       const body = mode === 'forgot_password' ? { email: email.trim() }
         : mode === 'reset_password' ? { token: resetToken, password }
         : { email: email.trim(), password };
@@ -79,7 +82,7 @@ export function AuthScreens() {
       if (!response.ok) {
         const fallback = response.status === 401 ? 'Correo o contraseña incorrectos.'
           : response.status === 429 ? 'Demasiados intentos. Espera unos minutos y vuelve a probar.'
-          : 'El acceso con cuenta no está disponible ahora. Puedes continuar en modo privado local.';
+          : 'El acceso no está disponible ahora. Vuelve a intentarlo en unos minutos.';
         throw new Error(typeof data?.error === 'string' ? data.error.slice(0, 400) : fallback);
       }
       if (mode === 'forgot_password') {
@@ -99,14 +102,14 @@ export function AuthScreens() {
       const validToken = typeof data?.token === 'string' && /^[\w-]+\.[\w-]+\.[\w-]+$/.test(data.token);
       const validUser = data?.user && (typeof data.user.id === 'string' || typeof data.user.id === 'number') &&
         String(data.user.id).length > 0 && typeof data.user.email === 'string' && data.user.email.includes('@');
-      if (!validToken || !validUser) throw new Error('El servidor no ha confirmado una sesión válida. Puedes continuar en modo privado local.');
+      if (!validToken || !validUser) throw new Error('El servidor no ha confirmado una sesión válida. Vuelve a iniciar sesión.');
       setSession(data.token, { id: String(data.user.id), email: data.user.email });
       hapticTick();
     } catch (caught) {
       if (!mounted.current || activeRequest.current !== controller) return;
       hapticError();
-      setError(controller.signal.aborted ? 'El servidor tarda demasiado en responder. Vuelve a probar o continúa en modo privado local.'
-        : caught instanceof TypeError ? 'No se ha podido conectar. Puedes continuar en modo privado local sin conexión.'
+      setError(controller.signal.aborted ? 'El servidor tarda demasiado en responder. Vuelve a intentarlo.'
+        : caught instanceof TypeError ? 'No se ha podido conectar. Comprueba tu conexión y vuelve a intentarlo.'
         : caught instanceof Error ? caught.message : 'No se pudo completar el acceso. Vuelve a intentarlo.');
     } finally {
       window.clearTimeout(timeout);
@@ -114,17 +117,6 @@ export function AuthScreens() {
         activeRequest.current = null;
         setIsLoading(false);
       }
-    }
-  }
-
-  function enterLocal() {
-    cancelRequest();
-    setError(null);
-    try {
-      setSession('local-session', { id: 'local_user', email: 'modo_privado@dispositivo.local' });
-      hapticSelect();
-    } catch {
-      setError('El navegador no permite guardar la sesión. Habilita el almacenamiento de este sitio y vuelve a probar.');
     }
   }
 
@@ -144,12 +136,13 @@ export function AuthScreens() {
         <h1 className="mb-2 text-2xl font-semibold leading-tight">
           {mode === 'login' ? 'Tu espacio de cuidado' : mode === 'signup' ? 'Crea tu cuenta' : mode === 'reset_password' ? 'Elige una nueva contraseña' : 'Recuperar acceso'}
         </h1>
-        <p className="mb-7 text-sm leading-relaxed text-[#52655F]">
-          {mode === 'login' ? 'Entra con tu cuenta o continúa en privado en este dispositivo.'
+        <p className="mb-4 text-sm leading-relaxed text-[#52655F]">
+          {mode === 'login' ? 'Inicia sesión para acceder a tu diario y sincronizar tus registros.'
             : mode === 'signup' ? 'Registra tu ciclo y conserva tu información bajo tu control.'
             : mode === 'reset_password' ? 'Crea una contraseña nueva para volver a entrar en Aura.'
             : 'Te enviaremos un enlace de un solo uso si existe una cuenta con ese correo.'}
         </p>
+
 
         <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isLoading}>
           {mode !== 'reset_password' && <div>
@@ -195,15 +188,13 @@ export function AuthScreens() {
         </form>
 
         <div className="my-6 border-t border-[#CDD7D2]" />
-        <button type="button" onClick={enterLocal} className={`${buttonClass} flex w-full items-center justify-center gap-2 border border-[#A5B6B0] bg-white text-[#176B60] hover:bg-[#EAF2EF]`}>
-          <ShieldCheck aria-hidden="true" className="size-5 shrink-0" /><span>Continuar en modo privado local</span>
-        </button>
-        <p className="mt-3 text-xs leading-relaxed text-[#52655F]">Sin cuenta ni conexión. Los datos quedan en este navegador; conserva una copia desde Ajustes.</p>
+        <LegacyLocalBackup />
         <nav aria-label="Opciones de acceso" className="mt-5 flex flex-col items-start gap-1">
           {mode === 'login' ? <>
-            <button type="button" onClick={() => switchMode('forgot_password')} className={`${buttonClass} -ml-4 text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
-            <button type="button" onClick={() => switchMode('signup')} className={`${buttonClass} -ml-4 text-[#176B60] hover:underline`}>Crear una cuenta</button>
-          </> : <button type="button" onClick={() => switchMode('login')} className={`${buttonClass} -ml-4 flex items-center gap-2 text-[#176B60] hover:underline`}>
+            <button type="button" onClick={() => switchMode('forgot_password')} className={`${linkButtonClass} text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
+            <button type="button" onClick={() => switchMode('signup')} className={`${linkButtonClass} text-[#176B60] hover:underline`}>Crear una cuenta</button>
+            <button type="button" onClick={() => setSession('local-session', { id: 'local_user', email: 'modo_privado@dispositivo.local' })} className={`${linkButtonClass} mt-2 text-[#52655F] hover:underline font-normal`}>Continuar en modo local (sin nube)</button>
+          </> : <button type="button" onClick={() => switchMode('login')} className={`${linkButtonClass} flex items-center gap-2 text-[#176B60] hover:underline`}>
             <ArrowLeft aria-hidden="true" className="size-4" />Volver a iniciar sesión
           </button>}
         </nav>

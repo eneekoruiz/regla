@@ -1,5 +1,7 @@
 # Relevo de Codex a Antigravity — Aura
 
+> Documento histórico. Para la entrega actual, el acceso con cuenta y GitHub/Vercel, leer [ANTIGRAVITY-HANDOFF.md](ANTIGRAVITY-HANDOFF.md). Las referencias de este archivo a ausencia de Git o prohibición de publicar pertenecen al encargo anterior.
+
 Actualizado: 5 de septiembre de 2026, 14:30, Europe/Madrid.
 
 **Este archivo existe como protección ante un corte de cuota.** El usuario pidió continuar hasta conseguir la mejor UI/UX razonable y dejar un relevo preciso si se agota el cupo. El cupo principal de 5 horas está agotado (100 %); el sistema ha cambiado a la reserva Luna. No se ha utilizado el reinicio disponible.

@@ -1,4 +1,5 @@
 import { isObject, parseDataJSON } from '../utils/dataValidation';
+import { getApiBase } from '../utils/apiBase';
 
 export interface AuthUser { id: string; email: string }
 export interface StoredSession { token: string; user: AuthUser }
@@ -18,18 +19,17 @@ export async function resolveStoredSession(signal?: AbortSignal): Promise<Stored
     token = localStorage.getItem('token');
     const raw = localStorage.getItem('cached_user');
     try { cachedUser = raw ? parseDataJSON(raw) : null; } catch { cachedUser = null; }
-    if (import.meta.env?.DEV && localStorage.getItem('dev_bypass_auth') === 'true') {
-      return { token: 'dev-token', user: { id: 'development', email: 'dev@test.com' } };
-    }
+
   } catch {
     return null;
   }
-  if (!token || token === 'dev-token') return null;
-  if (token.startsWith('local-') || token.startsWith('offline-')) {
-    return isAuthUser(cachedUser) ? { token, user: cachedUser } : null;
+  if (!token) return null;
+  if (token === 'dev-token' || token.startsWith('local-') || token.startsWith('offline-')) {
+    clearSessionStorage();
+    return null;
   }
   try {
-    const response = await fetch(`${import.meta.env?.VITE_API_BASE_URL || '/api'}/auth/me`, {
+    const response = await fetch(`${getApiBase()}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000)
     });

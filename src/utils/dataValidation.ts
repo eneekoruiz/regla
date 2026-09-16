@@ -60,7 +60,9 @@ export function validateSettings(value: unknown, defaults: UserSettings): UserSe
   }, 'Estilo de vida');
   nested(value.notificationPreferences, {
     enabled: bool, alertTime: v => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v),
-    daysBeforePeriod: number(0, 30), notifyFertileWindow: bool, discreetMode: bool
+    daysBeforePeriod: number(0, 30), notifyFertileWindow: bool, discreetMode: bool,
+    repeatMonthly: bool,
+    periodReminders: v => Array.isArray(v) && v.every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 30)
   }, 'Notificaciones');
   const result = { ...defaults, ...value } as UserSettings;
   if (result.averagePeriodLength > result.averageCycleLength || result.lutealPhaseLength >= result.averageCycleLength) {
@@ -103,7 +105,7 @@ export function validateLogs(value: unknown): Record<string, DailyLog> {
       date: v => v === date, isPeriod: bool, flow, isIrregularBleeding: bool, isCycleStart: bool,
       healthImported: bool,
       notes: text, weight: number(1, 600), sleepHours: number(0, 24), hydrationGlasses: number(0, 100),
-      intimacy: oneOf('protected', 'unprotected', 'none'), cervicalMucus: oneOf('dry', 'sticky', 'creamy', 'egg_white'),
+      intimacy: oneOf('protected', 'unprotected', 'none'), cervicalMucus: oneOf('dry', 'sticky', 'creamy', 'egg_white', 'unusual_brown'),
       bbt: number(25, 45), recordedAt: v => typeof v === 'string' && Number.isFinite(Date.parse(v))
     }, 'Registro');
     if (typeof candidate.isPeriod !== 'boolean') throw new Error('Falta el estado menstrual del registro.');

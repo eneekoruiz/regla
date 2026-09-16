@@ -1,5 +1,7 @@
 # Relevo de Aura para Antigravity
 
+> Documento histórico. Para la entrega actual, el acceso con cuenta y GitHub/Vercel, leer [ANTIGRAVITY-HANDOFF.md](ANTIGRAVITY-HANDOFF.md). Sus ubicaciones y resultados sustituyen este relevo antiguo.
+
 Trabajo detenido por peticion del usuario el 2026-09-04. No esta certificado como terminado ni como libre de fallos. Todos los subagentes estan cerrados y la ultima ejecucion de Playwright fue interrumpida deliberadamente.
 
 ## Criterio del usuario

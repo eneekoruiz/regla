@@ -10,6 +10,13 @@ const origin = process.env.AURA_URL || 'http://127.0.0.1:4175';
 const server = process.env.AURA_URL ? null : spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--host', '127.0.0.1', '--port', '4175', '--strictPort'], { windowsHide: true, stdio: 'ignore' });
 let driver;
 const results = [];
+const qaUser = { id: 'qa-isolated', email: 'qa@example.invalid' };
+const qaToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
+const today = new Date();
+const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 3);
+const qaSettings = { userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light' };
+const qaLogs = { [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() } };
 try {
   for (let attempt = 0; attempt < 40; attempt++) {
     try { if ((await fetch(origin)).ok) break; } catch { /* Wait for the local preview server. */ }
@@ -20,10 +27,15 @@ try {
   for (const [name, width, height] of [['desktop', 1440, 1000], ['mobile', 390, 844], ['narrow', 320, 740], ['tablet', 768, 1024], ['landscape', 844, 390]]) {
     await driver.sendDevToolsCommand('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 700 });
     await driver.get(origin);
-    if (name === 'desktop') {
-      const localButton = await driver.wait(until.elementLocated(By.xpath('//button[contains(., "Modo Privado Local") or contains(., "modo privado local")]')), 15000);
-      await localButton.click();
-    }
+    await driver.executeScript(
+      'const [user, token, settings, logs] = arguments; localStorage.setItem("token", token); localStorage.setItem("cached_user", JSON.stringify(user)); localStorage.setItem(`regla_user_settings_v1:${encodeURIComponent(user.id)}`, JSON.stringify(settings)); localStorage.setItem(`regla_daily_logs_v1:${encodeURIComponent(user.id)}`, JSON.stringify(logs));',
+      qaUser,
+      qaToken,
+      qaSettings,
+      qaLogs
+    );
+    await driver.navigate().refresh();
+    await driver.wait(async () => !(await driver.findElements(By.xpath('//button[contains(., "Modo Privado Local") or contains(., "modo privado local")]'))).length, 15000);
     await driver.wait(until.elementLocated(By.css('.page-title')), 15000);
     for (const view of ['Mi diario', 'Calendario', 'Herramientas']) {
       await driver.findElement(By.xpath(`//nav[@aria-label="Navegación principal"]//button[normalize-space(.)="${view}"]`)).click();

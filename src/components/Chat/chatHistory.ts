@@ -102,22 +102,23 @@ export function completeQuiz(key: ChatQuizKey, answers: Record<string, QuizAnswe
   let summary = '';
   if (key === 'stress') {
     const elevated = Number(answers.stress_q1) >= 4 || answers.stress_q2 === 'yes';
-    summary = elevated ? 'Has señalado tensión alta o preocupaciones frecuentes. Considera reservar una pausa y pedir apoyo si interfiere en tu día.'
-      : 'Has anotado cómo sientes la tensión y el descanso. Observar si cambia durante la semana puede ayudarte a decidir qué cuidado necesitas.';
+    summary = elevated
+      ? 'Has señalado tensión alta o preocupaciones frecuentes. Cuídate mucho y tranquilízate: regálate una pausa, respira hondo y date un respiro. Si ves que el agobio persiste o interfiere en tu día a día, busca apoyo y consúltalo.'
+      : 'Has anotado cómo sientes la tensión y el descanso. Cuídate mucho y tranquilízate: observar cómo te sientes te ayuda a elegir el mejor autocuidado en cada momento.';
   } else if (key === 'sleep') {
     summary = answers.sleep_q1 === 'less_5' || answers.sleep_q2 === false
-      ? 'Has señalado pocas horas de sueño o falta de descanso. Si se repite y afecta a tu día, coméntalo en consulta.'
-      : 'Has registrado tus horas y sensación de descanso. Este breve chequeo no mide la calidad clínica del sueño.';
+      ? 'Has señalado pocas horas de sueño o falta de descanso. Cuídate mucho y tranquilízate: procura desconectar pantallas antes de acostarte y mimarte un poco hoy. Si se repite y afecta a tu día, coméntalo en consulta.'
+      : 'Has registrado tus horas y sensación de descanso. Cuídate mucho y tranquilízate: este breve chequeo no mide la calidad clínica del sueño, pero priorizar tus horas de calma siempre te vendrá bien.';
   } else if (key === 'cramps') {
     summary = Number(answers.cramps_q1) >= 4
-      ? 'Has señalado dolor intenso. Si es nuevo, empeora o no mejora, busca atención sanitaria. Si aparece con desmayo o sangrado abundante, busca ayuda urgente.'
-      : 'Has anotado la intensidad y si mejora con calor. Si el dolor limita tus actividades o cambia respecto al habitual, pide valoración.';
+      ? 'Has señalado dolor intenso. Cuídate mucho y tranquilízate: ponte calorcito suave, descansa y no te exijas. Si es nuevo, empeora o no mejora, busca atención sanitaria. Si aparece con desmayo o sangrado abundante, busca ayuda urgente.'
+      : 'Has anotado la intensidad y si mejora con calor. Cuídate mucho y tranquilízate: una mantita tibia o infusión te sentará genial. Si el dolor limita tus actividades o cambia respecto al habitual, pide valoración.';
   } else if (key === 'pms') {
     summary = answers.pms_q1 === 'severe'
-      ? 'Has señalado cambios de ánimo muy intensos. Merecen apoyo profesional, especialmente si afectan a tu vida diaria. Este resultado no diagnostica SPM ni TDPM.'
-      : 'Has anotado tus cambios antes de la regla. Un registro durante varios ciclos puede ayudarte a explicarlos en consulta.';
+      ? 'Has señalado cambios de ánimo muy intensos. Cuídate mucho y tranquilízate: no te juzgues por lo que sientes en esta fase, tus hormonas están fluctuando. Mereces comprensión y apoyo profesional si te desborda. Este resultado no diagnostica SPM ni TDPM.'
+      : 'Has anotado tus cambios antes de la regla. Cuídate mucho y tranquilízate, ve con calma estos días: un registro durante varios ciclos puede ayudarte a explicarlos en consulta.';
   } else {
-    summary = 'Has registrado cambios del ciclo, piel y peso. Estas respuestas no permiten diagnosticar SOP ni descartar otras causas. Consulta si los cambios persisten o te preocupan.';
+    summary = 'Has registrado cambios del ciclo, piel y peso. Cuídate mucho y tranquilízate: estas respuestas te ayudan a conocerte mejor sin alarmarte, aunque no permiten diagnosticar SOP ni descartar otras causas. Consulta si los cambios persisten o te preocupan.';
   }
   return `**Chequeo completado**\n\n${summary}\n\nLas respuestas quedan en esta conversación. No se añaden al calendario ni al informe médico.`;
 }

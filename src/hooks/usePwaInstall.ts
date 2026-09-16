@@ -5,8 +5,10 @@ interface InstallPrompt extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-const standalone = window.matchMedia('(display-mode: standalone)');
-const isInstalled = () => standalone.matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+const standalone = typeof window !== 'undefined' && 'matchMedia' in window
+  ? window.matchMedia('(display-mode: standalone)')
+  : null;
+const isInstalled = () => (standalone ? standalone.matches : false) || Boolean((navigator as Navigator & { standalone?: boolean })?.standalone);
 let deferred: InstallPrompt | null = null;
 let state = { installed: isInstalled(), canPrompt: false, pending: false, error: '' };
 const listeners = new Set<() => void>();
@@ -14,17 +16,26 @@ const update = (next: Partial<typeof state>) => {
   state = { ...state, ...next };
   listeners.forEach(listener => listener());
 };
-window.addEventListener('beforeinstallprompt', event => {
-  event.preventDefault();
-  deferred = event as InstallPrompt;
-  update({ canPrompt: true, error: '' });
-});
-window.addEventListener('appinstalled', () => {
-  deferred = null;
-  update({ installed: true, canPrompt: false, pending: false });
-});
-standalone.addEventListener('change', () => update({ installed: isInstalled() }));
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferred = event as InstallPrompt;
+    update({ canPrompt: true, error: '' });
+  });
+  window.addEventListener('appinstalled', () => {
+    deferred = null;
+    update({ installed: true, canPrompt: false, pending: false });
+  });
+}
+if (standalone) {
+  if (typeof standalone.addEventListener === 'function') {
+    standalone.addEventListener('change', () => update({ installed: isInstalled() }));
+  } else if (typeof (standalone as any).addListener === 'function') {
+    (standalone as any).addListener(() => update({ installed: isInstalled() }));
+  }
+}
 const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
+
 
 async function install() {
   const prompt = deferred;

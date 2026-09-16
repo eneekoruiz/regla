@@ -1,13 +1,10 @@
-import { mirrorSnapshot, clearDatabase } from './localDatabase';
 import type { DailyLog, UserSettings } from '../types/cycle';
 import { isObject, validateLogs, validateSettings } from '../utils/dataValidation';
-import { getDataStorageKey, getDefaultSettings, loadLogs, loadSettings, saveLogs, saveSettings, SETTINGS_KEY, LOGS_KEY } from '../utils/storage';
-
-const API_BASE = import.meta.env?.VITE_API_BASE_URL || '/api';
+import { getDefaultSettings, loadLogs, loadSettings, saveLogs, saveSettings, SETTINGS_KEY, LOGS_KEY } from '../utils/storage';
+import { getApiBase } from '../utils/apiBase';
 
 export function getRemoteToken(): string | null {
   try {
-    if (import.meta.env?.DEV && localStorage.getItem('dev_bypass_auth') === 'true') return null;
     const token = localStorage.getItem('token');
     return !token || token === 'dev-token' || token.startsWith('local-') || token.startsWith('offline-') ? null : token;
   } catch {
@@ -16,7 +13,7 @@ export function getRemoteToken(): string | null {
 }
 
 async function remoteRequest(path: string, token: string, init: RequestInit = {}): Promise<Response> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${getApiBase()}${path}`, {
     ...init,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     signal: AbortSignal.timeout(8000)
@@ -63,71 +60,29 @@ export async function saveLogToDB(log: DailyLog): Promise<void> {
   return saveAllLogsToDB({ ...loadLogs(), [log.date]: log });
 }
 
-// A durable, account-scoped outbox marker always points at the latest local snapshot.
-// Revisions prevent an old request acknowledgement from clearing a newer edit.
-const PENDING = 'aura_pending_v1';
-type PendingKind = 'logs' | 'settings';
-let activeWrites = 0;
-let lastSyncedScope = '';
+// Serialize remote writes so a slower previous save cannot overwrite a newer one.
 let syncChain: Promise<void> = Promise.resolve();
-const pendingKey = (kind: PendingKind) => getDataStorageKey(PENDING + ':' + kind);
-function cloudSettings(settings: UserSettings): UserSettings {
-  const remote = { ...settings };
-  // Device permissions and home-screen visibility never propagate to another device.
-  delete remote.nativeHealthEnabled;
-  delete remote.nativeWidgetEnabled;
-  return remote;
-}
-const announce = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('aura:sync-changed')); };
-export function getSyncStatus(): 'local' | 'offline' | 'pending' | 'syncing' | 'synced' {
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'offline';
-  if (!getRemoteToken()) return 'local';
-  if (activeWrites) return 'syncing';
-  if (localStorage.getItem(pendingKey('logs')) || localStorage.getItem(pendingKey('settings'))) return 'pending';
-  return lastSyncedScope === getDataStorageKey(PENDING) ? 'synced' : 'pending';
-}
-function enqueue(token: string, kind: PendingKind, body: unknown): Promise<void> {
-  const key = pendingKey(kind);
-  const revision = crypto.randomUUID();
-  localStorage.setItem(key, revision);
-  announce();
+function enqueue(token: string, path: string, body: unknown): Promise<void> {
   const task = syncChain.catch(() => undefined).then(async () => {
     if (token !== getRemoteToken()) return;
-    // Superseded snapshots are coalesced before leaving this device.
-    if (localStorage.getItem(key) !== revision) return;
-    activeWrites += 1; announce();
-    try {
-      await remoteRequest(kind === 'logs' ? '/logs/bulk' : '/settings', token, { method: 'POST', body: JSON.stringify(body) });
-      if (token === getRemoteToken() && localStorage.getItem(key) === revision) {
-        localStorage.removeItem(key);
-        lastSyncedScope = getDataStorageKey(PENDING);
-      }
-    } finally { activeWrites -= 1; announce(); }
+    await remoteRequest(path, token, { method: 'POST', body: JSON.stringify(body) });
   });
   syncChain = task;
   return task;
-}
-export async function retryPendingSync(): Promise<void> {
-  const token = getRemoteToken();
-  if (!token || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
-  if (localStorage.getItem(pendingKey('settings'))) await enqueue(token, 'settings', cloudSettings(loadSettings()));
-  if (token !== getRemoteToken()) return;
-  if (localStorage.getItem(pendingKey('logs'))) await enqueue(token, 'logs', { logs: Object.values(loadLogs()) });
 }
 
 export async function saveAllLogsToDB(logs: Record<string, DailyLog>): Promise<void> {
   const validated = validateLogs(logs);
   saveLogs(validated);
-  void mirrorSnapshot(getDataStorageKey(LOGS_KEY), validated).catch(() => undefined);
   const token = getRemoteToken();
   if (!token || Object.keys(validated).length === 0) return;
-  await enqueue(token, 'logs', { logs: Object.values(validated) });
+  await enqueue(token, '/logs/bulk', { logs: Object.values(validated) });
 }
 
 export async function getSettingsFromDB(): Promise<UserSettings> {
   const token = getRemoteToken();
   const local = loadSettings();
-  if (!token || localStorage.getItem(pendingKey('settings'))) return local;
+  if (!token) return local;
   try {
     const response = await remoteRequest('/settings', token);
     const payload: unknown = await response.json();
@@ -136,7 +91,7 @@ export async function getSettingsFromDB(): Promise<UserSettings> {
     // cached settings. Unsaved local edits are protected by CycleContext's
     // snapshot check before hydration replaces state.
     const data = isObject(payload) && isObject(payload.settings) ? payload.settings : payload;
-    return { ...validateSettings(data, getDefaultSettings()), nativeHealthEnabled: local.nativeHealthEnabled ?? false, nativeWidgetEnabled: local.nativeWidgetEnabled ?? false };
+    return validateSettings(data, getDefaultSettings());
   } catch {
     // Local preferences remain available when the server is offline.
     return loadSettings();
@@ -146,9 +101,8 @@ export async function getSettingsFromDB(): Promise<UserSettings> {
 export async function saveSettingsToDB(settings: UserSettings): Promise<void> {
   const validated = validateSettings(settings, getDefaultSettings());
   saveSettings(validated);
-  void mirrorSnapshot(getDataStorageKey(SETTINGS_KEY), validated).catch(() => undefined);
   const token = getRemoteToken();
-  if (token) await enqueue(token, 'settings', cloudSettings(validated));
+  if (token) await enqueue(token, '/settings', validated);
 }
 
 export async function wipeAllLocalData(): Promise<void> {
@@ -159,9 +113,8 @@ export async function wipeAllLocalData(): Promise<void> {
     await remoteRequest('/logs', token, { method: 'DELETE' });
     await remoteRequest('/settings', token, { method: 'DELETE' });
   }
-  await clearDatabase();
   const ownedKeys = new Set(['regla_user_settings_v1', 'regla_daily_logs_v1', 'aura_cycle_logs', 'regla_logs', 'token', 'cached_user', 'dev_bypass_auth']);
-  const keys = Object.keys(localStorage).filter(key => ownedKeys.has(key) || key.startsWith(`${LOGS_KEY}:`) || key.startsWith(`${SETTINGS_KEY}:`) || key.startsWith('regla_greeted_') || key.startsWith('aura_chat_v1:') || key.startsWith(PENDING) || key.startsWith('aura_widget_v1') || key.startsWith('aura_health_exported_v1'));
+  const keys = Object.keys(localStorage).filter(key => ownedKeys.has(key) || key.startsWith(`${LOGS_KEY}:`) || key.startsWith(`${SETTINGS_KEY}:`) || key.startsWith('regla_greeted_') || key.startsWith('aura_chat_v1:'));
   for (const key of keys) localStorage.removeItem(key);
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('aura:data-cleared'));
 }

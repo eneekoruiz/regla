@@ -9,7 +9,9 @@ export function HorizontalTimeline() {
     const strip = container.current;
     const selected = strip?.querySelector<HTMLButtonElement>('[aria-pressed="true"]');
     if (!strip || !selected) return;
-    strip.scrollTo({ left: selected.offsetLeft - strip.clientWidth / 2 + selected.clientWidth / 2, behavior: 'instant' });
+    // Mejora 2: smooth scroll al cambiar de día (en vez de 'instant')
+    strip.scrollTo({ left: selected.offsetLeft - strip.clientWidth / 2 + selected.clientWidth / 2, behavior: 'smooth' });
   }, [selectedDate]);
   return <div ref={container} className="timeline-strip" role="group" aria-label="Seleccionar día">{timelineDays.map(day => <DayPill key={day.date} day={day} onSelect={setSelectedDate}/>)}</div>;
 }
+

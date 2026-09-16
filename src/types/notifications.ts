@@ -3,7 +3,9 @@ export type NotificationType = 'period_approaching' | 'fertile_window' | 'wellne
 export interface NotificationPreference {
   enabled: boolean;
   alertTime: string; // "09:00"
-  daysBeforePeriod: number; // e.g. 2
+  daysBeforePeriod: number; // e.g. 7 (compatibilidad previa)
+  periodReminders?: number[]; // e.g. [7, 3, 1, 0] días antes de la regla
+  repeatMonthly?: boolean; // true = repetir todos los meses / cada ciclo, false = solo este ciclo
   notifyFertileWindow: boolean; // e.g. true
   discreetMode: boolean; // true = camouflaged texts
 }

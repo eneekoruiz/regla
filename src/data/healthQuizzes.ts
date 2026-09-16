@@ -5,7 +5,7 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
     id: 'stress_check',
     title: 'Estrés y tensión',
     description: 'Anota cómo te has sentido esta semana. Este cuestionario no realiza un diagnóstico.',
-    estimatedTime: '1 min',
+    estimatedTime: '2 min',
     iconEmoji: '🧘‍♀️',
     themeColor: 'indigo',
     questions: [
@@ -23,15 +23,30 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
         title: '¿Has sentido que las preocupaciones te impiden dormir?',
         type: 'single_choice',
         options: [
-          { id: 'no', label: 'Casi nunca', emoji: '😴', score: 0 },
-          { id: 'sometimes', label: 'A veces', emoji: '💭', score: 1 },
-          { id: 'yes', label: 'Frecuentemente', emoji: '🦉', score: 2 }
+          { id: 'no', label: 'Casi nunca', emoji: '😌', score: 0 },
+          { id: 'sometimes', label: 'A veces', emoji: '😐', score: 1 },
+          { id: 'yes', label: 'Frecuentemente', emoji: '😰', score: 2 }
         ]
       },
       {
         id: 'stress_q3',
         title: 'A nivel físico, ¿tienes tensión muscular o dolores de cabeza?',
         type: 'boolean'
+      },
+      {
+        id: 'stress_q4',
+        title: '¿Te resulta difícil desconectar de tus responsabilidades al final del día?',
+        type: 'boolean'
+      },
+      {
+        id: 'stress_q5',
+        title: '¿Has notado cambios recientes en tu apetito por estrés?',
+        type: 'single_choice',
+        options: [
+          { id: 'no_change', label: 'Sin cambios', emoji: '🍽️' },
+          { id: 'more_hunger', label: 'Como por ansiedad', emoji: '🍩' },
+          { id: 'less_hunger', label: 'Se me cierra el estómago', emoji: '📉' }
+        ]
       }
     ]
   },
@@ -39,7 +54,7 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
     id: 'sleep_quality',
     title: 'Descanso y sueño',
     description: 'Registra tu descanso y cómo te sientes al despertar.',
-    estimatedTime: '30 seg',
+    estimatedTime: '1.5 min',
     iconEmoji: '🌙',
     themeColor: 'emerald',
     questions: [
@@ -50,13 +65,32 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
         options: [
           { id: 'less_5', label: 'Menos de 6 horas', emoji: '🥱', score: 2 },
           { id: '6_7', label: 'De 6 a menos de 8 horas', emoji: '😌', score: 1 },
-          { id: 'more_8', label: '8h o más', emoji: '✨', score: 0 }
+          { id: 'more_8', label: '8h o más', emoji: '🔋', score: 0 }
         ]
       },
       {
         id: 'sleep_q2',
-        title: '¿Te levantas con sensación de haber descansado?',
+        title: '¿Te levantas con sensación de haber descansado y con energía?',
         type: 'boolean'
+      },
+      {
+        id: 'sleep_q3',
+        title: '¿Te despiertas con frecuencia durante la noche y te cuesta volver a dormir?',
+        type: 'boolean'
+      },
+      {
+        id: 'sleep_q4',
+        title: '¿Utilizas pantallas (móvil, tablet) en la cama antes de irte a dormir?',
+        type: 'boolean'
+      },
+      {
+        id: 'sleep_q5',
+        title: 'En general, ¿cómo calificarías tu nivel de energía durante el día?',
+        type: 'slider',
+        min: 1,
+        max: 5,
+        step: 1,
+        sliderLabels: ['Agotada', 'Con mucha energía']
       }
     ]
   },
@@ -70,12 +104,12 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
     questions: [
       {
         id: 'pcos_q1',
-        title: '¿La duración de tus ciclos varía mucho (por ejemplo, de 20 a 45 días)?',
+        title: '¿La duración de tus ciclos varía mucho (por ejemplo, de 20 a más de 45 días)?',
         type: 'boolean'
       },
       {
         id: 'pcos_q2',
-        title: '¿Has notado cambios inusuales en piel o vello corporal recientemente?',
+        title: '¿Has notado cambios inusuales en piel (acné adulto) o vello corporal recientemente?',
         type: 'boolean'
       },
       {
@@ -87,6 +121,16 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
           { id: 'up', label: 'Ha aumentado', emoji: '📈' },
           { id: 'down', label: 'Ha disminuido', emoji: '📉' }
         ]
+      },
+      {
+        id: 'pcos_q4',
+        title: '¿Experimentas dolor pélvico agudo fuera de tus días de sangrado menstrual?',
+        type: 'boolean'
+      },
+      {
+        id: 'pcos_q5',
+        title: '¿Notas pequeños sangrados o manchados inesperados entre tus periodos regulares?',
+        type: 'boolean'
       }
     ]
   },
@@ -94,7 +138,7 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
     id: 'pms_evaluation',
     title: 'Síntomas premenstruales',
     description: 'Registra cómo te afectan los días previos a la regla. Tus respuestas no sustituyen una valoración profesional.',
-    estimatedTime: '45 seg',
+    estimatedTime: '1.5 min',
     iconEmoji: '🌸',
     themeColor: 'purple',
     questions: [
@@ -104,14 +148,34 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
         type: 'single_choice',
         options: [
           { id: 'mild', label: 'Leves o normales', emoji: '😌', score: 0 },
-          { id: 'moderate', label: 'Moderados (me afectan el día)', emoji: '🌪️', score: 1 },
-          { id: 'severe', label: 'Muy intensos (no me reconozco)', emoji: '💔', score: 2 }
+          { id: 'moderate', label: 'Moderados (me afectan el día)', emoji: '😕', score: 1 },
+          { id: 'severe', label: 'Muy intensos (no me reconozco)', emoji: '🌩️', score: 2 }
         ]
       },
       {
         id: 'pms_q2',
         title: '¿Sueles tener hinchazón abdominal marcada o sensibilidad dolorosa en los pechos?',
         type: 'boolean'
+      },
+      {
+        id: 'pms_q3',
+        title: '¿Sientes antojos incontrolables por dulces o comida reconfortante antes de la regla?',
+        type: 'boolean'
+      },
+      {
+        id: 'pms_q4',
+        title: '¿Notas dificultad para concentrarte o mayor olvido (\'brain fog\') en estos días?',
+        type: 'boolean'
+      },
+      {
+        id: 'pms_q5',
+        title: '¿Sientes una caída importante en tus niveles de energía o fatiga extrema?',
+        type: 'single_choice',
+        options: [
+          { id: 'none', label: 'Normal', emoji: '🔋', score: 0 },
+          { id: 'mild', label: 'Leve', emoji: '🪫', score: 1 },
+          { id: 'severe', label: 'Fatiga extrema', emoji: '🛌', score: 2 }
+        ]
       }
     ]
   },
@@ -119,7 +183,7 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
     id: 'cramps_check',
     title: 'Dolor menstrual',
     description: 'Anota la intensidad del dolor y qué te ayuda a aliviarlo.',
-    estimatedTime: '30 seg',
+    estimatedTime: '1.5 min',
     iconEmoji: '🩹',
     themeColor: 'rose',
     questions: [
@@ -134,7 +198,22 @@ export const HEALTH_QUIZZES: Record<string, HealthQuiz> = {
       },
       {
         id: 'cramps_q2',
+        title: '¿Necesitas tomar analgésicos o antiinflamatorios (ibuprofeno, paracetamol) para sobrellevar el dolor?',
+        type: 'boolean'
+      },
+      {
+        id: 'cramps_q3',
         title: '¿El dolor suele mejorar aplicando calor local (bolsa caliente o manta térmica)?',
+        type: 'boolean'
+      },
+      {
+        id: 'cramps_q4',
+        title: '¿El dolor menstrual se irradia frecuentemente hacia la espalda baja o hacia las piernas?',
+        type: 'boolean'
+      },
+      {
+        id: 'cramps_q5',
+        title: '¿Experimentas también síntomas digestivos (náuseas, diarrea) acompañando los cólicos?',
         type: 'boolean'
       }
     ]

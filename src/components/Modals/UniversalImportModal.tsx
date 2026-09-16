@@ -74,7 +74,7 @@ export function UniversalImportModal({ isOpen, onClose }: { isOpen: boolean; onC
     const result = await parseUniversalData(decrypted);
     setOriginal(decrypted); setParsed(result); setPassphraseOpen(false); setEncryptedPayload(''); setError('');
   };
-  return <><ModalFrame isOpen={isOpen} onClose={close} title="Importar registros"
+  return <><ModalFrame isOpen={isOpen} onClose={close} title="Importar registros" errorMessage={error} onClearError={() => setError('')}
     footer={saved ? <button type="button" onClick={close} className={modalPrimaryButton}>Listo</button> : parsed ? <>
       <button type="button" onClick={() => { setParsed(null); setError(''); }} className={modalSecondaryButton}><ArrowLeft size={17} aria-hidden="true" />Volver</button>
       <button type="button" onClick={confirm} disabled={!selectedCount && parsed.source !== 'backup_json'} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />{parsed.source === 'backup_json' ? 'Restaurar copia' : `Importar ${selectedCount} registros`}</button>

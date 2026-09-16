@@ -349,7 +349,14 @@ export async function analyzeChronicleNote(
 
   // 6. Cervical Mucus
   let cervicalMucus: CervicalMucusEntry | undefined = undefined;
-  if (/\b(flujo\s+(el[aá]stico|transparente|abundante)|clara\s+de\s+huevo|moco\s+f[eé]rtil)\b/i.test(lower)) {
+  if (/\b(marr[oó]n|raro|oscuro|spotting|manchado\s+irregular)\b/i.test(lower) && /\b(moco|flujo)\b/i.test(lower)) {
+    cervicalMucus = {
+      type: 'unusual_brown',
+      label: 'Flujo marrón/raro',
+      rawSnippet: 'flujo/moco marrón'
+    };
+    summary.push('🟤 Flujo marrón');
+  } else if (/\b(flujo\s+(el[aá]stico|transparente|abundante)|clara\s+de\s+huevo|moco\s+f[eé]rtil)\b/i.test(lower)) {
     cervicalMucus = {
       type: 'egg_white',
       label: 'Flujo fértil (clara de huevo)',

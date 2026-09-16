@@ -38,7 +38,7 @@ export interface PeriodEntry {
 }
 
 export interface CervicalMucusEntry {
-  type: 'dry' | 'sticky' | 'creamy' | 'egg_white' | 'watery';
+  type: 'dry' | 'sticky' | 'creamy' | 'egg_white' | 'watery' | 'unusual_brown';
   label: string;
   rawSnippet: string;
 }

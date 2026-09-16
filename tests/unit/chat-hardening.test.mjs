@@ -40,6 +40,45 @@ test('urgent messages take priority over the ordinary catalog', async () => {
   assert.equal(response.suggestions, undefined);
 });
 
+test('ambiguous symptom expressions trigger disambiguation with interactive options', async () => {
+  const bellyResponse = await agent.generateChatResponse('me duele la tripa', [], context);
+  assert.equal(bellyResponse.topicId, 'disambiguation');
+  assert.match(bellyResponse.text, /me duele la tripa/);
+  assert.ok(bellyResponse.suggestions && bellyResponse.suggestions.length >= 2);
+  assert.ok(bellyResponse.suggestions.some(s => s.prompt?.includes('cólicos')));
+
+  const badBodyResponse = await agent.generateChatResponse('hoy tengo mal cuerpo', [], context);
+  assert.equal(badBodyResponse.topicId, 'disambiguation');
+  assert.match(badBodyResponse.text, /mal cuerpo/);
+
+  const weirdResponse = await agent.generateChatResponse('estoy rara hoy', [], context);
+  assert.equal(weirdResponse.topicId, 'disambiguation');
+});
+
+test('unambiguous personal symptoms log directly and confirm with personalized care', async () => {
+  const directResponse = await agent.generateChatResponse('hoy tengo dolor de cabeza y cólicos', [], context);
+  assert.ok(directResponse.loggedSymptoms && directResponse.loggedSymptoms.length === 2);
+  const ids = directResponse.loggedSymptoms.map(s => s.id);
+  assert.ok(ids.includes('headache'));
+  assert.ok(ids.includes('cramps'));
+  assert.match(directResponse.text, /Anotado en tu diario de hoy/);
+  assert.match(directResponse.text, /calor suave/);
+
+  const periodStartResponse = await agent.generateChatResponse('hoy me ha bajado la regla', [], context);
+  assert.equal(periodStartResponse.periodAction, 'start');
+  assert.match(periodStartResponse.text, /inicio de tu regla/);
+});
+
+test('banter, jokes and teasing receive witty, juicy boundary responses without robotic repetition', async () => {
+  const trollResponse = await agent.generateChatResponse('eres un robot y una tonta', [], context);
+  assert.equal(trollResponse.topicId, 'catalog');
+  assert.match(trollResponse.text, /guasa|vacil|arte|fiesta/);
+
+  const jokeResponse = await agent.generateChatResponse('cuéntame un chiste', [], context);
+  assert.equal(jokeResponse.topicId, 'catalog');
+  assert.match(jokeResponse.text, /guasa|vacil|arte|fiesta/);
+});
+
 test('a partially completed quiz and draft survive a history round trip', () => {
   const message = { ...history.newChatMessage('assistant', ''), quizCard: { quizKey: 'stress', stepIndex: 1 } };
   const conversation = { messages: [message], activeQuiz: { key: 'stress', step: 1, messageId: message.id, answers: { stress_q1: 4 } }, draft: 'Una duda pendiente' };

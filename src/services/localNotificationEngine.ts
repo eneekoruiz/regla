@@ -4,9 +4,11 @@ import { parseDateKey } from '../utils/cycleCalculator';
 
 export function getDefaultNotificationPreferences(): NotificationPreference {
   return {
-    enabled: false,
+    enabled: true,
     alertTime: '09:00',
-    daysBeforePeriod: 2,
+    daysBeforePeriod: 7,
+    periodReminders: [7, 2],
+    repeatMonthly: true,
     notifyFertileWindow: true,
     discreetMode: true
   };
@@ -17,14 +19,16 @@ export function getDefaultNotificationPreferences(): NotificationPreference {
  */
 export function getCamouflagedMessage(
   type: NotificationType,
-  discreetMode = true
+  discreetMode = true,
+  daysBefore = 7
 ): { title: string; body: string } {
+  const timeText = daysBefore === 0 ? 'hoy' : daysBefore === 1 ? 'mañana' : daysBefore === 7 ? 'en 1 semana' : `en ${daysBefore} días`;
   if (!discreetMode) {
     switch (type) {
       case 'period_approaching':
         return {
           title: 'Aura',
-          body: 'Tu periodo está previsto para comenzar en un par de días 🩸'
+          body: daysBefore === 0 ? 'Tu periodo está previsto para comenzar hoy 🩸' : `Tu periodo está previsto para comenzar ${timeText} 🩸`
         };
       case 'fertile_window':
         return {
@@ -44,7 +48,13 @@ export function getCamouflagedMessage(
     case 'period_approaching':
       return {
         title: 'Aura',
-        body: 'Un pequeño recordatorio para ti hoy 🌸'
+        body: daysBefore === 0
+          ? 'Un pequeño recordatorio para tu día hoy 🌸'
+          : daysBefore === 1
+            ? 'Un pequeño recordatorio para mañana 🌸'
+            : daysBefore === 7
+              ? 'Un pequeño recordatorio para tu semana 🌸'
+              : `Un pequeño recordatorio para tus próximos ${daysBefore} días 🌸`
       };
     case 'fertile_window':
       return {
@@ -139,44 +149,54 @@ export function scheduleLocalMilestones(
   const scheduled: ScheduledNotification[] = [];
   const [hours, minutes] = (prefs.alertTime || '09:00').split(':').map(Number);
 
-  // 1. Period approaching alert (e.g. 2 days before nextPeriodStartDate)
-  if (milestones.nextPeriodStartDate) {
+  // 1. Period approaching alerts (múltiples recordatorios configurables)
+  if (milestones.nextPeriodStartDate && /^\d{4}-\d{2}-\d{2}$/.test(milestones.nextPeriodStartDate)) {
     const periodStartDate = parseDateKey(milestones.nextPeriodStartDate);
-    const triggerDate = new Date(periodStartDate);
-    triggerDate.setDate(periodStartDate.getDate() - (prefs.daysBeforePeriod || 2));
-    triggerDate.setHours(hours, minutes, 0, 0);
+    if (Number.isFinite(periodStartDate.getTime())) {
+      const reminderDays = Array.isArray(prefs.periodReminders) && prefs.periodReminders.length > 0
+        ? prefs.periodReminders
+        : [prefs.daysBeforePeriod ?? 7];
 
-    const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode);
+      for (const daysBefore of reminderDays) {
+        const triggerDate = new Date(periodStartDate);
+        triggerDate.setDate(periodStartDate.getDate() - daysBefore);
+        triggerDate.setHours(hours, minutes, 0, 0);
 
-    scheduled.push({
-      id: `period_${milestones.nextPeriodStartDate}`,
-      targetDate: milestones.nextPeriodStartDate,
-      triggerTimestamp: triggerDate.getTime(),
-      type: 'period_approaching',
-      title: msg.title,
-      body: msg.body,
-      isDiscreet: prefs.discreetMode
-    });
+        const msg = getCamouflagedMessage('period_approaching', prefs.discreetMode, daysBefore);
+
+        scheduled.push({
+          id: `period_${milestones.nextPeriodStartDate}_${daysBefore}d`,
+          targetDate: milestones.nextPeriodStartDate,
+          triggerTimestamp: triggerDate.getTime(),
+          type: 'period_approaching',
+          title: msg.title,
+          body: msg.body,
+          isDiscreet: prefs.discreetMode
+        });
+      }
+    }
   }
 
   // 2. Fertile window alert (1 day before nextFertileWindowStart)
-  if (prefs.notifyFertileWindow && milestones.nextFertileWindowStart) {
+  if (prefs.notifyFertileWindow && milestones.nextFertileWindowStart && /^\d{4}-\d{2}-\d{2}$/.test(milestones.nextFertileWindowStart)) {
     const fertileStartDate = parseDateKey(milestones.nextFertileWindowStart);
-    const triggerDate = new Date(fertileStartDate);
-    triggerDate.setDate(fertileStartDate.getDate() - 1);
-    triggerDate.setHours(hours, minutes, 0, 0);
+    if (Number.isFinite(fertileStartDate.getTime())) {
+      const triggerDate = new Date(fertileStartDate);
+      triggerDate.setDate(fertileStartDate.getDate() - 1);
+      triggerDate.setHours(hours, minutes, 0, 0);
 
-    const msg = getCamouflagedMessage('fertile_window', prefs.discreetMode);
+      const msg = getCamouflagedMessage('fertile_window', prefs.discreetMode);
 
-    scheduled.push({
-      id: `fertile_${milestones.nextFertileWindowStart}`,
-      targetDate: milestones.nextFertileWindowStart,
-      triggerTimestamp: triggerDate.getTime(),
-      type: 'fertile_window',
-      title: msg.title,
-      body: msg.body,
-      isDiscreet: prefs.discreetMode
-    });
+      scheduled.push({
+        id: `fertile_${milestones.nextFertileWindowStart}`,
+        targetDate: milestones.nextFertileWindowStart,
+        triggerTimestamp: triggerDate.getTime(),
+        type: 'fertile_window',
+        title: msg.title,
+        body: msg.body,
+        isDiscreet: prefs.discreetMode
+      });
+    }
   }
 
   return scheduled;

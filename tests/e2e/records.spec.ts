@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { enterLocal, openTool, readLogs } from './helpers';
+import { enterAccount, openTool, readLogs } from './helpers';
 
 test('sangrado se guarda en la fecha elegida, persiste y se puede corregir', async ({ page }) => {
-  await enterLocal(page);
+  await enterAccount(page);
   await page.getByLabel('Fecha del registro').fill('2026-08-12');
   await page.getByRole('button', { name: 'Registrar regla', exact: true }).click();
   await page.getByRole('button', { name: 'Sí, hubo sangrado' }).click();
@@ -21,7 +21,7 @@ test('sangrado se guarda en la fecha elegida, persiste y se puede corregir', asy
 });
 
 test('temperatura valida decimales, persiste y permite borrar', async ({ page }) => {
-  await enterLocal(page);
+  await enterAccount(page);
   await page.getByLabel('Fecha del registro').fill('2026-08-12');
   await openTool(page, /^Temperatura y moco/);
   await page.getByLabel('Temperatura basal (°C)').fill('abc');
@@ -42,7 +42,7 @@ test('temperatura valida decimales, persiste y permite borrar', async ({ page })
 });
 
 test('medicación conserva nombre, dosis, hora y toma después de recargar', async ({ page }) => {
-  await enterLocal(page);
+  await enterAccount(page);
   await openTool(page, /^Medicación/);
   await page.getByRole('button', { name: 'Añadir toma', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('nombre');
