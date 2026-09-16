@@ -2,6 +2,14 @@
 
 La pantalla principal reúne semana deslizable, anillo SVG, registro rápido, consejos en hojas inferiores y Confidente. Calendario, herramientas y perfil se abren sobre el diario. Se mantiene un tema claro incluso si el sistema está en modo oscuro. El anillo respeta movimiento reducido y la semana admite flechas del teclado.
 
+## Recuperación de ciclos y pantalla fija
+
+El diario usa `100vh` como respaldo de `100dvh`, con el desplazamiento de la página bloqueado. La distribución cambia con la altura disponible; en pantallas bajas los consejos se consultan desde una hoja flotante. Los diálogos permiten desplazamiento interno para conservar acceso a formularios largos. El anillo y la gota usan coordenadas SVG y proporciones fijas, sin animar el tamaño del contenedor.
+
+Cuando han transcurrido más de 1,5 ciclos medios desde la última regla registrada, se ofrece recuperar el siguiente intervalo antes del saludo diario. Confirmar o ajustar añade únicamente las fechas elegidas, conserva las observaciones y recalcula las estimaciones. Cada mes requiere confirmación; nunca se rellenan meses automáticamente. Saltar aplaza la propuesta hasta otro día, sin crear registros. Los estados no cíclicos y la anticoncepción hormonal no activan esta propuesta. Un fallo de guardado mantiene la hoja abierta.
+
+`tests/e2e/golden-master.spec.ts` comprueba igualdad de alturas de página y contenedores, controles alcanzables, estabilidad del SVG, contraste y recuperación persistente. Incluye 320×568 y 844×390 además de los cuatro tamaños de la configuración de Playwright. Las pruebas verifican geometría estable; no constituyen una medición de 60 fps en todos los dispositivos.
+
 ## Motor y personalización
 
 `biologicalMachine.ts` contiene un reducer puro con estados cerrados: desconocido, menstrual, folicular, ovulación estimada, lútea, embarazo, posparto, menopausia y anticoncepción hormonal. El embarazo es una declaración del perfil, nunca una conclusión de síntomas o de una analítica aislada.
