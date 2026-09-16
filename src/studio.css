@@ -313,3 +313,32 @@ html, body, #root, .aura-app { height: 100vh; height: 100dvh; min-height: 0; ove
   .countdown-drop { height: 13px; margin-bottom: 2px; }
   .orbit-eyebrow { font-size: 6px; }
 }
+
+/* Compact diary remains a fixed workspace: secondary detail opens through existing sheets. */
+@media (max-width: 700px) and (max-height: 900px) {
+  .aura-app > .workspace { height: 100%; min-height: 0; overflow: hidden !important; padding: 6px 10px 68px !important; }
+  .aura-app > .workspace > .workspace-inner { height: 100%; min-height: 0; overflow: hidden; }
+  .aura-app .date-toolbar { min-height: 30px; margin-bottom: 0; }
+  .aura-app .date-heading { font-size: 11px; }
+  .aura-app .date-picker { min-height: 30px; font-size: 12px; }
+  .aura-app .timeline-strip { padding-block: 2px; }
+  .aura-app .day-pill { width: 38px; height: 46px; }
+  .aura-app .day-pill .day-label { font-size: 8px; }
+  .aura-app .day-pill .day-number { font-size: 13px; }
+  .aura-app .diary-secondary, .aura-app .biomarker-list { display: none !important; }
+  .aura-app .diary-grid { margin-top: 0; }
+  .aura-app .cycle-summary { padding: 6px 8px; min-height: 0; }
+  .aura-app .cycle-summary-visuals { min-height: 134px !important; height: 134px; margin: 0; }
+  .aura-app .cycle-ring-wrap { width: 132px !important; height: 132px !important; }
+  .aura-app .cycle-ring { width: 132px !important; height: 132px !important; }
+  .aura-app .cycle-summary-header .phase-chip { min-height: 26px; margin: 0 0 2px; font-size: 9px; }
+  .aura-app .cycle-headline { font-size: 18px; line-height: 1.1; }
+  .aura-app .cycle-copy, .aura-app .cycle-summary-bottom-actions, .aura-app .hero-cycle-highlights { display: none; }
+  .aura-app .quick-log-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+  .aura-app .quick-log { min-height: 40px; padding: 4px 2px; font-size: 8px; gap: 3px; }
+  .aura-app .quick-log svg { width: 14px; height: 14px; }
+}
+
+/* The dial is a true square canvas, independent from the surrounding copy. */
+.cycle-ring.is-primary, .cycle-ring.is-secondary { aspect-ratio: 1 / 1; }
+.cycle-ring, .cycle-ring-wrap { transition-property: opacity, filter; }

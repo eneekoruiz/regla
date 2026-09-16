@@ -18,7 +18,7 @@ const originalFetch = globalThis.fetch;
 const date = '2026-08-10';
 const stressResult = (fields = {}) => ({
   quizId: 'stress_check', completedAt: '2026-09-04T12:00:00.000Z',
-  answers: { stress_q1: 3, stress_q2: 'sometimes', stress_q3: false }, ...fields
+  answers: { stress_q1: 3, stress_q2: 'sometimes', stress_q3: false, stress_q4: false, stress_q5: 'no_change' }, ...fields
 });
 const persistResult = (result, targetDate = date) => saveLogs(addQuizResultToLogs(loadLogs(), result, targetDate));
 const remoteSession = id => {
@@ -145,7 +145,7 @@ test('quiz histories remain isolated between private mode and remote accounts', 
   persistResult(stressResult());
   remoteSession('account-a');
   assert.deepEqual(loadLogs(), {});
-  const resultA = stressResult({ answers: { stress_q1: 1, stress_q2: 'no', stress_q3: true } });
+  const resultA = stressResult({ answers: { stress_q1: 1, stress_q2: 'no', stress_q3: true, stress_q4: false, stress_q5: 'no_change' } });
   persistResult(resultA);
   remoteSession('account-b');
   assert.deepEqual(loadLogs(), {});

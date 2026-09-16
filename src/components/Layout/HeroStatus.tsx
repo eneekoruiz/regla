@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
@@ -22,7 +22,7 @@ export function HeroStatus({
   topContent?: React.ReactNode;
   children?: React.ReactNode;
 }) {
-  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
+  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
   const toast = useToast();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
   // Mejora 6: estado para doble confirmación antes de borrar registro de regla
@@ -253,7 +253,6 @@ export function HeroStatus({
   const activeDuration = isPeriodDay ? periodLength : cycleLength;
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
   const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
-  const circumference = 2 * Math.PI * 55;
   const showRing = hasCycle && (isToday || isFuture);
 
   // Cuando se muestran los diales visuales gemelos, la cabecera indica el día y fase sin repetir la cuenta atrás

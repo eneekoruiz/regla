@@ -270,6 +270,14 @@ export function topicSuggestion(topic: Pick<LocalTopic, 'id' | 'label' | 'prompt
   return { id: topic.id, label: topic.label, prompt: topic.prompt, action: 'ask' };
 }
 
+function phaseContextNote(context: ChatContext): string {
+  const symptoms = (context.dayInfo.symptoms ?? []).map(symptom => symptom.name).filter(Boolean);
+  const irregular = context.settings.hasPCOS || context.stats.isIrregular || context.stats.isPCOSModeActive;
+  const irregularNote = irregular ? ' No calculamos un día de ovulación cuando tu perfil indica ciclos irregulares o SOP.' : '';
+  const symptomNote = symptoms.length ? ` Hoy has registrado: ${symptoms.join(', ')}.` : '';
+  return `Fecha seleccionada: **${context.dayInfo.date}**. Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.${irregularNote}${symptomNote}\n\n`;
+}
+
 export async function generateChatResponse(prompt: string, history: ChatMessage[], context: ChatContext): Promise<AIResponse> {
   const text = normalizeChatText(prompt.slice(0, 4000));
   
@@ -283,7 +291,7 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
   // 2. Direct catalog prompt match (e.g. from buttons or catalog clicks)
   const catalogByPrompt = LOCAL_CHAT_TOPICS.find(item => normalizeChatText(item.prompt) === text);
   if (catalogByPrompt) {
-    const phaseNote = catalogByPrompt.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';
+    const phaseNote = catalogByPrompt.id === 'phase' ? phaseContextNote(context) : '';
     const suggested = LOCAL_CHAT_TOPICS.filter(item => item.id !== catalogByPrompt.id && ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).slice(0, 2).map(topicSuggestion);
     if (catalogByPrompt.quizKey) suggested.unshift(CHAT_QUIZ_SUGGESTIONS.find(item => item.quizKey === catalogByPrompt.quizKey)!);
     return {
@@ -330,7 +338,7 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
     const previous = [...history].reverse().find(message => message.role === 'assistant' && message.topicId);
     const prevTopic = LOCAL_CHAT_TOPICS.find(item => item.id === previous?.topicId);
     if (prevTopic) {
-      const phaseNote = prevTopic.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';
+      const phaseNote = prevTopic.id === 'phase' ? phaseContextNote(context) : '';
       const suggested = LOCAL_CHAT_TOPICS.filter(item => item.id !== prevTopic.id && ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).slice(0, 2).map(topicSuggestion);
       if (prevTopic.quizKey) suggested.unshift(CHAT_QUIZ_SUGGESTIONS.find(item => item.quizKey === prevTopic.quizKey)!);
       return {
@@ -343,7 +351,7 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
   // 6. Topic pattern match
   const topic = LOCAL_CHAT_TOPICS.find(item => item.pattern.test(text));
   if (topic) {
-    const phaseNote = topic.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';
+    const phaseNote = topic.id === 'phase' ? phaseContextNote(context) : '';
     const suggested = LOCAL_CHAT_TOPICS.filter(item => item.id !== topic.id && ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).slice(0, 2).map(topicSuggestion);
     if (topic.quizKey) suggested.unshift(CHAT_QUIZ_SUGGESTIONS.find(item => item.quizKey === topic.quizKey)!);
     return {

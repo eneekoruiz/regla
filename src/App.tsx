@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -73,7 +73,7 @@ const Loading = () => <div className="view-loading" role="status">Cargando…</d
 
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, upcomingMilestones, recoverPeriod } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
@@ -114,15 +114,18 @@ function MainScreen() {
       if (!hasLoggedToday) {
         const timer = setTimeout(() => {
           setModal('daily');
+          setHasAutoOpenedDaily(true);
         }, 350);
-        setHasAutoOpenedDaily(true);
         return () => clearTimeout(timer);
       }
-      setHasAutoOpenedDaily(true);
+      const timer = setTimeout(() => setHasAutoOpenedDaily(true), 0);
+      return () => clearTimeout(timer);
     }
   }, [hasAutoOpenedDaily, recovery, view, logs, todayDate]);
   useEffect(() => {
-    if (recovery && view === 'diary' && modal === null) setModal('recovery');
+    if (!recovery || view !== 'diary' || modal !== null) return;
+    const timer = window.setTimeout(() => setModal('recovery'), 0);
+    return () => window.clearTimeout(timer);
   }, [modal, recovery, view]);
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   const toast = useToast();
@@ -188,8 +191,6 @@ function MainScreen() {
   }, [cycleStats, selectedDate]);
   const daysNext = selectedMilestones.daysUntilNextPeriod;
   const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(0, cycleLength - cycleDay + 1);
-  const daysToOvu = selectedMilestones.daysUntilNextOvulation;
-  const isApproachingPeriod = (typeof daysNext === 'number' && daysNext <= 10) || (!daysNext && daysToNext <= 10) || hasPeriod;
   const hasMedications = Boolean(log?.medications?.some(m => m.taken));
   const hasIrregularBleeding = Boolean(log?.isIrregularBleeding);
   const tools = [

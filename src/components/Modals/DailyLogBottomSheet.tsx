@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, CheckCircle2, Droplets, Pill, Sparkles, Thermometer } from 'lucide-react';
+import { Check, CheckCircle2, Droplets, Pill, Thermometer } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { CycleStatusCard } from '../Cards/CycleStatusCard';
@@ -48,31 +48,20 @@ export function DailyLogBottomSheet({
   );
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    const timer = window.setTimeout(() => {
       const currentLog = logs[selectedDate];
       setBleedingChoice(
         currentLog?.isPeriod ? 'period' : currentLog?.isIrregularBleeding ? 'irregular' : 'none'
       );
       setFlow(currentLog?.flow || settings.typicalFlowIntensity || 'medium');
       setIsCycleStart(Boolean(currentLog?.isCycleStart || settings.lastPeriodStartDate === selectedDate));
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [isOpen, selectedDate, logs, settings]);
 
   const isCalmDay = day.symptoms.some(s => s.id === 'calm_day');
   const isApproachingOrPeriod = day.isPeriod || day.dayOfCycle === 1;
-
-  const handleToggleCalmDay = () => {
-    if (isCalmDay) {
-      removeSymptom(selectedDate, 'calm_day');
-    } else {
-      logSymptom(selectedDate, {
-        id: 'calm_day',
-        name: 'Día normal sin molestias',
-        category: 'general',
-        emoji: '✨'
-      });
-    }
-  };
 
   const handleSaveAndClose = () => {
     try {

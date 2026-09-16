@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { AlertCircle, Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Plus, ChevronRight, UserRound, Shield, FileText, X } from 'lucide-react';
+import { AlertCircle, Download, Upload, LogOut, Trash2, Check, Bell, BellRing, Calendar, Plus, UserRound, Shield, FileText, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/toast';
 import { ModalFrame } from '../Modals/ModalFrame';
-import { modalField, modalPrimaryButton, modalSecondaryButton } from '../Modals/modalStyles';
+import { modalField, modalSecondaryButton } from '../Modals/modalStyles';
 import { MedicalExportModal } from '../Modals/MedicalExportModal';
 import { UniversalImportModal } from '../Modals/UniversalImportModal';
 import { LegalComplianceModal } from '../Modals/LegalComplianceModal';
@@ -30,13 +30,13 @@ export function SettingsSection(props: Props) {
   return <SettingsContent {...props} inline />;
 }
 
-function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
+function SettingsContent({ inline = false }: Props) {
   const { setIsSettingsOpen, settings, updateSettings, exportData, destroyAllData, logs, todayDate, notificationPrefs, updateNotificationPrefs } = useCycle();
   const { signOut, user } = useAuth();
   const toast = useToast();
   const [tab, setTab] = useState<SettingsTab>('account');
   const [tool, setTool] = useState<Tool>(null);
-  const [profileCategory, setProfileCategory] = useState<Category>('cycle');
+  const profileCategory: Category = 'cycle';
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -74,11 +74,6 @@ function SettingsContent({ onOpenModularProfile, inline = false }: Props) {
     try { await action(); } catch { setError('No se ha completado la operación. Vuelve a intentarlo.'); }
     finally { setBusy(false); }
   };
-  const openProfile = (category: Category) => {
-    if (onOpenModularProfile) { close(); onOpenModularProfile(category); }
-    else { setProfileCategory(category); setTool('profile'); }
-  };
-
   const isMobile = typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const isIos = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
   const isAndroid = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);

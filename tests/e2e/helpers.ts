@@ -43,11 +43,20 @@ export async function seedAccount(page: Page) {
     localStorage.setItem('token', token);
     localStorage.setItem('cached_user', JSON.stringify(user));
     localStorage.setItem(settingsKey, JSON.stringify({ userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light' }));
-    localStorage.setItem(logsKey, JSON.stringify({ [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() } }));
+    localStorage.setItem(logsKey, JSON.stringify({
+      [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() },
+      [key(today)]: { date: key(today), isPeriod: false, symptoms: [{ id: 'qa-ready', name: 'Preparado para revisión', category: 'general', emoji: '✓' }], recordedAt: today.toISOString() }
+    }));
     localStorage.setItem('qa-initialized', 'true');
   });
   await page.goto('/');
   await expect(page.getByLabel('Fecha del registro')).toBeVisible();
+}
+
+/** Compatibility fixture for the diary tests. The product now requires an account,
+ * so this seeds the isolated, mocked account instead of an unauthenticated store. */
+export async function seedLocal(page: Page, _greeting = false) {
+  await seedAccount(page);
 }
 
 export async function checkLayout(page: Page) {
