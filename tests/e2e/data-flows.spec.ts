@@ -28,6 +28,7 @@ test('cuestionario guardado en la fecha elegida, con respuestas visibles tras re
   expect(results[0].answers).toEqual(expected);
   await page.reload();
   await page.getByLabel('Fecha del registro').fill(date);
+  await page.getByRole('button', { name: /Tu registro está guardado/ }).click();
   const history = page.getByRole('region', { name: 'Cuestionarios guardados' });
   await history.locator('summary').click();
   await expect(history.getByText('A veces', { exact: true })).toBeVisible();

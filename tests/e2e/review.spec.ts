@@ -1,6 +1,21 @@
 import { test, expect } from '@playwright/test';
 import { seedLocal, enterLocal, checkAccessibility, checkLayout } from './helpers';
 
+test('el manchado se conserva como sangrado editable y se puede quitar tras recargar', async ({ page }) => {
+  await seedLocal(page);
+  await page.getByRole('button', { name: 'Registrar regla', exact: true }).click();
+  await page.getByRole('button', { name: 'Sí, hubo sangrado' }).click();
+  await page.getByRole('button', { name: 'Manchado', exact: true }).click();
+  await page.getByRole('button', { name: 'Guardar registro' }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Editar regla', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sí, hubo sangrado' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Manchado', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Quitar', exact: true }).click();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Registrar regla', exact: true })).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('instalación voluntaria con guía, foco y confirmación del navegador', async ({ page }, info) => {
   await seedLocal(page);
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -39,8 +54,8 @@ test('el diario no reinicia el ciclo al pasar la fecha estimada sin registro', a
     localStorage.setItem('regla_daily_logs_v1', JSON.stringify({ '2026-08-07': { date: '2026-08-07', isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [] } }));
   });
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Tu ciclo tiene su ritmo' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Día 30 del ciclo; duración estimada 28 días' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tu ciclo sigue' })).toBeVisible();
+  await expect(page.getByText('DÍA 30 DE TU CICLO', { exact: true })).toBeVisible();
   await expect(page.getByText('La fecha estimada ha pasado.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: 'Registrar regla', exact: true }).click();
   await page.getByRole('button', { name: 'Sí, hubo sangrado' }).click();
@@ -48,7 +63,7 @@ test('el diario no reinicia el ciclo al pasar la fecha estimada sin registro', a
   await page.getByRole('button', { name: 'Guardar registro' }).click();
   await expect(page.getByRole('heading', { name: 'En tu periodo' })).toBeVisible();
   // The completed 29-day cycle also updates the estimated duration.
-  await expect(page.getByRole('img', { name: 'Día 1 del ciclo; duración estimada 29 días' })).toBeVisible();
+  await expect(page.getByText('DÍA 1 DE TU CICLO', { exact: true })).toBeVisible();
 });
 
 test('sangrado irregular muy abundante muestra orientación antes de los consejos', async ({ page }, info) => {
@@ -60,6 +75,6 @@ test('sangrado irregular muy abundante muestra orientación antes de los consejo
   await page.getByRole('button', { name: 'Guardar registro' }).click();
   const notice = page.getByRole('note', { name: 'Orientación sobre sangrado muy abundante' });
   await expect(notice).toContainText('Contacta con un profesional sanitario hoy');
-  expect(await notice.evaluate(el => Boolean(el.compareDocumentPosition(document.querySelector('.diary-grid')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  expect(await notice.evaluate(el => Boolean(el.compareDocumentPosition(document.querySelector('.orbit-hero')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
   await checkAccessibility(page, info, 'sangrado-orientacion');
 });

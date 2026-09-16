@@ -1,5 +1,6 @@
 import type { CycleDayInfo, CyclePhase, DailyLog, UserSettings } from '../types/cycle';
 import { calculateCycleStatistics, predictDayStatus } from '../services/predictiveEngine';
+import { BIOLOGICAL_LABELS } from '../services/biologicalMachine';
 import { isDateKey } from './dateKey';
 
 export const SPANISH_DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -9,14 +10,14 @@ export const SPANISH_MONTHS_FULL = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
-export const PHASE_NAMES: Record<CyclePhase, string> = {
-  menstrual: 'Fase Menstrual',
-  follicular: 'Fase Folicular',
-  ovulation: 'Fase Ovulatoria',
-  luteal: 'Fase Lútea',
-};
+export const PHASE_NAMES = BIOLOGICAL_LABELS;
 
 export const PHASE_COLORS: Record<CyclePhase, { bg: string; text: string; ring: string; lightBg: string }> = {
+  unknown: { bg: 'bg-stone-400', text: 'text-stone-600', ring: 'ring-stone-400/40', lightBg: 'bg-stone-50' },
+  pregnancy: { bg: 'bg-stone-400', text: 'text-stone-600', ring: 'ring-stone-400/40', lightBg: 'bg-stone-50' },
+  postpartum: { bg: 'bg-stone-400', text: 'text-stone-600', ring: 'ring-stone-400/40', lightBg: 'bg-stone-50' },
+  menopause: { bg: 'bg-stone-400', text: 'text-stone-600', ring: 'ring-stone-400/40', lightBg: 'bg-stone-50' },
+  hormonal: { bg: 'bg-stone-400', text: 'text-stone-600', ring: 'ring-stone-400/40', lightBg: 'bg-stone-50' },
   menstrual: {
     bg: 'bg-rose-500',
     text: 'text-rose-600 dark:text-rose-400',

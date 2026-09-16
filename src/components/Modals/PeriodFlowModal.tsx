@@ -12,7 +12,7 @@ const FLOW_LEVELS: { id: FlowIntensity; label: string }[] = [
 export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { selectedDate, logBleedingForDate, denyPeriodOnDate, logs, settings } = useCycle();
   const log = logs[selectedDate];
-  const existing = Boolean(log?.isPeriod || log?.isIrregularBleeding);
+  const existing = Boolean(log?.isPeriod || log?.isIrregularBleeding || log?.flow);
   const [hasBleeding, setHasBleeding] = useState(existing);
   const [bleedingType, setBleedingType] = useState<'period' | 'irregular'>(log?.isIrregularBleeding ? 'irregular' : 'period');
   const [flow, setFlow] = useState<FlowIntensity>(log?.flow || settings.typicalFlowIntensity || 'medium');
@@ -24,7 +24,7 @@ export function PeriodFlowModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       if (hasBleeding && !remove) logBleedingForDate(selectedDate, { flow, isCycleStart: bleedingType === 'period' && isCycleStart, isIrregular: bleedingType === 'irregular' });
       else denyPeriodOnDate(selectedDate);
       onClose();
-    } catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
+    } catch (e) { setError(e instanceof Error ? e.message : 'No se ha guardado el registro. Vuelve a intentarlo.'); }
   };
   return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro de sangrado" description={new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { dateStyle: 'long' })}
     footer={<>

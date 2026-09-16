@@ -15,7 +15,7 @@ import { ModularOnboardingModal } from '../Modals/ModularOnboardingModal';
 import { PwaInstallModal } from '../Modals/PwaInstallModal';
 import { PassphraseModal } from '../Modals/PassphraseModal';
 import { encryptText } from '../../services/cryptoVault';
-import type { UserSettings } from '../../types/cycle';
+
 
 type Category = 'cycle' | 'body' | 'lifestyle';
 type Props = { onOpenModularProfile?: (category?: Category) => void };
@@ -98,7 +98,7 @@ function SettingsContent({ onOpenModularProfile }: Props) {
         <div className="grid grid-cols-1 gap-2 border-t border-[var(--border-subtle)] pt-4 sm:grid-cols-2">{([['analytics', 'Tendencias'], ['temperature', 'Sintotérmico'], ['medication', 'Medicación'], ['guide', 'Guía de fases']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setTool(value)} className={modalSecondaryButton}>{label}<ChevronRight size={17} aria-hidden="true" /></button>)}</div>
       </div>}
       {tab === 'privacy' && <div className="space-y-4">
-        <label className="block space-y-2 text-sm">Apariencia<select value={settings.theme} onChange={event => { try { updateSettings({ theme: event.target.value as UserSettings['theme'] }); } catch { setError('No se ha guardado la apariencia.'); } }} className={modalField}><option value="light">Claro</option><option value="dark">Oscuro</option><option value="system">Según el dispositivo</option><option value="refugio">Refugio</option></select></label>
+        <p className="text-sm text-[var(--text-secondary)]">Aura utiliza una apariencia clara y respeta tu preferencia de movimiento reducido.</p>
         <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={notificationPrefs.enabled} onChange={event => updateNotificationPrefs({ enabled: event.target.checked })} className="h-5 w-5 accent-[var(--accent)]" />Activar recordatorios</label>
         {notificationPrefs.enabled && <>
           <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={notificationPrefs.discreetMode} onChange={event => updateNotificationPrefs({ discreetMode: event.target.checked })} className="h-5 w-5 accent-[var(--accent)]" />Mensajes discretos</label>

@@ -160,7 +160,19 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
       : 'No encuentro una respuesta específica en el catálogo local. Puedo ofrecer orientación general sobre estos temas y ayudarte a ordenar tus preguntas para consulta. No puedo diagnosticar, buscar en internet ni interpretar una situación clínica individual.',
     suggestions: LOCAL_CHAT_TOPICS.filter(item => ['pain', 'sleep', 'phase', 'privacy'].includes(item.id)).map(topicSuggestion)
   };
-  const phaseNote = topic.id === 'phase' ? `Fase estimada: **${context.dayInfo.phaseName}**, día ${context.dayInfo.dayOfCycle}.\n\n` : '';
+  const contextualTopic = ['phase', 'fertility', 'pcos', 'pregnancy', 'contraception', 'pain', 'sleep', 'stress'].includes(topic.id);
+  const notes: string[] = [];
+  if (contextualTopic) {
+    if (context.dayInfo.dayOfCycle > 0) notes.push('En tu registro del ' + context.dayInfo.date + ': día ' + context.dayInfo.dayOfCycle + '. ' + context.dayInfo.phaseName + '.');
+    else notes.push(context.stats.lastVerifiedPeriodStart ? context.dayInfo.phaseName + '. No se estima fertilidad en este estado.' : 'Aún no hay un inicio de ciclo para calcular tu fase.');
+    if (context.settings.reproductiveStatus && context.settings.reproductiveStatus !== 'cycling') notes.push('Tu perfil indica ' + ({ pregnancy: 'embarazo confirmado', postpartum: 'posparto', menopause: 'menopausia' }[context.settings.reproductiveStatus]) + '; las predicciones menstruales están en pausa.');
+    if (context.stats.isIrregular || context.stats.isPCOSModeActive || context.settings.cycleProfile?.regularity === 'irregular') notes.push('Has indicado SOP o ciclos irregulares. No calculamos un día de ovulación; tus fechas pueden variar.');
+    if (context.stats.isHormonalBirthControl) notes.push('Tu perfil incluye anticoncepción hormonal. El sangrado no confirma un ciclo ovulatorio.');
+    if (context.dayInfo.symptoms?.length) notes.push('Has anotado: ' + context.dayInfo.symptoms.slice(0, 5).map(s => s.name).join(', ') + '.');
+    if (topic.id === 'stress' && context.settings.lifestyleProfile?.stressLevel === 'high') notes.push('En tu perfil has marcado estrés alto: puedes empezar con una pausa breve y registrar cómo te sienta.');
+    if (topic.id === 'sleep' && context.settings.lifestyleProfile) notes.push('Tu descanso habitual registrado es de ' + context.settings.lifestyleProfile.sleepHoursAvg + ' horas.');
+  }
+  const phaseNote = notes.length ? notes.join(' ') + '\n\n' : '';
   const suggested = LOCAL_CHAT_TOPICS.filter(item => item.id !== topic.id && ['pain', 'sleep', 'phase', 'nutrition'].includes(item.id)).slice(0, 2).map(topicSuggestion);
   if (topic.quizKey) suggested.unshift(CHAT_QUIZ_SUGGESTIONS.find(item => item.quizKey === topic.quizKey)!);
   return { mode: 'local', topicId: topic.id, text: `**${topic.label}**\n\n${phaseNote}${topic.text}`,

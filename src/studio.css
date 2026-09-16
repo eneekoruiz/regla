@@ -1,0 +1,315 @@
+/* Aura's single-page light workspace. System theme never changes this palette. */
+:root, html.dark, html.theme-refugio {
+  color-scheme: light;
+  --bg-root: #fbf8f3; --bg-card: #fffdfa; --bg-card-inner: #f3eee7;
+  --border-subtle: #e5e2dc; --text-primary: #393b38;
+  --text-secondary: #686861; --text-tertiary: #686861; --text-muted: #686861;
+  --accent: #526b5d; --accent-soft: #edf2ed; --accent-on: #fff;
+  --rose: #864355; --rose-soft: #f5e9ed; --ring-track: #efe6e5;
+  --phase-ink: #97596a; --focus-ring: #526b5d;
+  --bg-pill: #f3eee7; --bg-pill-selected: #526b5d; --bg-chip: #f3eee7;
+  --bg-input-bar: #fffdfa; --border-card: #e5e2dc; --hero-surface: #f5efea;
+  --gold: #80612f; --gold-soft: #f5edde;
+}
+html { scroll-padding-top: 16px; }
+.studio-header { max-width: 1120px; margin: auto; padding: 20px 32px; display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--border-subtle); }
+.studio-header .brand { font-size: 32px; padding: 0; gap: 9px; }
+.studio-header .brand-symbol { width: 32px; height: 32px; font-size: 27px; background: var(--rose-soft); color: var(--rose); }
+.studio-promise { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 12px; }
+.studio-actions { display: flex; gap: 6px; margin-left: auto; }
+.studio-actions .aura-icon-button { border: 0; background: transparent; border-radius: 50%; }
+.workspace.studio-workspace { margin: 0; padding: 22px 24px 24px; }
+.workspace-inner.studio-canvas { max-width: 600px; }
+.studio-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.studio-topline .page-title { font-family: var(--font-display); font-size: 28px; line-height: 1.15; margin: 0; letter-spacing: -.5px; }
+.studio-topline .page-subtitle { font-size: 12px; margin-top: 4px; }
+.studio-topline .connection-status { font-size: 10px; max-width: 155px; white-space: normal; justify-content: end; }
+.studio-canvas .date-toolbar { margin: 0 0 4px; }
+.studio-canvas .date-heading { font-size: 12px; color: var(--text-secondary); text-transform: capitalize; }
+.studio-canvas .date-picker { min-height: 36px; background: transparent; font-size: 11px; border: 0; }
+.studio-canvas .timeline-strip { padding: 4px 0 8px; gap: 8px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.studio-canvas .day-pill { flex: 0 0 calc((100% - 48px)/7); height: 66px; gap: 5px; border-radius: 22px; scroll-snap-align: center; }
+.studio-canvas .day-pill.is-selected { background: var(--text-primary); border-color: var(--text-primary); color: #fff; }
+.studio-canvas .day-pill .day-number { font-size: 18px; font-weight: 500; }
+.studio-canvas .day-pill .day-label { font-size: 10px; }
+.studio-canvas .day-mark { height: 10px; }
+.orbit-hero { display: flex; flex-direction: column; align-items: center; padding: 2px 0 16px; text-align: center; }
+.orbit-hero .phase-chip { margin: 0; min-height: 36px; font-size: 11px; font-weight: 500; padding: 6px 12px; }
+.orbit { width: 300px; max-width: 100%; aspect-ratio: 1; position: relative; display: grid; place-items: center; }
+.orbit-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.orbit-progress { transition: stroke-dashoffset 900ms cubic-bezier(.22,1,.36,1), stroke 400ms; }
+.orbit-content { width: 71%; z-index: 1; }
+.orbit-eyebrow { font-size: 9px; letter-spacing: 1.8px; color: var(--text-secondary); margin: 0 0 12px; font-weight: 600; }
+.orbit-content h2 { font: 400 36px/1.05 var(--font-display); letter-spacing: -1px; text-wrap: balance; margin: 0; }
+.orbit-detail { font-size: 11px; line-height: 1.5; color: var(--text-secondary); margin: 14px 0 0; text-wrap: balance; }
+.fertility-note { font-size: 11px; color: var(--text-secondary); margin: 10px 0 0; }
+.orbit-source { font-size: 10px; color: var(--text-secondary); margin: 4px 0 0; }
+.orbit-hero > .text-action { margin-top: 6px; min-height: 36px; }
+.daily-actions { display: grid; grid-template-columns: 1fr 1.15fr .8fr; gap: 8px; }
+.daily-actions .quick-log { min-height: 50px; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 12px 6px; border-radius: 16px; font-size: 12px; font-weight: 500; }
+.daily-actions .quick-log svg { flex-shrink: 0; }
+.daily-actions .quick-log.period { background: var(--rose-soft); border-color: var(--rose-soft); color: var(--rose); }
+.daily-status { min-height: 30px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: var(--text-secondary); }
+.daily-status .text-action { font-size: 11px; min-height: 32px; }
+.studio-canvas .wellness-section { margin: 4px 0 16px; }
+.studio-canvas .section-heading { margin-bottom: 10px; }
+.studio-canvas .section-heading h2 { font-size: 14px; font-weight: 600; }
+.studio-canvas .wellness-count { font-size: 10px; color: var(--text-secondary); }
+.tip-thumbnails { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tip-thumbnail { display: grid; grid-template-columns: 38px 1fr; align-content: start; gap: 4px 8px; min-width: 0; text-align: left; background: #f1f1e9; border-radius: 16px; padding: 12px; min-height: 90px; transition: transform .18s, background .18s; }
+.tip-thumbnail:nth-child(2) { background: #f5ebe7; }
+.tip-thumbnail:nth-child(3) { background: #edeef3; }
+.tip-thumbnail:hover { transform: translateY(-2px); }
+.tip-illustration { grid-row: span 2; display: grid; place-items: center; width: 38px; height: 48px; position: relative; color: #697854; }
+.tip-thumbnail:nth-child(2) .tip-illustration { color: #98665c; transform: rotate(35deg); }
+.tip-thumbnail:nth-child(3) .tip-illustration { color: #6d6e8b; transform: rotate(-30deg); }
+.tip-category { font-size: 9px; color: var(--text-secondary); }
+.tip-thumbnail strong { font-size: 11px; line-height: 1.4; font-weight: 500; }
+.tip-body { line-height: 1.8; }
+.studio-canvas .confidente-link { background: #fff; margin: 0; border: 1px solid var(--border-subtle); border-radius: 20px; padding: 14px 18px; gap: 12px; }
+.studio-canvas .confidente-symbol { background: #edf2ed; color: #526b5d; width: 40px; height: 40px; }
+.studio-canvas .confidente-link strong { font-size: 14px; }
+.studio-canvas .confidente-link small { font-size: 11px; }
+.profile-invitation { display: flex; margin: 8px auto 0; min-height: 36px; font-size: 11px; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.profile-invitation span { font-size: 10px; color: var(--text-secondary); font-weight: 400; }
+.aura-dialog { animation: sheet-appear .32s cubic-bezier(.22,1,.36,1); }
+.aura-dialog::backdrop { background: #45443c33; backdrop-filter: blur(5px); }
+.greeting-sheet { margin: auto auto 18px; max-width: 520px; border-radius: 28px; }
+.greeting-choices { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.greeting-choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 92px; padding: 12px 6px; border-radius: 18px; background: var(--bg-card-inner); font-size: 12px; }
+.greeting-choice:hover { background: var(--rose-soft); }
+.symptom-discovery { display: grid; gap: 14px; }
+.symptom-selection, .symptom-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.symptom-selection button, .symptom-options button { display: flex; align-items: center; gap: 8px; }
+.symptom-categories { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+.symptom-categories button { padding-inline: 6px; }
+.calendar-dialog { max-width: 760px; }
+@keyframes sheet-appear { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 700px) {
+  .studio-header { padding: max(12px, env(safe-area-inset-top)) 18px 10px; gap: 8px; }
+  .studio-header .brand { font-size: 28px; }
+  .studio-promise { display: none; }
+  .studio-actions { gap: 1px; }
+  .studio-actions .aura-icon-button { width: 40px; height: 44px; }
+  .workspace.studio-workspace { padding: 16px 18px max(16px, env(safe-area-inset-bottom)); }
+  .studio-topline { margin-bottom: 10px; }
+  .studio-topline .page-title { font-size: 25px; }
+  .studio-topline .page-subtitle { font-size: 11px; }
+  .studio-topline .connection-status { max-width: 114px; gap: 4px; font-size: 9px; }
+  .orbit { width: 258px; }
+  .orbit-content h2 { font-size: 32px; }
+  .orbit-detail { font-size: 10px; margin-top: 12px; }
+  .orbit-eyebrow { font-size: 8px; margin-bottom: 10px; }
+  .orbit-hero { padding-bottom: 12px; }
+  .daily-actions .quick-log { flex-direction: column; gap: 6px; min-height: 61px; padding: 8px 4px; font-size: 10px; border-radius: 14px; }
+  .studio-canvas .day-pill { height: 60px; }
+  .tip-thumbnails { gap: 8px; }
+  .tip-thumbnail { display: flex; flex-direction: column; gap: 4px; padding: 10px; min-height: 108px; }
+  .tip-illustration { height: 24px; width: 28px; margin-bottom: 3px; }
+  .tip-illustration svg { width: 22px; height: 22px; }
+  .tip-thumbnail strong { font-size: 10px; }
+  .tip-category { font-size: 9px; }
+  .studio-canvas .wellness-section { margin-bottom: 12px; }
+  .aura-dialog { margin: auto auto 0; max-height: calc(100dvh - 16px); width: 100%; border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+  .greeting-sheet { margin: auto auto 12px; width: calc(100% - 24px); border-radius: 24px; }
+  .profile-invitation { font-size: 10px; }
+}
+@media (max-width: 360px), (max-height: 740px) and (max-width: 700px) {
+  .workspace.studio-workspace { padding-inline: 12px; }
+  .studio-header { padding-inline: 12px; }
+  .orbit { width: 230px; }
+  .orbit-content h2 { font-size: 28px; }
+  .orbit-detail { font-size: 10px; }
+  .orbit-eyebrow { font-size: 7px; letter-spacing: 1.2px; }
+  .studio-topline .page-subtitle { max-width: 170px; }
+  .studio-canvas .confidente-link { padding: 10px 12px; }
+  .fertility-note { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-progress, .tip-thumbnail { transition: none; }
+  .aura-dialog { animation: none; }
+}
+
+@media (max-width: 700px) {
+.studio-topline { margin-bottom: 2px; }
+.studio-canvas .date-toolbar { min-height: 36px; }
+.orbit { width: 232px; }
+.orbit-content h2 { font-size: 30px; }
+.orbit-hero .phase-chip { min-height: 30px; }
+.studio-canvas .tip-thumbnail { min-height: 94px; padding: 9px; }
+.studio-canvas .confidente-link { padding: 10px 14px; }
+.studio-canvas .wellness-section { margin-bottom: 10px; }
+}
+
+.studio-canvas .wellness-section { padding-bottom: 0; }
+@media (max-width: 360px) {
+.orbit { width: 204px; }
+.orbit-content h2 { font-size: 27px; }
+.orbit-eyebrow { margin-bottom: 7px; }
+.orbit-detail { margin-top: 8px; font-size: 9px; }
+.studio-canvas .confidente-link small { font-size: 10px; }
+.studio-canvas .confidente-link { gap: 8px; }
+.studio-canvas .confidente-symbol { width: 32px; height: 32px; }
+.studio-canvas .profile-invitation { gap: 4px; font-size: 9px; min-height: 30px; }
+.studio-canvas .profile-invitation span { display: none; }
+}
+
+@media (max-width: 700px) {
+  .orbit-detail { font-size: 11px; }
+  .studio-topline .connection-status { font-size: 10px; }
+  .tip-thumbnail strong { font-size: 11px; }
+  .tip-category { font-size: 10px; }
+}
+@media (max-width: 360px) {
+  .tip-illustration { display: none; }
+  .tip-thumbnail { justify-content: center; }
+  .workspace.studio-workspace { padding-top: 10px; }
+  .studio-topline .page-subtitle { display: none; }
+  .studio-canvas .tip-thumbnail { min-height: 84px; }
+}
+
+/* The viewport is a fixed canvas; longer interactions live in sheets. */
+html, body, #root, .aura-app { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+.aura-app { display: flex; flex-direction: column; }
+.studio-header { width: 100%; flex: 0 0 auto; padding-block: 14px; }
+.workspace.studio-workspace { flex: 1 1 0; min-height: 0; overflow: hidden; padding: 18px 28px; }
+.workspace-inner.studio-canvas { max-width: 940px; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto auto auto; column-gap: 38px; align-content: center; }
+.studio-topline, .studio-canvas > .date-toolbar, .studio-canvas > .timeline-strip { grid-column: 1 / -1; }
+.studio-topline { margin-bottom: 8px; }
+.studio-topline .page-title { font-size: 32px; }
+.studio-canvas > .timeline-strip { margin-bottom: 10px; }
+.orbit-hero { grid-column: 1; grid-row: 4 / 9; align-self: center; min-width: 0; padding: 8px 0; }
+.orbit { width: min(100%, 320px); flex: 0 0 auto; contain: layout; }
+.orbit-svg { display: block; overflow: hidden; aspect-ratio: 1; }
+.orbit-content { width: 70%; }
+.orbit-content h2 { font-size: clamp(25px, 3vw, 35px); }
+.countdown-drop { display: block; margin: 0 auto 7px; aspect-ratio: 3 / 4; flex: none; }
+.drop-fill { transition: y 900ms cubic-bezier(.22,1,.36,1); }
+.daily-actions { grid-column: 2; align-self: end; }
+.daily-status, .studio-canvas > .wellness-section, .studio-canvas > .confidente-link, .profile-invitation { grid-column: 2; }
+.studio-canvas .wellness-section { margin: 4px 0 16px; }
+.tip-thumbnail { grid-template-columns: 1fr; padding: 14px 12px; min-height: 130px; }
+.tip-illustration { grid-row: auto; height: 30px; }
+.tip-category { font-size: 10px; }
+.tip-thumbnail strong { font-size: 12px; }
+.studio-canvas .confidente-link { background: var(--bg-card); box-shadow: 0 8px 30px #6a4c3610; }
+.compact-care { display: none; }
+.care-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.care-tabs [aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.aura-dialog { border-radius: 26px; box-shadow: 0 20px 90px #49362d26; }
+[data-phase="ovulation"], .dark [data-phase="ovulation"] { --phase-ink: #88733f; }
+[data-phase="luteal"], .dark [data-phase="luteal"] { --phase-ink: #856879; }
+.storage-alert, .health-notice { grid-column: 1 / -1; }
+.auth-page { height: 100vh; height: 100dvh; min-height: 0; overflow-y: auto; background: var(--bg-root); color: var(--text-primary); }
+.auth-story-copy, .auth-benefits li, .auth-eyebrow { color: var(--text-secondary); }
+.auth-statement em, .auth-benefits svg { color: var(--accent); }
+.auth-form-panel { border-color: var(--border-subtle); background: var(--bg-card); }
+.auth-brand .brand-symbol { background: var(--rose-soft); color: var(--rose); }
+@media (max-width: 700px) and (min-height: 741px) {
+  .studio-header { padding: max(10px, env(safe-area-inset-top)) 20px 8px; }
+  .workspace.studio-workspace { padding: 12px 20px max(10px, env(safe-area-inset-bottom)); }
+  .workspace-inner.studio-canvas { max-width: 470px; display: flex; flex-direction: column; justify-content: space-between; gap: 0; }
+  .studio-canvas > * { flex-shrink: 0; }
+  .studio-topline { margin: 0; }
+  .studio-topline .page-title { font-size: 27px; }
+  .studio-canvas > .timeline-strip { margin: 0; }
+  .orbit-hero { width: 100%; padding: 0; }
+  .orbit { width: clamp(178px, calc(100dvh - 588px), 260px); }
+  .orbit-content h2 { font-size: clamp(23px, 6vw, 30px); }
+  .orbit-eyebrow { margin-bottom: 5px; font-size: 8px; letter-spacing: 1px; }
+  .orbit-detail { margin-top: 6px; font-size: 10px; }
+  .countdown-drop { height: 18px; width: 14px; margin-bottom: 4px; }
+  .fertility-note { margin-top: 3px; font-size: 10px; }
+  .orbit-source { font-size: 9px; }
+  .daily-actions { align-self: stretch; }
+  .daily-actions .quick-log { min-height: 54px; }
+  .daily-status { min-height: 22px; }
+  .studio-canvas .wellness-section { margin: 0; }
+  .studio-canvas .tip-thumbnail { min-height: 83px; padding: 10px; }
+  .tip-illustration { display: none; }
+  .tip-thumbnail strong { font-size: 11px; }
+  .studio-canvas .section-heading { margin-bottom: 7px; }
+  .studio-canvas .confidente-link { padding: 10px 14px; }
+  .profile-invitation { margin: 0; min-height: 30px; }
+}
+@media (max-height: 740px) {
+  .studio-header { padding-block: 8px; }
+  .workspace.studio-workspace { padding: 10px 20px; }
+  .studio-topline { margin-bottom: 2px; }
+  .studio-topline .page-title { font-size: 26px; }
+  .studio-topline .page-subtitle { display: none; }
+  .studio-canvas .day-pill { height: 52px; }
+  .studio-canvas > .timeline-strip { margin-bottom: 0; padding-bottom: 4px; }
+  .orbit { width: min(100%, 240px); }
+  .orbit-content h2 { font-size: 26px; }
+  .orbit-detail { margin-top: 6px; font-size: 10px; }
+  .orbit-eyebrow { margin-bottom: 5px; font-size: 8px; letter-spacing: 1px; }
+  .countdown-drop { height: 18px; margin-bottom: 4px; }
+  .tip-illustration { display: none; }
+  .studio-canvas .tip-thumbnail { min-height: 76px; }
+  .studio-canvas .confidente-link { padding: 10px 12px; }
+  .profile-invitation { margin-top: 0; min-height: 30px; }
+}
+@media (max-width: 700px) and (max-height: 740px) {
+  .workspace.studio-workspace { padding: 6px 12px max(8px, env(safe-area-inset-bottom)); }
+  .workspace-inner.studio-canvas { column-gap: 12px; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto auto auto; }
+  .studio-topline .page-title { font-size: 24px; }
+  .studio-topline .connection-status { max-width: 130px; }
+  .orbit-hero { grid-row: 4; padding: 4px 0; }
+  .orbit { width: min(100%, 202px); }
+  .orbit-content h2 { font-size: clamp(20px, 5.7vw, 26px); }
+  .orbit-detail { font-size: 9px; line-height: 1.3; }
+  .orbit-eyebrow { font-size: 7px; letter-spacing: .4px; }
+  .countdown-drop { height: 15px; margin-bottom: 3px; }
+  .orbit-hero .phase-chip { font-size: 10px; min-height: 32px; padding: 4px; }
+  .fertility-note { font-size: 9px; line-height: 1.25; margin-top: 4px; }
+  .orbit-source { font-size: 9px; line-height: 1.25; }
+  .daily-actions { grid-row: 4; grid-template-columns: 1fr; align-self: center; gap: 8px; }
+  .daily-actions .quick-log { min-height: 46px; flex-direction: row; padding: 8px; font-size: 10px; text-align: left; }
+  .daily-status { grid-row: 5; grid-column: 1 / -1; min-height: 24px; }
+  .studio-canvas > .wellness-section { grid-row: 6; grid-column: 1 / -1; margin: 2px 0 8px; }
+  .wellness-section > .section-heading, .wellness-section > .tip-thumbnails { display: none; }
+  .compact-care { display: flex; width: 100%; background: #efeee5; border-color: transparent; font-size: 12px; }
+  .studio-canvas > .confidente-link { grid-row: 7; grid-column: 1 / -1; }
+  .profile-invitation { grid-row: 8; grid-column: 1 / -1; }
+}
+@media (min-width: 701px) and (max-height: 520px) {
+  .studio-promise { display: none; }
+  .studio-header { padding-block: 3px; }
+  .workspace.studio-workspace { padding-block: 4px; }
+  .workspace-inner.studio-canvas { grid-template-rows: auto auto auto 1fr auto auto auto; column-gap: 24px; }
+  .studio-topline .page-title { font-size: 23px; }
+  .studio-canvas .day-pill { height: 44px; gap: 2px; }
+  .studio-canvas .day-label { font-size: 9px; }
+  .orbit-hero { grid-row: 2 / 9; }
+  .studio-canvas > .date-toolbar, .studio-canvas > .timeline-strip { grid-column: 2; }
+  .orbit { width: min(100%, 202px); }
+  .orbit-content h2 { font-size: 25px; }
+  .orbit-hero .phase-chip { min-height: 30px; }
+  .fertility-note { margin-top: 2px; font-size: 9px; }
+  .orbit-source { font-size: 9px; }
+  .daily-actions .quick-log { min-height: 44px; padding: 5px; font-size: 10px; }
+  .daily-status { min-height: 22px; }
+  .studio-canvas > .wellness-section { margin: 0 0 5px; }
+  .wellness-section > .section-heading, .wellness-section > .tip-thumbnails { display: none; }
+  .compact-care { display: flex; width: 100%; min-height: 36px; padding: 5px; font-size: 11px; }
+  .studio-canvas .confidente-link { padding: 6px 10px; }
+  .studio-canvas .confidente-link small { font-size: 10px; }
+  .studio-canvas .confidente-symbol { height: 30px; width: 30px; }
+  .profile-invitation { min-height: 26px; }
+}
+@media (prefers-reduced-motion: reduce) { .drop-fill { transition: none; } }
+.recovery-dialog { margin: auto auto 18px; width: min(520px, calc(100% - 24px)); border-radius: 28px; }
+@media (max-width: 700px) { .recovery-dialog { margin-bottom: max(12px, env(safe-area-inset-bottom)); border-radius: 24px; } }
+@media (min-width: 701px) and (min-height: 741px) {
+  .workspace.studio-workspace { display: flex; align-items: center; }
+  .workspace-inner.studio-canvas { height: min(100%, 700px); }
+  .daily-actions { align-self: center; }
+}
+@media (max-width: 700px) and (max-height: 620px) {
+  .orbit { width: min(100%, 140px); }
+  .orbit-content h2 { font-size: 20px; }
+  .orbit-detail { font-size: 8px; }
+  .countdown-drop { height: 13px; margin-bottom: 2px; }
+  .orbit-eyebrow { font-size: 6px; }
+}

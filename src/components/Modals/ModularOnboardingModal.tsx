@@ -7,7 +7,7 @@ import { modalField, modalPrimaryButton, modalSecondaryButton } from './modalSty
 
 type Category = 'cycle' | 'body' | 'lifestyle';
 export function ModularOnboardingModal({ isOpen, onClose, initialCategory = null }: { isOpen: boolean; onClose: () => void; initialCategory?: Category | null }) {
-  const { settings, updateProfileCategory } = useCycle();
+  const { settings, updateProfileCategory, updateSettings } = useCycle();
   const [category, setCategory] = useState<Category | null>(initialCategory);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState('');
@@ -42,6 +42,7 @@ export function ModularOnboardingModal({ isOpen, onClose, initialCategory = null
   };
   return <ModalFrame isOpen={isOpen} onClose={onClose} title={category ? titles[category] : 'Tu perfil'}
     footer={category ? <><button type="button" onClick={() => { setCategory(null); setError(''); }} className={modalSecondaryButton}><ArrowLeft size={17} aria-hidden="true" />Volver</button><button type="button" onClick={save} className={modalPrimaryButton}><Check size={17} aria-hidden="true" />Guardar cambios</button></> : <button type="button" onClick={onClose} className={modalPrimaryButton}>Listo</button>}>
+    {!category && <><p className="text-sm text-[var(--text-secondary)]">Completa solo lo que quieras. {settings.completedOnboardingCategories?.length || 0} de 3 categorías listas.</p><label className="block space-y-2 text-sm">Mi etapa actual<select className={modalField} value={settings.reproductiveStatus || 'cycling'} onChange={event => { try { updateSettings({ reproductiveStatus: event.target.value as import('../../types/cycle').ReproductiveStatus }); setError(''); } catch { setError('No se ha guardado tu etapa.'); } }}><option value="cycling">Seguimiento del ciclo</option><option value="pregnancy">Embarazo confirmado</option><option value="postpartum">Posparto</option><option value="menopause">Menopausia</option></select></label></>}
     {!category && <div className="space-y-2">{(['cycle', 'body', 'lifestyle'] as const).map(value => <button key={value} type="button" onClick={() => { setCategory(value); setSaved(''); }} className="aura-button w-full justify-between"><span>{titles[value]}</span>{settings.completedOnboardingCategories?.includes(value) ? <Check size={18} aria-label="Completado" /> : <ChevronRight size={18} aria-hidden="true" />}</button>)}</div>}
     {category === 'cycle' && <div className="space-y-4">
       <label className="block space-y-2 text-sm">Regularidad<select className={modalField} value={cycle.regularity} onChange={event => setCycle(value => ({ ...value, regularity: event.target.value as CycleProfileData['regularity'] }))}><option value="regular">Regular</option><option value="mostly_regular">Bastante regular</option><option value="irregular">Irregular</option><option value="pcos">SOP diagnosticado</option></select></label>

@@ -1,4 +1,4 @@
-import type { CyclePhase, FlowIntensity } from './cycle';
+import type { CyclePhase, FlowIntensity, ReproductiveStatus } from './cycle';
 
 export interface HistoricalCycle {
   startDate: string; // YYYY-MM-DD
@@ -14,6 +14,8 @@ export interface IrregularityAlert {
 }
 
 export interface CycleStatistics {
+  reproductiveStatus?: ReproductiveStatus;
+  isIrregular?: boolean;
   estimatedCycleLength: number; // e.g. 28.4
   estimatedPeriodLength: number; // e.g. 4.8
   variabilityDays: number; // e.g. ±1.8 days

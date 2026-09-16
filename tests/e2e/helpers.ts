@@ -1,13 +1,18 @@
 import { expect, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+export async function dismissGreeting(page: Page) {
+  await expect(page.getByRole('button', { name: 'Ahora no', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Ahora no', exact: true }).click();
+}
 export async function enterLocal(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: /modo privado local/i }).click();
+  await dismissGreeting(page);
   await expect(page.getByRole('heading', { name: 'Mi diario', exact: true })).toBeVisible();
 }
 
-export async function seedLocal(page: Page) {
+export async function seedLocal(page: Page, greeting = false) {
   await page.addInitScript(() => {
     if (localStorage.getItem('qa-initialized')) return;
     const today = new Date();
@@ -18,16 +23,30 @@ export async function seedLocal(page: Page) {
     localStorage.setItem('regla_user_settings_v1', JSON.stringify({ userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light' }));
     localStorage.setItem('regla_daily_logs_v1', JSON.stringify({ [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() } }));
     localStorage.setItem('qa-initialized', 'true');
+    localStorage.setItem('regla_greeted_' + key(today), 'true');
   });
   await page.goto('/');
+  if (greeting) { await page.evaluate(() => { for (const key of Object.keys(localStorage)) if (key.startsWith('regla_greeted_')) localStorage.removeItem(key); }); await page.reload(); }
   await expect(page.getByRole('heading', { name: 'Mi diario', exact: true })).toBeVisible();
 }
 
 export async function checkLayout(page: Page) {
   const dimensions = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
   expect(dimensions.scroll, 'La página no debe desbordar horizontalmente').toBeLessThanOrEqual(dimensions.width + 1);
+  if (await page.locator('.aura-app').count()) {
+    const vertical = await page.evaluate(() => [document.documentElement, document.body, document.getElementById('root'), document.querySelector('.aura-app')].map(el => ({
+      name: el?.id || el?.className || el?.tagName,
+      scroll: el?.scrollHeight,
+      height: el?.clientHeight,
+    })));
+    for (const element of vertical) expect(element.scroll, `${element.name}: cero scroll vertical`).toBe(element.height);
+  }
   const dialog = page.getByRole('dialog');
   if (await dialog.count()) {
+    // Visibility can precede the end of a bottom sheet's entrance transition.
+    await dialog.evaluate(async el => {
+      await Promise.all(el.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => undefined)));
+    });
     const box = await dialog.boundingBox();
     const viewport = page.viewportSize()!;
     expect(box).not.toBeNull();

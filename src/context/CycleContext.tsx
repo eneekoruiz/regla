@@ -1,10 +1,13 @@
+import { hasNativeHealth, readNativeHealth, writeNativeHealth, mergeHealthDays, publishNativeWidget } from '../services/nativeHealth';
+import { presentCycle } from '../services/cyclePresentation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChroniclerResponse, ChroniclerContext } from '../types/chronicler';
-import type { CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
+import type { ProfileCategoryUpdate, CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
 import type { NotificationPreference } from '../types/notifications';
 import type { QuizResult } from '../types/quiz';
 import { CycleContext } from './cycle-context';
 import { addQuizResultToLogs } from '../services/quizResults';
+import { chronicleRecoveredPeriod } from '../services/recoveryChronicler';
 import { formatDateKey, generateDaysRange, getCycleDayInfo } from '../utils/cycleCalculator';
 import type { ParseResult } from '../utils/nlpParser';
 import { parseNaturalLanguageInput } from '../utils/nlpParser';
@@ -20,13 +23,14 @@ import {
   getSettingsFromDB,
   saveAllLogsToDB,
   getRemoteToken,
+  retryPendingSync,
   saveSettingsToDB,
   wipeAllLocalData
 } from '../services/storageEngine';
 import { exportBackupJSON, getDefaultSettings, importBackupJSON, loadLogs, loadSettings, persistBackup, saveLogs, saveSettings } from '../utils/storage';
 import { isDateKey } from '../utils/dateKey';
 import { validateLogs, validateSettings } from '../utils/dataValidation';
-import { updateSymptothermalLog } from '../utils/dailyLog';
+import { updateBleedingLog, updateSymptothermalLog } from '../utils/dailyLog';
 
 
 
@@ -114,7 +118,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const updateProfileCategory = (category: 'cycle' | 'body' | 'lifestyle', data: any) => {
+  const updateProfileCategory = (...[category, data]: ProfileCategoryUpdate) => {
     commitSettings((prev) => {
       const prevCompleted = prev.completedOnboardingCategories || [];
       const nextCompleted = prevCompleted.includes(category)
@@ -127,6 +131,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (category === 'cycle') {
         patch.cycleProfile = { ...(prev.cycleProfile || {}), ...data };
+        patch.hasPCOS = data.regularity === 'pcos';
         if (data.regularity === 'pcos') {
           patch.hasPCOS = true;
           patch.regularityPreference = 'pcos';
@@ -134,6 +139,8 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           patch.regularityPreference = 'irregular';
         } else if (data.regularity === 'regular') {
           patch.regularityPreference = 'very_regular';
+        } else {
+          patch.regularityPreference = 'mostly_regular';
         }
       } else if (category === 'body') {
         patch.bodyProfile = { ...(prev.bodyProfile || {}), ...data };
@@ -146,8 +153,11 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const updateLogs = (updater: (prev: Record<string, DailyLog>) => Record<string, DailyLog>) => {
-    const updated = validateLogs(updater(logsRef.current));
+  const updateLogs = (updater: (prev: Record<string, DailyLog>) => Record<string, DailyLog>, fromHealth = false) => {
+    const previous = logsRef.current;
+    const draft = updater(previous);
+    const edited = fromHealth ? draft : Object.fromEntries(Object.entries(draft).map(([date, log]) => [date, previous[date]?.healthImported && previous[date] !== log ? { ...log, healthImported: false } : log]));
+    const updated = validateLogs(edited);
     saveLogs(updated);
     logsRef.current = updated;
     setLogsState(updated);
@@ -158,10 +168,53 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateLogs(previous => addQuizResultToLogs(previous, result, date));
   };
 
+  const recoverPeriod = (start: string, end: string) => {
+    updateLogs(previous => chronicleRecoveredPeriod(previous, start, end, todayDate));
+  };
+
   // Adaptive Cycle Statistics
   const cycleStats = useMemo(() => {
-    return calculateCycleStatistics(logs, settings);
-  }, [logs, settings]);
+    return calculateCycleStatistics(logs, settings, todayDate);
+  }, [logs, settings, todayDate]);
+
+  // Health access only runs after an explicit connection, never from the web.
+  useEffect(() => {
+    if (!settings.nativeHealthEnabled || !hasNativeHealth()) return;
+    let cancelled = false;
+    let running = false;
+    const importHistory = async () => {
+      if (running || document.visibilityState !== 'visible') return;
+      running = true;
+      try {
+        const days = await readNativeHealth();
+        if (cancelled) return;
+        const merged = mergeHealthDays(logsRef.current, days, todayDate);
+        if (Object.keys(merged).length !== Object.keys(logsRef.current).length) updateLogs(() => merged, true);
+      } catch { window.dispatchEvent(new Event('aura:health-error')); }
+      finally { running = false; }
+    };
+    void importHistory();
+    document.addEventListener('visibilitychange', importHistory);
+    return () => { cancelled = true; document.removeEventListener('visibilitychange', importHistory); };
+  // Reads latest snapshots through refs; changing logs must not start another import.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.nativeHealthEnabled, todayDate]);
+
+  useEffect(() => {
+    if (!settings.nativeHealthEnabled || !hasNativeHealth()) return;
+    const timer = window.setTimeout(() => {
+      void writeNativeHealth(logs, todayDate).catch(() => window.dispatchEvent(new Event('aura:health-error')));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [logs, settings.nativeHealthEnabled, todayDate]);
+
+  useEffect(() => {
+    if (!hasNativeHealth()) return;
+    const today = getCycleDayInfo(todayDate, todayDate, settings, logs);
+    const presentation = presentCycle(today, cycleStats, calculateUpcomingMilestones(cycleStats, todayDate));
+    void publishNativeWidget(settings.nativeWidgetEnabled ? { date: todayDate, title: presentation.title, day: presentation.cycleDay, progress: presentation.progress } : null).catch(() => undefined);
+  }, [logs, settings, todayDate, cycleStats]);
+  useEffect(() => () => { void publishNativeWidget(null).catch(() => undefined); }, []);
 
   // Upcoming Milestones
   const upcomingMilestones = useMemo(() => {
@@ -332,12 +385,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const denyPeriodOnDate = (date: string) => {
     updateLogs((prev) => {
       const currentLog = prev[date] || { date, isPeriod: false, symptoms: [] };
-      const newLog = {
-        ...currentLog,
-        isPeriod: false,
-        flow: undefined,
-        recordedAt: new Date().toISOString()
-      };
+      const newLog = updateBleedingLog(currentLog);
       return { ...prev, [date]: newLog };
     });
   };
@@ -389,38 +437,10 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     dateStr: string,
     options: { flow: FlowIntensity; isCycleStart: boolean; isIrregular: boolean }
   ) => {
-    updateLogs((prev) => {
-      const currentLog = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
-      const isPeriod = !options.isIrregular && options.flow !== 'spotting';
-
-      // If irregular bleeding, add tag symptom
-      let updatedSymptoms = currentLog.symptoms;
-      if (options.isIrregular) {
-        const irregularSymptom: SymptomItem = {
-          id: 'irregular_bleeding',
-          name: 'Sangrado irregular',
-          category: 'flow',
-          emoji: '💧'
-        };
-        if (!updatedSymptoms.some(s => s.id === 'irregular_bleeding')) {
-          updatedSymptoms = [...updatedSymptoms, irregularSymptom];
-        }
-      }
-
-      const newLog: DailyLog = {
-        ...currentLog,
-        isPeriod,
-        flow: options.flow,
-        isIrregularBleeding: options.isIrregular,
-        isCycleStart: options.isCycleStart,
-        symptoms: updatedSymptoms,
-        recordedAt: new Date().toISOString()
-      };
-
-      return {
-        ...prev,
-        [dateStr]: newLog
-      };
+    if (!isDateKey(dateStr) || dateStr > todayDate) throw new Error('El sangrado se registra en hoy o en una fecha pasada.');
+    updateLogs(prev => {
+      const current = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
+      return { ...prev, [dateStr]: updateBleedingLog(current, options) };
     });
 
     if (options.isCycleStart && !options.isIrregular && options.flow !== 'spotting') {
@@ -658,22 +678,33 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setLastChroniclerResponse(null);
   };
 
-  // Theme application (Dark, Light, System, Refugio)
+  // Strict light appearance also migrates cached dark preferences visually.
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('dark', 'theme-refugio');
-
-    if (settings.theme === 'refugio') {
-      root.classList.add('dark', 'theme-refugio');
-    } else if (settings.theme === 'dark') {
-      root.classList.add('dark');
-    } else if (settings.theme === 'light') {
-      // Light is default
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) root.classList.add('dark');
-    }
+    document.documentElement.classList.remove('dark', 'theme-refugio');
+    document.documentElement.style.colorScheme = 'light';
   }, [settings.theme]);
+
+  // Retry durable writes while the app is active; reconnection hydrates as above.
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number;
+    let delay = 15_000;
+    let running = false;
+    const retry = async () => {
+      if (running || cancelled) return;
+      running = true;
+      if (document.visibilityState === 'visible') {
+        try { await retryPendingSync(); delay = 15_000; } catch { delay = Math.min(delay * 2, 120_000); }
+      }
+      running = false;
+      if (!cancelled) timer = window.setTimeout(retry, delay);
+    };
+    timer = window.setTimeout(retry, delay);
+    const resume = () => { window.clearTimeout(timer); void retry(); };
+    document.addEventListener('visibilitychange', resume);
+    return () => { cancelled = true; window.clearTimeout(timer); document.removeEventListener('visibilitychange', resume); };
+  }, []);
+
 
   return (
     <CycleContext.Provider
@@ -706,6 +737,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         togglePeriodForDate,
         setPeriodFlowForDate,
         startPeriodOnDate,
+        recoverPeriod,
         denyPeriodOnDate,
         toggleSpottingForDate,
         logBleedingForDate,
