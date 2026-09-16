@@ -10,6 +10,10 @@ Cuando han transcurrido más de 1,5 ciclos medios desde la última regla registr
 
 `tests/e2e/golden-master.spec.ts` comprueba igualdad de alturas de página y contenedores, controles alcanzables, estabilidad del SVG, contraste y recuperación persistente. Incluye 320×568 y 844×390 además de los cuatro tamaños de la configuración de Playwright. Las pruebas verifican geometría estable; no constituyen una medición de 60 fps en todos los dispositivos.
 
+### Estado del 16 de septiembre de 2026
+
+Compilación y análisis estático aprobados; 91 pruebas unitarias y de servidor aprobadas. La auditoría nueva verifica el diario y la recuperación con Playwright. Queda pendiente adaptar y verificar los avisos excepcionales de almacenamiento y sangrado muy abundante dentro del diseño fijo: conservan la presentación anterior y pueden alterar su distribución. Por ello todavía no se considera cerrada la auditoría de todos los estados de interfaz.
+
 ## Motor y personalización
 
 `biologicalMachine.ts` contiene un reducer puro con estados cerrados: desconocido, menstrual, folicular, ovulación estimada, lútea, embarazo, posparto, menopausia y anticoncepción hormonal. El embarazo es una declaración del perfil, nunca una conclusión de síntomas o de una analítica aislada.
