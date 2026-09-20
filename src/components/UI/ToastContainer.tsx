@@ -21,7 +21,8 @@ export function ToastContainer() {
   return (
     <aside
       aria-label="Notificaciones del sistema"
-      className="fixed top-3 sm:top-5 left-1/2 -translate-x-1/2 z-[99999] flex flex-col items-center gap-2 w-full max-w-[calc(100vw_-_24px)] sm:max-w-md pointer-events-none px-2"
+      className="fixed left-1/2 -translate-x-1/2 z-[99999] flex flex-col items-center gap-2 w-full max-w-[calc(100vw_-_24px)] sm:max-w-md pointer-events-none px-2"
+      style={{ top: 'max(12px, calc(env(safe-area-inset-top, 0px) + 10px))' }}
     >
       {toasts.map(toast => {
         const isError = toast.type === 'error';

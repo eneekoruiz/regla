@@ -6,6 +6,7 @@ import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
+import { PastCatchupBanner } from './PastCatchupBanner';
 
 export function HeroStatus({
   onRecordPeriod,
@@ -1005,108 +1006,43 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Banner de recuperacin de ciclo perdido (1 mes) */}
+      {/* Banner de recuperación de ciclo perdido (1 mes) */}
       {isLikelyMissedOnePeriod && (
-        <div className="past-catchup-banner" style={{ background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' }} role="region" aria-label="Aviso de regla olvidada">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge" style={{ color: 'var(--gold)' }}>
-              <Clock size={13} aria-hidden="true" />
-              <span>POSIBLE REGLA OLVIDADA</span>
-            </div>
-            <p className="past-catchup-title" style={{ color: 'var(--gold)' }}>¿Te bajó la regla el mes pasado?</p>
-            <p className="past-catchup-sub" style={{ opacity: 0.9 }}>
-              Hace más de {cycleLength + 10} días de tu último registro de periodo.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              style={{ background: 'var(--gold)', color: '#fff', borderColor: 'var(--gold)' }}
-              onClick={onOpenRecoveryModal}
-            >
-              Completar mes pasado
-            </button>
-          </div>
-        </div>
+        <PastCatchupBanner
+          tone="gold"
+          badge="POSIBLE REGLA OLVIDADA"
+          title="¿Te bajó la regla el mes pasado?"
+          sub={`Hace más de ${cycleLength + 10} días de tu último registro de periodo.`}
+          actions={[{ label: 'Completar mes pasado', icon: null, onClick: () => onOpenRecoveryModal?.() }]}
+        />
       )}
 
       {/* Aviso para HOY si ayer quedó sin registrar (unificado con la tarjeta naranja) */}
       {isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular) && (
-        <div className="past-catchup-banner" role="region" aria-label="Aviso de registro pasado">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge">
-              <Clock size={13} aria-hidden="true" />
-              <span>AYER SIN REGISTRAR</span>
-            </div>
-            <p className="past-catchup-title">¿Se te olvidó apuntar ayer?</p>
-            <p className="past-catchup-sub">
-              Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              onClick={() => {
-                setSelectedDate(yesterdayKey);
-                setTimeout(onRecordPeriod, 50);
-              }}
-            >
-              <Droplets size={14} />
-              Anotar regla
-            </button>
-            <button
-              type="button"
-              className="aura-button sm"
-              onClick={() => {
-                setSelectedDate(yesterdayKey);
-                setTimeout(onOpenDailyModal, 50);
-              }}
-            >
-              <Plus size={14} />
-              Anotar síntomas
-            </button>
-          </div>
-        </div>
+        <PastCatchupBanner
+          badge="AYER SIN REGISTRAR"
+          title="¿Se te olvidó apuntar ayer?"
+          sub="Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión."
+          actions={[
+            { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onRecordPeriod, 50); } },
+            { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onOpenDailyModal, 50); } }
+          ]}
+        />
       )}
 
       {/* Banner visual para DÍAS PASADOS no registrados */}
       {isPast && !hasAnyLog && (
-        <div className="past-catchup-banner" role="region" aria-label="Aviso de registro pasado">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge">
-              <Clock size={13} aria-hidden="true" />
-              <span>{daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros'}</span>
-            </div>
-            <p className="past-catchup-title">
-              {daysAgo <= 3
-                ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
-                : '¿Tuviste regla o sensaciones este día?'}
-            </p>
-            <p className="past-catchup-sub">
-              Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              onClick={onRecordPeriod}
-            >
-              <Droplets size={14} />
-              Anotar regla
-            </button>
-            <button
-              type="button"
-              className="aura-button sm"
-              onClick={onOpenDailyModal}
-            >
-              <Plus size={14} />
-              Anotar síntomas
-            </button>
-          </div>
-        </div>
+        <PastCatchupBanner
+          badge={daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros'}
+          title={daysAgo <= 3
+            ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
+            : '¿Tuviste regla o sensaciones este día?'}
+          sub="Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión."
+          actions={[
+            { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: onRecordPeriod },
+            { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: onOpenDailyModal }
+          ]}
+        />
       )}
 
       {!hasCycle && (

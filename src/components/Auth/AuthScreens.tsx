@@ -54,6 +54,23 @@ export function AuthScreens() {
     if (activeRequest.current) return;
     setError(null);
     setMessage(null);
+    const trimmedEmail = email.trim();
+    if (mode !== 'reset_password' && trimmedEmail.length === 0) {
+      setError('Introduce tu correo electrónico.');
+      return;
+    }
+    if (mode !== 'reset_password' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError('Introduce un correo electrónico válido.');
+      return;
+    }
+    if (mode !== 'forgot_password' && password.length === 0) {
+      setError('Introduce tu contraseña.');
+      return;
+    }
+    if (mode === 'reset_password' && passwordConfirmation.length === 0) {
+      setError('Repite la contraseña para confirmarla.');
+      return;
+    }
     if (mode !== 'forgot_password' && (new TextEncoder().encode(password).length > 72 || ((mode === 'signup' || mode === 'reset_password') && password.length < 12))) {
       setError('La contraseña debe tener al menos 12 caracteres y no superar 72 bytes.');
       return;
@@ -144,7 +161,7 @@ export function AuthScreens() {
         </p>
 
 
-        <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isLoading}>
+        <form onSubmit={handleSubmit} noValidate className="space-y-4" aria-busy={isLoading}>
           {mode !== 'reset_password' && <div>
             <label htmlFor="auth-email" className="mb-1.5 block text-sm font-medium">Correo electrónico</label>
             <div className="relative">
@@ -193,7 +210,6 @@ export function AuthScreens() {
           {mode === 'login' ? <>
             <button type="button" onClick={() => switchMode('forgot_password')} className={`${linkButtonClass} text-[#52655F] hover:underline`}>¿Olvidaste tu contraseña?</button>
             <button type="button" onClick={() => switchMode('signup')} className={`${linkButtonClass} text-[#176B60] hover:underline`}>Crear una cuenta</button>
-            <button type="button" onClick={() => setSession('local-session', { id: 'local_user', email: 'modo_privado@dispositivo.local' })} className={`${linkButtonClass} mt-2 text-[#52655F] hover:underline font-normal`}>Continuar en modo local (sin nube)</button>
           </> : <button type="button" onClick={() => switchMode('login')} className={`${linkButtonClass} flex items-center gap-2 text-[#176B60] hover:underline`}>
             <ArrowLeft aria-hidden="true" className="size-4" />Volver a iniciar sesión
           </button>}

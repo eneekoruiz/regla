@@ -1,16 +1,5 @@
-/* Aura's single-page light workspace. System theme never changes this palette. */
-:root, html.dark, html.theme-refugio {
-  color-scheme: light;
-  --bg-root: #fbf8f3; --bg-card: #fffdfa; --bg-card-inner: #f3eee7;
-  --border-subtle: #e5e2dc; --text-primary: #393b38;
-  --text-secondary: #686861; --text-tertiary: #686861; --text-muted: #686861;
-  --accent: #526b5d; --accent-soft: #edf2ed; --accent-on: #fff;
-  --rose: #864355; --rose-soft: #f5e9ed; --ring-track: #efe6e5;
-  --phase-ink: #97596a; --focus-ring: #526b5d;
-  --bg-pill: #f3eee7; --bg-pill-selected: #526b5d; --bg-chip: #f3eee7;
-  --bg-input-bar: #fffdfa; --border-card: #e5e2dc; --hero-surface: #f5efea;
-  --gold: #80612f; --gold-soft: #f5edde;
-}
+/* Supporting styles for dialogs, the wellness tip thumbnails and the recovery sheet.
+   Color tokens live only in index.css :root / .dark — do not redefine them here. */
 html { scroll-padding-top: 16px; }
 .studio-header { max-width: 1120px; margin: auto; padding: 20px 32px; display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--border-subtle); }
 .studio-header .brand { font-size: 32px; padding: 0; gap: 9px; }
@@ -314,10 +303,9 @@ html, body, #root, .aura-app { height: 100vh; height: 100dvh; min-height: 0; ove
   .orbit-eyebrow { font-size: 6px; }
 }
 
-/* Compact diary remains a fixed workspace: secondary detail opens through existing sheets. */
+/* Compact diary: tighter spacing on short phones. Content still scrolls — nothing is hidden. */
 @media (max-width: 700px) and (max-height: 900px) {
-  .aura-app > .workspace { height: 100%; min-height: 0; overflow: hidden !important; padding: 6px 10px 68px !important; }
-  .aura-app > .workspace > .workspace-inner { height: 100%; min-height: 0; overflow: hidden; }
+  .aura-app > .workspace { padding: 6px 10px 68px; }
   .aura-app .date-toolbar { min-height: 30px; margin-bottom: 0; }
   .aura-app .date-heading { font-size: 11px; }
   .aura-app .date-picker { min-height: 30px; font-size: 12px; }
@@ -325,7 +313,6 @@ html, body, #root, .aura-app { height: 100vh; height: 100dvh; min-height: 0; ove
   .aura-app .day-pill { width: 38px; height: 46px; }
   .aura-app .day-pill .day-label { font-size: 8px; }
   .aura-app .day-pill .day-number { font-size: 13px; }
-  .aura-app .diary-secondary, .aura-app .biomarker-list { display: none !important; }
   .aura-app .diary-grid { margin-top: 0; }
   .aura-app .cycle-summary { padding: 6px 8px; min-height: 0; }
   .aura-app .cycle-summary-visuals { min-height: 134px !important; height: 134px; margin: 0; }
