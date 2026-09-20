@@ -590,12 +590,21 @@ export function HeroStatus({
                         </>
                       )
                     ) : awaitingPeriod ? (
-                    <>
-                      <span>Esperando</span>
-                      <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
-                      <span>días</span>
-                      <span className="cycle-ring-context">de retraso</span>
-                    </>
+                    elapsedDays === cycleLength ? (
+                      <>
+                        <span>Fecha estimada</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(24px, 3.8vw, 32px)', fontStyle: 'normal' }}>Hoy</strong>
+                        <span>de tu regla</span>
+                        <span className="cycle-ring-context">registra en cuanto empiece</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Esperando</span>
+                        <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength)}</strong>
+                        <span>días</span>
+                        <span className="cycle-ring-context">de retraso</span>
+                      </>
+                    )
                   ) : daysToNext === 1 ? (
                     <>
                       <span>Queda</span>

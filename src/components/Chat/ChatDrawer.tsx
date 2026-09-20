@@ -335,7 +335,10 @@ function ChatSession({
             {showCatalog ? 'Ocultar catálogo' : 'Ver todos'}
           </button>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+        <div
+          className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar"
+          style={{ WebkitMaskImage: 'linear-gradient(to right, black 90%, transparent 100%)', maskImage: 'linear-gradient(to right, black 90%, transparent 100%)' }}
+        >
           {CHAT_QUIZ_SUGGESTIONS.map(s => (
             <button
               key={s.id}

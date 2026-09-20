@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, MessageCircle, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -62,13 +62,11 @@ const CycleAnalyticsModal = resilientLazy(() => import('./components/Modals/Cycl
 const SymptothermalModal = resilientLazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
 const MedicationTrackerModal = resilientLazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
 const CycleSyncingModal = resilientLazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
-const UniversalImportModal = resilientLazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
-const MedicalExportModal = resilientLazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
 const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
 const PastCycleRecoveryModal = resilientLazy(() => import('./components/Modals/PastCycleRecoveryModal').then(m => ({ default: m.PastCycleRecoveryModal })));
 const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals/CycleRecoveryBottomSheet').then(m => ({ default: m.CycleRecoveryBottomSheet })));
 
-type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install' | 'recovery';
+type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
 
@@ -198,10 +196,7 @@ function MainScreen() {
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
     { id: 'medication' as const, name: 'Medicación', description: 'Tomas, dosis y suplementos', icon: Pill },
     { id: 'care' as const, name: 'Cuidados del ciclo', description: 'Bienestar en cada fase', icon: Leaf },
-    { id: 'profile' as const, name: 'Mi perfil', description: 'Ciclo, cuerpo y hábitos', icon: UserRound },
     { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: MessageCircle },
-    { id: 'import' as const, name: 'Importar registros', description: 'Texto, CSV y copias de seguridad', icon: Upload },
-    { id: 'export' as const, name: 'Informe de salud', description: 'Tu historial para la consulta', icon: FileDown },
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
@@ -576,8 +571,6 @@ function MainScreen() {
       {modal === 'symptothermal' && <SymptothermalModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'medication' && <MedicationTrackerModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'care' && <CycleSyncingModal isOpen initialPhase={carePhase} onClose={closeModal}/>}
-      {modal === 'import' && <UniversalImportModal isOpen onClose={closeModal}/>}
-      {modal === 'export' && <MedicalExportModal isOpen onClose={closeModal}/>}
       {modal === 'chat' && (
         <ChatDrawer
           isOpen
