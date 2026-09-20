@@ -1521,6 +1521,9 @@
     text-align: center !important;
     font-size: 13px !important;
   }
+  .cycle-summary {
+    min-height: min(680px, calc(100dvh - 130px)) !important;
+  }
   .cycle-summary-visuals {
     display: flex !important;
     flex-direction: row !important;
@@ -1528,46 +1531,50 @@
     justify-content: center !important;
     gap: clamp(6px, 1.8vw, 12px) !important;
     width: 100% !important;
+    min-height: min(480px, calc(100dvh - 300px)) !important;
     margin: 0 auto !important;
     padding: 0 !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
-    width: clamp(170px, 48vw, 215px) !important;
+    width: clamp(215px, 62vw, 290px) !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-wrap.is-secondary {
-    width: clamp(105px, 30vw, 135px) !important;
+    width: clamp(130px, 38vw, 178px) !important;
     margin-left: 0 !important;
   }
+  .cycle-summary-visuals.single-ring {
+    min-height: min(500px, calc(100dvh - 300px)) !important;
+  }
   .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
-    width: clamp(200px, 55vw, 260px) !important;
+    width: clamp(250px, 72vw, 340px) !important;
     margin: 0 auto !important;
   }
-  
+
   .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(52px, 14vw, 76px) !important;
+    font-size: clamp(58px, 16.5vw, 90px) !important;
   }
   .cycle-ring.is-primary .cycle-ring-label span:first-child {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
   .cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
   .cycle-ring.is-primary .cycle-ring-context {
-    font-size: 10.5px !important;
+    font-size: 11.5px !important;
   }
-  
+
   .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(24px, 6vw, 28px) !important;
+    font-size: clamp(27px, 7vw, 33px) !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 10px !important;
+    font-size: 10.5px !important;
     margin-bottom: 2px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 9px !important;
+    font-size: 9.5px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;

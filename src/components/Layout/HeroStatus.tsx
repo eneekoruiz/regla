@@ -6,7 +6,7 @@ import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
-import { PastCatchupBanner } from './PastCatchupBanner';
+import { PastCatchupBanner, type PastCatchupAction } from './PastCatchupBanner';
 
 export function HeroStatus({
   onRecordPeriod,
@@ -282,6 +282,45 @@ export function HeroStatus({
   const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
   const isAnnotated = Boolean(hasAnyLog);
   const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
+
+  // Como mucho un aviso de "ponte al día" a la vez: el más relevante gana, en vez de apilarlos.
+  const catchupBanner: {
+    tone?: 'gold';
+    badge: string;
+    title: string;
+    sub: string;
+    actions: PastCatchupAction[];
+  } | null = isLikelyMissedOnePeriod
+    ? {
+        tone: 'gold',
+        badge: 'POSIBLE REGLA OLVIDADA',
+        title: '¿Te bajó la regla el mes pasado?',
+        sub: `Hace más de ${cycleLength + 10} días de tu último registro de periodo.`,
+        actions: [{ label: 'Completar mes pasado', icon: null, onClick: () => onOpenRecoveryModal?.() }]
+      }
+    : isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular)
+    ? {
+        badge: 'AYER SIN REGISTRAR',
+        title: '¿Se te olvidó apuntar ayer?',
+        sub: 'Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.',
+        actions: [
+          { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onRecordPeriod, 50); } },
+          { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onOpenDailyModal, 50); } }
+        ]
+      }
+    : isPast && !hasAnyLog
+    ? {
+        badge: daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros',
+        title: daysAgo <= 3
+          ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
+          : '¿Tuviste regla o sensaciones este día?',
+        sub: 'Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.',
+        actions: [
+          { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: onRecordPeriod },
+          { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: onOpenDailyModal }
+        ]
+      }
+    : null;
 
   // 4 fases del ciclo con colores sincronizados al 100% con el calendario superior:
   // 1. Menstruación (Rosa - var(--rose))
@@ -1015,44 +1054,8 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Banner de recuperación de ciclo perdido (1 mes) */}
-      {isLikelyMissedOnePeriod && (
-        <PastCatchupBanner
-          tone="gold"
-          badge="POSIBLE REGLA OLVIDADA"
-          title="¿Te bajó la regla el mes pasado?"
-          sub={`Hace más de ${cycleLength + 10} días de tu último registro de periodo.`}
-          actions={[{ label: 'Completar mes pasado', icon: null, onClick: () => onOpenRecoveryModal?.() }]}
-        />
-      )}
-
-      {/* Aviso para HOY si ayer quedó sin registrar (unificado con la tarjeta naranja) */}
-      {isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular) && (
-        <PastCatchupBanner
-          badge="AYER SIN REGISTRAR"
-          title="¿Se te olvidó apuntar ayer?"
-          sub="Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión."
-          actions={[
-            { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onRecordPeriod, 50); } },
-            { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onOpenDailyModal, 50); } }
-          ]}
-        />
-      )}
-
-      {/* Banner visual para DÍAS PASADOS no registrados */}
-      {isPast && !hasAnyLog && (
-        <PastCatchupBanner
-          badge={daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros'}
-          title={daysAgo <= 3
-            ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
-            : '¿Tuviste regla o sensaciones este día?'}
-          sub="Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión."
-          actions={[
-            { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: onRecordPeriod },
-            { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: onOpenDailyModal }
-          ]}
-        />
-      )}
+      {/* Como mucho un aviso de "ponte al día" a la vez, con el más relevante primero, para no saturar la pantalla. */}
+      {catchupBanner && <PastCatchupBanner {...catchupBanner} />}
 
       {!hasCycle && (
         <div className="first-record-empty-state">
