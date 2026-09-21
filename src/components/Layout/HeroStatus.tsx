@@ -7,6 +7,8 @@ import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
 import { PastCatchupBanner, type PastCatchupAction } from './PastCatchupBanner';
+import { moodForPhase } from '../../utils/mascotFace';
+import { MascotFaceGroup } from '../Mascot/MascotFaceGroup';
 
 export function HeroStatus({
   onRecordPeriod,
@@ -433,6 +435,20 @@ export function HeroStatus({
 
   const remainingPeriodDays = Math.max(0, periodLength - cycleDay);
 
+  // Color e identidad de la gota: mismo criterio que el arco de progreso,
+  // reutilizado también para la carita de la mascota (Elemento 1).
+  const dropInkColor =
+    hasCycle && daysToNext <= 5 && !day.isPeriod
+      ? '#c9636b'
+      : hasCycle && day.isOvulationDay
+        ? '#7da87d'
+        : hasCycle && day.isFertileWindow && !day.isPeriod
+          ? '#e5a93c'
+          : hasCycle && day.phase === 'luteal'
+            ? '#9d8189'
+            : 'var(--phase-ink)';
+  const dropMood = moodForPhase(hasCycle ? day.phase : 'follicular');
+
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
@@ -525,17 +541,7 @@ export function HeroStatus({
                   <path
                     d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                     fill="none"
-                    stroke={
-                      hasCycle && daysToNext <= 5 && !day.isPeriod
-                        ? '#c9636b'
-                        : hasCycle && day.isOvulationDay
-                          ? '#7da87d'
-                          : hasCycle && day.isFertileWindow && !day.isPeriod
-                            ? '#e5a93c'
-                            : hasCycle && day.phase === 'luteal'
-                              ? '#9d8189'
-                              : 'var(--phase-ink)'
-                    }
+                    stroke={dropInkColor}
                     strokeWidth="6"
                     strokeLinejoin="round"
                     strokeLinecap="round"
@@ -544,6 +550,10 @@ export function HeroStatus({
                     strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
                     style={{ transition: 'stroke 0.6s ease, stroke-dashoffset 0.6s ease' }}
                   />
+                  {/* La propia gota con carita: gesto mínimo dentro de la punta,
+                      sin añadir ningún elemento nuevo en pantalla. El humor
+                      cambia según la fase (tranquila/con energía/más calmada). */}
+                  <MascotFaceGroup mood={dropMood} color={dropInkColor} opacity={0.75} />
                 </svg>
                 <span className="cycle-ring-label">
                     {isFuture ? (

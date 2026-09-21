@@ -1498,6 +1498,9 @@
     align-items: center !important;
     text-align: center !important;
     gap: 10px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-header {
     display: flex !important;
@@ -1521,33 +1524,63 @@
     text-align: center !important;
     font-size: 13px !important;
   }
+  /* La tarjeta ocupa justo lo que queda de la primera pantalla (medido en vivo por
+     App.tsx vía --hero-fill); min() con el cálculo antiguo actúa solo de red de
+     seguridad antes de que el JS mida, o si por lo que sea no llega a ejecutarse. */
   .cycle-summary {
-    min-height: min(680px, calc(100dvh - 130px)) !important;
+    min-height: var(--hero-fill, min(680px, calc(100dvh - 130px))) !important;
   }
+  .cycle-summary-motion {
+    justify-content: flex-start !important;
+  }
+  /* Las dos gotas se apilan en vertical en vez de compartir el ancho, y cada una es un
+     hijo flex:1 de este contenedor: así el propio flexbox reparte TODO el alto disponible
+     entre ambas (sin adivinar con vh, que no sabe cuánto ocupan alrededor los chips/botones
+     y antes hacía que el conjunto se desbordara por debajo de la pantalla). */
   .cycle-summary-visuals {
     display: flex !important;
-    flex-direction: row !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: clamp(6px, 1.8vw, 12px) !important;
+    gap: clamp(2px, 1.2vh, 10px) !important;
     width: 100% !important;
-    min-height: min(480px, calc(100dvh - 300px)) !important;
     margin: 0 auto !important;
     padding: 0 !important;
   }
+  /* min-height aquí es un SUELO, no un techo: si un día muy cargado (banner + chips +
+     botones) deja poco hueco, preferimos que la tarjeta crezca un poco más que la
+     pantalla (y haya que bajar un pelín) antes que dejar los anillos ilegibles. */
   .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
-    width: clamp(215px, 62vw, 290px) !important;
+    flex: 1.6 1 0 !important;
+    min-height: 150px !important;
+    width: auto !important;
+    height: 100% !important;
+    max-width: 92% !important;
   }
   .cycle-summary-top.has-ring .cycle-ring-wrap.is-secondary {
-    width: clamp(130px, 38vw, 178px) !important;
+    flex: 1 1 0 !important;
+    min-height: 110px !important;
+    width: auto !important;
+    height: 100% !important;
+    max-width: 64% !important;
     margin-left: 0 !important;
   }
-  .cycle-summary-visuals.single-ring {
-    min-height: min(500px, calc(100dvh - 300px)) !important;
-  }
   .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
-    width: clamp(250px, 72vw, 340px) !important;
+    flex: 1 1 0 !important;
+    min-height: 220px !important;
+    width: auto !important;
+    height: 100% !important;
+    max-width: 90% !important;
     margin: 0 auto !important;
+  }
+  .cycle-summary-top.has-ring .cycle-ring.is-primary,
+  .cycle-summary-top.has-ring .cycle-ring.is-secondary {
+    width: auto !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
   }
 
   .cycle-ring.is-primary .cycle-ring-label strong {

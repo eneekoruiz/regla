@@ -1,6 +1,8 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, MessageCircle, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import { DropMascot } from './components/Mascot/DropMascot';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -170,6 +172,32 @@ function MainScreen() {
   const healthAdvice = log?.flow === 'very_heavy' && selectedDate === todayDate ? generateDailyWellnessAdvice({ ...currentDayInfo, date: selectedDate, flow: log.flow }) : null;
   const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
+
+  // En móvil, la tarjeta de la gota/círculo debe ocupar justo lo que quede de la primera
+  // pantalla (hasta la barra de navegación inferior), sea cual sea el tamaño real del
+  // teléfono. Medimos en vivo en vez de adivinar un hueco fijo, que variaba por dispositivo.
+  useLayoutEffect(() => {
+    if (view !== 'diary') return;
+    const measure = () => {
+      const card = document.querySelector('.cycle-summary') as HTMLElement | null;
+      if (!card) return;
+      if (window.innerWidth > 700) { card.style.removeProperty('--hero-fill'); return; }
+      const nav = document.querySelector('.primary-navigation') as HTMLElement | null;
+      const top = card.getBoundingClientRect().top;
+      const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+      const available = window.innerHeight - top - navHeight - 10;
+      card.style.setProperty('--hero-fill', `${Math.max(360, Math.round(available))}px`);
+    };
+    measure();
+    const raf = requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    window.addEventListener('orientationchange', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('orientationchange', measure);
+    };
+  }, [view, online, healthAdvice, selectedDate]);
   const allQuizResults = useMemo(() => {
     const list: QuizResult[] = [];
     for (const l of Object.values(logs)) {
@@ -196,7 +224,7 @@ function MainScreen() {
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
     { id: 'medication' as const, name: 'Medicación', description: 'Tomas, dosis y suplementos', icon: Pill },
     { id: 'care' as const, name: 'Cuidados del ciclo', description: 'Bienestar en cada fase', icon: Leaf },
-    { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: MessageCircle },
+    { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: (props: LucideProps) => <DropMascot phase={currentDayInfo.phase} {...props} /> },
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
@@ -417,7 +445,7 @@ function MainScreen() {
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
               <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
+              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
             </aside>
           </div>
         </>}
