@@ -238,13 +238,13 @@
 .ovulation-sparkle { font-size: 11px; line-height: 1; font-weight: 900; color: #3b82f6; }
 .dark .ovulation-sparkle { color: #93c5fd; }
 .today-pill-button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
-.diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
+.diary-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
 .cycle-summary {
   position: relative;
   overflow: hidden;
-  padding: 16px 20px 14px;
+  padding: 14px 20px 12px;
   border: 1px solid rgba(224, 192, 192, 0.45);
   border-radius: 22px;
   background: linear-gradient(145deg, #fffafb 0%, #fdf5f6 50%, #faedf0 100%);
@@ -263,7 +263,7 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  gap: 8px;
+  gap: 6px;
 }
 .cycle-summary-top { width: 100%; }
 .cycle-summary-top.has-ring {
@@ -272,10 +272,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   width: 100%;
   min-height: 0;
-  gap: 4px;
+  gap: clamp(4px, 1.2vh, 12px);
 }
 .cycle-summary-top.no-ring {
   display: flex;
@@ -334,12 +334,12 @@
 .cycle-summary-visuals {
   flex: 1 1 auto;
   height: auto;
-  min-height: 170px;
+  min-height: 185px;
   display: flex;
   min-width: 0;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 2.2vw, 36px);
+  gap: clamp(16px, 2.5vw, 42px);
   width: 100%;
   margin: 0;
   padding: 4px 10px;
@@ -348,21 +348,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   max-height: 100%;
   transition: all 0.4s ease-in-out;
 }
 
 .cycle-ring-wrap.is-primary {
   order: 1;
-  width: clamp(235px, 35vh, 310px);
+  width: clamp(260px, 38vh, 350px);
   max-width: 50%;
   z-index: 2;
 }
 
 .cycle-ring-wrap.is-secondary {
   order: 2;
-  width: clamp(215px, 32vh, 285px);
+  width: clamp(235px, 35vh, 320px);
   max-width: 48%;
   margin-left: 0;
   z-index: 1;
@@ -971,7 +971,7 @@
 .future-forecast-card[data-phase="menstrual"] .future-forecast-icon { background: #fce8e9; color: #c9636b; }
 .future-forecast-card[data-phase="ovulation"] .future-forecast-icon { background: #fef3e2; color: #e5a93c; }
 .future-forecast-card[data-phase="luteal"] .future-forecast-icon { background: #f0eaec; color: #9d8189; }
-.future-forecast-card[data-phase="follicular"] .future-forecast-icon { background: #e8f0e8; color: #7da87d; }
+.future-forecast-card[data-phase="follicular"] .future-forecast-icon { background: #fae8eb; color: #d8727d; }
 .future-forecast-content { flex: 1; min-width: 0; }
 .future-forecast-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 2px; font-family: var(--font-sans); }
 .future-forecast-desc { font-size: 11.5px; line-height: 1.35; color: var(--text-secondary); margin: 0 0 2px; }
@@ -1428,22 +1428,22 @@
   .cycle-summary-top.has-ring .cycle-copy { font-size: clamp(11px, 1.4vh, 12px); }
 
   .cycle-summary-visuals {
-    min-height: 180px;
-    gap: clamp(12px, 2vw, 32px);
+    min-height: 185px;
+    gap: clamp(14px, 2.2vw, 36px);
     padding: 4px 8px;
   }
   .cycle-ring-wrap.is-primary {
-    width: clamp(225px, 34vh, 295px);
+    width: clamp(245px, 36.5vh, 330px);
     max-width: 50%;
   }
   .cycle-ring-wrap.is-secondary {
-    width: clamp(205px, 31.5vh, 275px);
+    width: clamp(225px, 33.5vh, 305px);
     max-width: 48%;
     margin-left: 0;
   }
 
-  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(44px, 6.2vh, 60px); }
-  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(32px, 4.6vh, 44px); }
+  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(46px, 6.6vh, 64px); }
+  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(34px, 5vh, 46px); }
 
   .cycle-summary-visuals.single-ring { min-height: 160px; }
   .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
@@ -1577,12 +1577,12 @@
 .phase-chip:hover { background: var(--bg-card); }
 .phase-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 /* Phase-specific ink colors */
-[data-phase="menstrual"] { --phase-ink: #cc546f; } /* Rose */
-[data-phase="follicular"] { --phase-ink: #8da698; } /* Soft sage */
-[data-phase="ovulation"] { --phase-ink: #dba365; } /* Soft peach/amber */
-[data-phase="luteal"] { --phase-ink: #c49681; } /* Soft sand/terracotta */
+[data-phase="menstrual"] { --phase-ink: #c9636b; } /* Deep Ruby Rose */
+[data-phase="follicular"] { --phase-ink: #d8727d; } /* Blooming Coral Rose */
+[data-phase="ovulation"] { --phase-ink: #e5a93c; } /* Soft peach/amber */
+[data-phase="luteal"] { --phase-ink: #9d8189; } /* Soft sand/terracotta */
 .dark [data-phase="menstrual"] { --phase-ink: #e3889e; }
-.dark [data-phase="follicular"] { --phase-ink: #abc2b5; }
+.dark [data-phase="follicular"] { --phase-ink: #e89da5; }
 .dark [data-phase="ovulation"] { --phase-ink: #f0c390; }
 .dark [data-phase="luteal"] { --phase-ink: #dfb29e; }
 
@@ -1605,9 +1605,9 @@
   box-shadow: 0 16px 40px -12px rgba(201, 99, 107, 0.16), 0 4px 14px rgba(201, 99, 107, 0.05);
 }
 .cycle-summary[data-phase="follicular"] {
-  background: linear-gradient(150deg, #f8fbf9 0%, #f4f8f5 50%, #eaf4ee 100%);
-  border-color: rgba(125, 168, 125, 0.35);
-  box-shadow: 0 16px 40px -12px rgba(125, 168, 125, 0.14), 0 4px 14px rgba(125, 168, 125, 0.04);
+  background: linear-gradient(150deg, #fff8f9 0%, #fef3f4 50%, #fae8eb 100%);
+  border-color: rgba(216, 114, 125, 0.35);
+  box-shadow: 0 16px 40px -12px rgba(216, 114, 125, 0.14), 0 4px 14px rgba(216, 114, 125, 0.04);
 }
 .cycle-summary[data-phase="ovulation"] {
   background: linear-gradient(150deg, #fffcf7 0%, #fdf7ee 50%, #faeee0 100%);
@@ -1624,7 +1624,7 @@
   background: radial-gradient(circle at 50% 56%, rgba(244, 218, 222, 0.5) 0%, rgba(253, 244, 245, 0.25) 55%, transparent 72%);
 }
 .cycle-summary[data-phase="follicular"] .cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 56%, rgba(215, 238, 222, 0.5) 0%, rgba(245, 252, 247, 0.25) 55%, transparent 72%);
+  background: radial-gradient(circle at 50% 56%, rgba(248, 222, 226, 0.5) 0%, rgba(254, 246, 248, 0.25) 55%, transparent 72%);
 }
 .cycle-summary[data-phase="ovulation"] .cycle-ring.hero-prominent-ring.is-primary {
   background: radial-gradient(circle at 50% 56%, rgba(253, 235, 205, 0.5) 0%, rgba(255, 250, 240, 0.25) 55%, transparent 72%);
@@ -1634,7 +1634,7 @@
 }
 
 .dark .cycle-summary[data-phase="menstrual"] { background: linear-gradient(135deg, color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #4a1f2c 60%, var(--hero-surface))); }
-.dark .cycle-summary[data-phase="follicular"] { background: linear-gradient(135deg, color-mix(in srgb, #1a2e26 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #15261d 60%, var(--hero-surface))); }
+.dark .cycle-summary[data-phase="follicular"] { background: linear-gradient(135deg, color-mix(in srgb, #3d2229 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #331c22 60%, var(--hero-surface))); }
 .dark .cycle-summary[data-phase="ovulation"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(100,140,255,0.05) 80%, var(--hero-surface))); }
 .dark .cycle-summary[data-phase="luteal"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(234, 88, 12, 0.05) 80%, var(--hero-surface))); }
 

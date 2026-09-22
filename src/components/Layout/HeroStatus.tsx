@@ -354,7 +354,7 @@ export function HeroStatus({
     {
       id: 'follicular',
       name: 'Folicular',
-      color: '#7da87d',
+      color: '#d8727d',
       active: isFollicularActive,
       path: 'M 86.06 40.32 A 58 58 0 0 1 137.68 91.94'
     },
@@ -425,7 +425,7 @@ export function HeroStatus({
       const displayDays = daysToFertile > 0 && daysToFertile <= 20 ? daysToFertile : daysToOvu > 0 && daysToOvu <= 20 ? daysToOvu : cycleDay;
       return {
         kicker: 'Fase folicular',
-        kickerColor: '#7da87d',
+        kickerColor: '#d8727d',
         number: displayDays > 0 ? displayDays : cycleDay,
         isText: false,
         unit: daysToFertile > 0 && daysToFertile <= 20 ? (daysToFertile === 1 ? 'día' : 'días') : 'día del',
@@ -466,12 +466,14 @@ export function HeroStatus({
     hasCycle && daysToNext <= 5 && !day.isPeriod
       ? '#c9636b'
       : hasCycle && day.isOvulationDay
-        ? '#7da87d'
+        ? '#e5a93c'
         : hasCycle && day.isFertileWindow && !day.isPeriod
           ? '#e5a93c'
-          : hasCycle && day.phase === 'luteal'
-            ? '#9d8189'
-            : 'var(--phase-ink)';
+          : hasCycle && day.phase === 'follicular'
+            ? '#d8727d'
+            : hasCycle && day.phase === 'luteal'
+              ? '#9d8189'
+              : 'var(--phase-ink)';
   const dropMood = moodForPhase(hasCycle ? day.phase : 'follicular');
 
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
