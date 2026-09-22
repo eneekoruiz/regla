@@ -254,10 +254,10 @@ export function HeroStatus({
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
   const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
   const circumference = 2 * Math.PI * 55;
-  const showRing = hasCycle && (isToday || isFuture);
+  const showRing = hasCycle;
 
   // Cuando se muestran los diales visuales gemelos, la cabecera indica el día y fase sin repetir la cuenta atrás
-  if (showRing && !isPast) {
+  if (showRing) {
     if (isRecorded) {
       title = `Día ${cycleDay} de regla`;
       copy = flowName ? `Flujo ${flowName} registrado` : 'Fase menstrual activa';
@@ -382,13 +382,29 @@ export function HeroStatus({
         context: daysToFertile > 0 && daysToFertile <= 20 ? 'para ventana fértil' : 'ciclo'
       };
     }
+    // Fase lútea: significado biológico especial (días post-ovulación DPO e hito biológico)
+    const ovulationDay = Math.max(periodLength + 1, Math.round(cycleLength - (cycleStats.lutealPhaseLength || 14)));
+    const dpo = Math.max(1, cycleDay - ovulationDay);
+    let lutealKicker = 'Fase lútea';
+    let lutealContext = 'progesterona activa';
+    if (dpo >= 6 && dpo <= 10) {
+      lutealKicker = 'Implantación';
+      lutealContext = 'ventana de anidación';
+    } else if (dpo >= 11) {
+      lutealKicker = 'Premenstrual';
+      lutealContext = 'preparando descanso';
+    } else {
+      lutealKicker = 'Post-ovulación';
+      lutealContext = 'progesterona en alza';
+    }
+
     return {
-      kicker: 'Fase lútea',
+      kicker: lutealKicker,
       kickerColor: '#9d8189',
-      number: cycleDay,
+      number: dpo,
       isText: false,
-      unit: 'día del',
-      context: 'ciclo'
+      unit: dpo === 1 ? 'día post-ovulación' : 'días post-ovulación',
+      context: lutealContext
     };
   })();
 
@@ -402,11 +418,6 @@ export function HeroStatus({
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="cycle-summary-motion"
       >
-        {topContent && (
-          <div className="hero-top-content" style={{ width: '100%', marginBottom: '6px' }}>
-            {topContent}
-          </div>
-        )}
         <div className={`cycle-summary-top${showRing ? ' has-ring' : ' no-ring'}`}>
         {/* Si no hay anillos (ej. días pasados o sin ciclo), mostramos la cabecera estándar */}
         {!showRing && (
@@ -437,11 +448,9 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* Visuales: ÚNICAMENTE los dos instrumentos (Gota y Círculo) con jerarquía dinámica */}
-        {/* Cuando hay topContent (días futuros con nota de fase), ocultamos el círculo de fases
-            en luteal y periodo porque la información ya está arriba — solo mostramos la gota */}
+        {/* Visuales: Los dos instrumentos (Gota y Círculo) visibles todos los días con jerarquía dinámica */}
         {showRing && (
-          <div className={`cycle-summary-visuals ${(!isFertilePriority || (topContent && (day.phase === 'luteal' || day.isPeriod))) ? 'single-ring' : ''}`}>
+          <div className="cycle-summary-visuals">
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
             <div className={`cycle-ring-wrap drop-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
@@ -677,94 +686,12 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* Acciones contextuales o cápsulas de resumen del ciclo debajo de los diales */}
-        {showRing && hasCycle && (
+        {/* Acciones contextuales debajo de los diales (solo hoy si hay acciones relevantes) */}
+        {showRing && hasCycle && isToday && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4) && (
           <div className="cycle-summary-bottom-actions">
-            {isToday && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4) ? (
-              <div className="hero-quick-actions">
-                {isRecorded ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                      Editar flujo
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={handleConfirmPeriodEndToday}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
-                    >
-                      <Check size={14} style={{ color: 'var(--accent)' }} />
-                      Hoy ha terminado mi regla
-                    </button>
-                  </>
-                ) : awaitingPeriod ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm primary"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} />
-                      Me ha bajado hoy la regla
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => {
-                        setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.');
-                      }}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Clock size={14} />
-                      Se me está retrasando la regla
-                    </button>
-                  </>
-                ) : day.isPeriod ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm primary"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} />
-                      {cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla'}
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={
-                        cycleDay > 1
-                          ? handleConfirmPeriodEndToday
-                          : () => {
-                              denyPeriodOnDate(todayDate);
-                              setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
-                            }
-                      }
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      {cycleDay > 1 ? (
-                        <>
-                          <Check size={14} style={{ color: 'var(--accent)' }} />
-                          Ya se me ha terminado
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={14} />
-                          Se me está retrasando la regla
-                        </>
-                      )}
-                    </button>
-                  </>
-                ) : daysToNext <= 4 ? (
+            <div className="hero-quick-actions">
+              {isRecorded ? (
+                <>
                   <button
                     type="button"
                     className="aura-button sm"
@@ -772,49 +699,91 @@ export function HeroStatus({
                     style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
                   >
                     <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                    Se me ha adelantado la regla
+                    Editar flujo
                   </button>
-                ) : null}
-              </div>
-            ) : (
-              <div className="hero-cycle-highlights" aria-label="Resumen del ciclo">
-                <div className="hero-highlight-chip">
-                  <span
-                    className="hero-chip-dot"
-                    style={{
-                      background: day.isPeriod
-                        ? '#c9636b'
-                        : day.isFertileWindow || day.isOvulationDay
-                          ? '#e5a93c'
-                          : day.phase === 'follicular'
-                            ? '#7da87d'
-                            : '#9d8189'
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={handleConfirmPeriodEndToday}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                    title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
+                  >
+                    <Check size={14} style={{ color: 'var(--accent)' }} />
+                    Hoy ha terminado mi regla
+                  </button>
+                </>
+              ) : awaitingPeriod ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm primary"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} />
+                    Me ha bajado hoy la regla
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={() => {
+                      setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.');
                     }}
-                  />
-                  <span className="hero-chip-text">
-                    {day.isPeriod
-                      ? 'Fase menstrual'
-                      : day.isOvulationDay
-                        ? 'Día de ovulación'
-                        : day.isFertileWindow
-                          ? 'Ventana fértil'
-                          : day.phase === 'follicular'
-                            ? 'Fase folicular'
-                            : 'Fase lútea'}
-                  </span>
-                </div>
-                <div className="hero-highlight-chip">
-                  <span className="hero-chip-text">
-                    {cycleDay > 0 ? `Día ${cycleDay} de ${cycleLength}` : `Ciclo de ${cycleLength} días`}
-                  </span>
-                </div>
-                <div className="hero-highlight-chip">
-                  <span className="hero-chip-text">
-                    {daysToNext === 1 ? '1 día para la regla' : `${daysToNext} días para la regla`}
-                  </span>
-                </div>
-              </div>
-            )}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Clock size={14} />
+                    Se me está retrasando la regla
+                  </button>
+                </>
+              ) : day.isPeriod ? (
+                <>
+                  <button
+                    type="button"
+                    className="aura-button sm primary"
+                    onClick={onRecordPeriod}
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Droplets size={14} />
+                    {cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla'}
+                  </button>
+                  <button
+                    type="button"
+                    className="aura-button sm"
+                    onClick={
+                      cycleDay > 1
+                        ? handleConfirmPeriodEndToday
+                        : () => {
+                            denyPeriodOnDate(todayDate);
+                            setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
+                          }
+                    }
+                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {cycleDay > 1 ? (
+                      <>
+                        <Check size={14} style={{ color: 'var(--accent)' }} />
+                        Ya se me ha terminado
+                      </>
+                    ) : (
+                      <>
+                        <Clock size={14} />
+                        Se me está retrasando la regla
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : daysToNext <= 4 ? (
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                  Se me ha adelantado la regla
+                </button>
+              ) : null}
+            </div>
           </div>
         )}
 
@@ -998,6 +967,13 @@ export function HeroStatus({
           </div>
         )}
       </div>
+
+      {/* Mensaje de previsión/fase en el espacio que queda bajo la gota */}
+      {topContent && (
+        <div className="hero-forecast-content">
+          {topContent}
+        </div>
+      )}
 
       {/* QuickLog buttons moved up for visibility */}
       {children && (
