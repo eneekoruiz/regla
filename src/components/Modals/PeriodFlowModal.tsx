@@ -4,7 +4,7 @@ import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
-import { modalChoice, modalSecondaryButton, modalUnselected } from './modalStyles';
+import { modalChoice, modalSecondaryButton, modalSelected, modalUnselected } from './modalStyles';
 
 const FLOW_LEVELS: { id: FlowIntensity; label: string; count: number }[] = [
   { id: 'spotting', label: 'Manchado', count: 1 },
@@ -33,7 +33,6 @@ export function PeriodFlowModal({
   const [flow, setFlow] = useState<FlowIntensity>(log?.flow || settings.typicalFlowIntensity || 'medium');
   const [isCycleStart, setIsCycleStart] = useState(Boolean(log?.isCycleStart || settings.lastPeriodStartDate === selectedDate));
   const [error, setError] = useState('');
-  const selected = 'border-[var(--rose)] bg-[var(--rose-soft)] text-[var(--rose)]';
   const save = (remove = false) => {
     try {
       if (hasBleeding && !remove) logBleedingForDate(selectedDate, { flow, isCycleStart: bleedingType === 'period' && isCycleStart, isIrregular: bleedingType === 'irregular' });
@@ -50,11 +49,11 @@ export function PeriodFlowModal({
       <button type="button" onClick={() => save()} className="aura-button rose min-w-0"><Check size={17} aria-hidden="true" /> Guardar registro</button>
     </>}>
     <fieldset><legend className="mb-2 text-sm font-semibold">¿Hubo sangrado?</legend>
-      <div className="grid grid-cols-2 gap-2">{[true, false].map(value => <button key={String(value)} type="button" aria-pressed={hasBleeding === value} onClick={() => setHasBleeding(value)} className={`${modalChoice} ${hasBleeding === value ? selected : modalUnselected}`}>{value ? 'Sí, hubo sangrado' : 'Sin sangrado'}</button>)}</div>
+      <div className="grid grid-cols-2 gap-2">{[true, false].map(value => <button key={String(value)} type="button" aria-pressed={hasBleeding === value} onClick={() => setHasBleeding(value)} className={`${modalChoice} ${hasBleeding === value ? modalSelected : modalUnselected}`}>{value ? 'Sí, hubo sangrado' : 'Sin sangrado'}</button>)}</div>
     </fieldset>
     {hasBleeding && <>
       <fieldset><legend className="mb-2 text-sm font-semibold">Tipo de sangrado</legend>
-        <div className="grid grid-cols-2 gap-2">{(['period', 'irregular'] as const).map(value => <button key={value} type="button" aria-pressed={bleedingType === value} onClick={() => setBleedingType(value)} className={`${modalChoice} ${bleedingType === value ? selected : modalUnselected}`}>{value === 'period' ? 'Regla menstrual' : 'Sangrado irregular'}</button>)}</div>
+        <div className="grid grid-cols-2 gap-2">{(['period', 'irregular'] as const).map(value => <button key={value} type="button" aria-pressed={bleedingType === value} onClick={() => setBleedingType(value)} className={`${modalChoice} ${bleedingType === value ? modalSelected : modalUnselected}`}>{value === 'period' ? 'Regla menstrual' : 'Sangrado irregular'}</button>)}</div>
       </fieldset>
       {bleedingType === 'period' ? <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={isCycleStart} onChange={event => setIsCycleStart(event.target.checked)} className="h-5 w-5 shrink-0 accent-[var(--rose)]" />Es el primer día de un nuevo ciclo</label>
         : <p className="text-sm text-[var(--text-secondary)]">El sangrado irregular no iniciará un nuevo ciclo.</p>}
@@ -65,7 +64,7 @@ export function PeriodFlowModal({
             type="button"
             aria-pressed={flow === item.id}
             onClick={() => setFlow(item.id)}
-            className={`${modalChoice} flex items-center justify-between ${flow === item.id ? selected : modalUnselected}`}
+            className={`${modalChoice} flex items-center justify-between ${flow === item.id ? modalSelected : modalUnselected}`}
           >
             <span>{item.label}</span>
             <span className="flex items-center gap-0.5 text-xs opacity-75" aria-hidden="true">

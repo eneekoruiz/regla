@@ -65,8 +65,8 @@ html { scroll-padding-top: 16px; }
 .studio-canvas .confidente-link.has-urgent-reminder small { color: #d97706; font-weight: 500; }
 .profile-invitation { display: flex; margin: 8px auto 0; min-height: 36px; font-size: 11px; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .profile-invitation span { font-size: 10px; color: var(--text-secondary); font-weight: 400; }
-.aura-dialog { animation: sheet-appear .32s cubic-bezier(.22,1,.36,1); }
-.aura-dialog::backdrop { background: #45443c33; backdrop-filter: blur(5px); }
+.aura-dialog { animation: sheet-appear .28s cubic-bezier(.22,1,.36,1); }
+.aura-dialog::backdrop { background: color-mix(in srgb, #3d2e3466 55%, transparent); backdrop-filter: blur(8px) saturate(1.2); }
 .greeting-sheet { margin: auto auto 18px; max-width: 520px; border-radius: 28px; }
 .greeting-choices { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
 .greeting-choice { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 92px; padding: 12px 6px; border-radius: 18px; background: var(--bg-card-inner); font-size: 12px; }
@@ -318,18 +318,35 @@ html, body, #root, .aura-app { height: 100vh; height: 100dvh; min-height: 0; ove
   .aura-app .day-pill .day-label { font-size: 8px; }
   .aura-app .day-pill .day-number { font-size: 13px; }
   .aura-app .diary-grid { margin-top: 0; }
-  .aura-app .cycle-summary { padding: 6px 8px; min-height: 0; }
-  .aura-app .cycle-summary-visuals { min-height: 134px !important; height: 134px; margin: 0; }
-  .aura-app .cycle-ring-wrap { width: 132px !important; height: 132px !important; }
-  .aura-app .cycle-ring { width: 132px !important; height: 132px !important; }
-  .aura-app .cycle-summary-header .phase-chip { min-height: 26px; margin: 0 0 2px; font-size: 9px; }
-  .aura-app .cycle-headline { font-size: 18px; line-height: 1.1; }
-  .aura-app .cycle-copy, .aura-app .cycle-summary-bottom-actions, .aura-app .hero-cycle-highlights { display: none; }
+  .aura-app .cycle-summary { padding: 8px 12px; min-height: 0; }
+  .aura-app .cycle-summary-visuals { min-height: 220px !important; height: auto !important; margin: 4px 0 0 !important; }
+  .aura-app .cycle-summary-visuals .wheel-wrap { display: none !important; }
+  .aura-app .cycle-summary-visuals .drop-wrap {
+    width: clamp(220px, 34vh, 280px) !important;
+    height: calc(clamp(220px, 34vh, 280px) * 170 / 160) !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+  }
+  .aura-app .cycle-summary-visuals .drop-wrap .cycle-ring {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 1 !important;
+  }
+  .aura-app .cycle-summary-header .phase-chip { min-height: 26px; margin: 0 0 3px; font-size: 11px; }
+  .aura-app .cycle-headline { font-size: clamp(19px, 2.5vh, 23px); line-height: 1.2; margin: 0 0 2px; }
+  .aura-app .cycle-copy { display: block !important; font-size: 12px; line-height: 1.25; margin: 0; color: var(--text-secondary); }
   .aura-app .quick-log-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
   .aura-app .quick-log { min-height: 40px; padding: 4px 2px; font-size: 8px; gap: 3px; }
   .aura-app .quick-log svg { width: 14px; height: 14px; }
 }
 
-/* The dial is a true square canvas, independent from the surrounding copy. */
-.cycle-ring.is-primary, .cycle-ring.is-secondary { aspect-ratio: 1 / 1; }
+/* The dial uses the natural SVG proportion 160/170 */
+.cycle-ring.is-primary, .cycle-ring.is-secondary { aspect-ratio: 160 / 170; }
 .cycle-ring, .cycle-ring-wrap { transition-property: opacity, filter; }

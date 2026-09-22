@@ -114,35 +114,11 @@ function MainScreen() {
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
-  const [hasAutoOpenedDaily, setHasAutoOpenedDaily] = useState(false);
   const [recoveryDismissed, setRecoveryDismissed] = useState(false);
   const recoveryKey = getDataStorageKey(`regla_catchup_${todayDate}`);
   const recovery = recoveryDismissed || (typeof localStorage !== 'undefined' && localStorage.getItem(recoveryKey) === 'true')
     ? null
     : detectCycleRecovery(cycleStats, todayDate);
-
-  useEffect(() => {
-    if (!hasAutoOpenedDaily && !recovery && view === 'diary' && todayDate) {
-      const todayLog = logs[todayDate];
-      const hasLoggedToday = Boolean(
-        todayLog?.isPeriod ||
-        todayLog?.isIrregularBleeding ||
-        (todayLog?.symptoms && todayLog.symptoms.length > 0) ||
-        todayLog?.notes ||
-        todayLog?.bbt ||
-        (todayLog?.intimacyLog && todayLog.intimacyLog.activity !== 'none')
-      );
-      if (!hasLoggedToday) {
-        const timer = setTimeout(() => {
-          setModal('daily');
-          setHasAutoOpenedDaily(true);
-        }, 350);
-        return () => clearTimeout(timer);
-      }
-      const timer = setTimeout(() => setHasAutoOpenedDaily(true), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [hasAutoOpenedDaily, recovery, view, logs, todayDate]);
   useEffect(() => {
     if (!recovery || view !== 'diary' || modal !== null) return;
     const timer = window.setTimeout(() => setModal('recovery'), 0);

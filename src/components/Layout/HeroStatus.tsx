@@ -974,65 +974,32 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* En días pasados sin anillo: panel compacto de anotaciones y síntomas */}
-        {!showRing && isPast && (
+        {/* En días pasados sin anillo: panel compacto solo cuando hay anotaciones */}
+        {!showRing && isPast && hasAnyAnnotation && (
           <div className="hero-side-panel is-past">
             <div className="hero-panel-header">
               <ClipboardList size={15} />
               <span>Anotaciones</span>
             </div>
-            {hasAnyAnnotation ? (
-              <div className="hero-panel-body">
-                <ul className="hero-symptom-chips">
-                  {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
-                  {hasIntimacy && <li>Intimidad</li>}
-                  {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
-                  {hasBbt && <li>{log?.bbt} °C</li>}
-                  {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
-                </ul>
-                {notes && <p className="hero-notes-preview">"{notes}"</p>}
-                <button
-                  type="button"
-                  className="hero-panel-action-btn"
-                  onClick={onOpenDailyModal}
-                >
-                  <NotebookPen size={13} />
-                  Ver o editar síntomas
-                  <ArrowRight size={12} />
-                </button>
-              </div>
-            ) : (
-              <div className="hero-panel-empty past-empty">
-                <p className="hero-empty-text">
-                  {daysAgo <= 3
-                    ? `${daysAgoLabel}: sin notas ni síntomas.`
-                    : 'Sin notas ni síntomas en esta fecha.'}
-                </p>
-                <div className="hero-past-actions">
-                  {/* Solo mostrar el botón de Regla si no hay regla ya registrada */}
-                  {!isRecorded && !isIrregular && (
-                    <button
-                      type="button"
-                      className="aura-button sm hero-add-symptom-btn"
-                      onClick={onRecordPeriod}
-                      title="Anotar regla en este día"
-                    >
-                      <Droplets size={12} style={{ color: 'var(--rose)' }} />
-                      Regla
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="aura-button sm hero-add-symptom-btn"
-                    onClick={onOpenDailyModal}
-                    title="Anotar síntomas o notas"
-                  >
-                    <Plus size={12} />
-                    Síntomas
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="hero-panel-body">
+              <ul className="hero-symptom-chips">
+                {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
+                {hasIntimacy && <li>Intimidad</li>}
+                {hasMeds && log?.medications?.filter(m => m.taken).map(m => <li key={m.id}>{m.name}</li>)}
+                {hasBbt && <li>{log?.bbt} °C</li>}
+                {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
+              </ul>
+              {notes && <p className="hero-notes-preview">"{notes}"</p>}
+              <button
+                type="button"
+                className="hero-panel-action-btn"
+                onClick={onOpenDailyModal}
+              >
+                <NotebookPen size={13} />
+                Ver o editar síntomas
+                <ArrowRight size={12} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -1054,7 +1021,7 @@ export function HeroStatus({
       {/* Como mucho un aviso de "ponte al día" a la vez, con el más relevante primero, para no saturar la pantalla. */}
       {catchupBanner && <PastCatchupBanner {...catchupBanner} />}
 
-      {!hasCycle && (
+      {!hasEnoughData && !cycleStats.lastVerifiedPeriodStart && !settings.lastPeriodStartDate && (
         <div className="first-record-empty-state">
           <div className="first-record-emoji" aria-hidden="true">🌸</div>
           <p className="first-record-headline">Aquí empieza tu historia</p>

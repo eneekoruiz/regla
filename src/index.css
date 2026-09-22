@@ -297,8 +297,9 @@
   align-items: center;
   text-align: center;
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto 2px;
+  max-width: 560px;
+  margin: 0 auto 4px;
+  gap: 3px;
 }
 .cycle-summary-top.no-ring .cycle-summary-header {
   align-items: flex-start;
@@ -308,9 +309,9 @@
 }
 .cycle-summary-top.has-ring .phase-chip {
   margin: 0 0 2px 0;
-  min-height: 24px;
-  padding: 2px 10px;
-  font-size: 11px;
+  min-height: 26px;
+  padding: 3px 12px;
+  font-size: 11.5px;
   align-self: center;
 }
 .cycle-summary-top.has-ring .cycle-headline {
@@ -318,31 +319,31 @@
   margin: 0 0 1px 0;
   max-width: 100%;
   font-family: var(--font-display);
-  font-size: clamp(19px, 2.4vh, 24px);
+  font-size: clamp(20px, 2.6vh, 25px);
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   color: var(--text-primary);
-  line-height: 1.15;
+  line-height: 1.18;
 }
 .cycle-summary-top.has-ring .cycle-copy {
   text-align: center;
   margin: 0;
-  font-size: clamp(11.5px, 1.4vh, 12.5px);
+  font-size: clamp(12px, 1.5vh, 13px);
   color: var(--text-secondary);
   line-height: 1.25;
 }
 .cycle-summary-visuals {
   flex: 1 1 auto;
   height: auto;
-  min-height: 185px;
+  min-height: 220px;
   display: flex;
   min-width: 0;
   align-items: center;
   justify-content: center;
-  gap: clamp(16px, 2.5vw, 42px);
+  gap: clamp(18px, 2.5vw, 42px);
   width: 100%;
   margin: 0;
-  padding: 4px 10px;
+  padding: 6px 12px;
 }
 .cycle-ring-wrap {
   display: flex;
@@ -355,14 +356,14 @@
 
 .cycle-ring-wrap.is-primary {
   order: 1;
-  width: clamp(260px, 38vh, 350px);
+  width: clamp(285px, 42vh, 400px);
   max-width: 50%;
   z-index: 2;
 }
 
 .cycle-ring-wrap.is-secondary {
   order: 2;
-  width: clamp(235px, 35vh, 320px);
+  width: clamp(260px, 38vh, 360px);
   max-width: 48%;
   margin-left: 0;
   z-index: 1;
@@ -1543,10 +1544,90 @@
   .date-picker { font-size: 16px; max-width: 160px; }
   .day-pill { width: 50px; height: 62px; border-radius: 14px; }
   .diary-grid { margin-top: 0; }
-  .cycle-summary { padding: 16px; border-radius: 20px; }
-  .cycle-summary-top { gap: 10px; }
-  .cycle-headline { font-size: 26px; }
-  .cycle-copy { font-size: 12.5px; }
+  .cycle-summary { padding: 14px 14px 12px; border-radius: 20px; }
+  .cycle-summary-top { gap: 6px; }
+  .cycle-summary-top.has-ring .cycle-summary-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+    gap: 4px !important;
+    margin: 0 auto 4px !important;
+    padding: 0 !important;
+  }
+  .cycle-summary-top.has-ring .phase-chip {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    min-height: 28px !important;
+    padding: 4px 12px !important;
+    font-size: 12px !important;
+    margin: 0 0 2px 0 !important;
+  }
+  .cycle-headline {
+    font-size: clamp(21px, 3vh, 26px) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+  }
+  .cycle-copy {
+    display: block !important;
+    font-size: 12.5px !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+  }
+
+  /* En el móvil, en vertical: solo la gota gana protagonismo, el anillo de fases se oculta */
+  .cycle-summary-visuals {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 250px !important;
+    height: auto !important;
+    margin: 4px 0 2px !important;
+    padding: 2px 0 !important;
+  }
+  .cycle-summary-visuals .wheel-wrap {
+    display: none !important;
+  }
+  .cycle-summary-visuals .drop-wrap {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: clamp(230px, 36vh, 290px) !important;
+    height: calc(clamp(230px, 36vh, 290px) * 170 / 160) !important;
+    max-width: 90% !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    order: 1 !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring {
+    width: 100% !important;
+    height: 100% !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+    opacity: 1 !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring > svg {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
+    font-size: clamp(48px, 7vh, 66px) !important;
+  }
   .diary-section { padding: 16px 0; }
   .diary-record-section { margin-top: 14px; padding-top: 16px; }
   .diary-secondary { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
@@ -1573,7 +1654,23 @@
 .first-record-button { margin-top: 20px; }
 .is-first-record .cycle-headline { max-width: none; }
 .is-first-record .cycle-copy { max-width: 400px; }
-.phase-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 6px 10px; margin: -8px 0 10px -10px; border-radius: 12px; color: var(--phase-ink); font-size: 12px; font-weight: 600; }
+.phase-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 12px;
+  margin: 0 0 4px 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--phase-ink) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phase-ink) 25%, transparent);
+  color: var(--phase-ink);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 .phase-chip:hover { background: var(--bg-card); }
 .phase-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 /* Phase-specific ink colors */
@@ -1817,69 +1914,39 @@
   .cycle-summary-motion {
     justify-content: flex-start !important;
   }
-  /* Las dos gotas se apilan en vertical en vez de compartir el ancho, y cada una es un
-     hijo flex:1 de este contenedor: así el propio flexbox reparte TODO el alto disponible
-     entre ambas (sin adivinar con vh, que no sabe cuánto ocupan alrededor los chips/botones
-     y antes hacía que el conjunto se desbordara por debajo de la pantalla). */
-  .cycle-summary-visuals {
+  .cycle-summary-visuals .wheel-wrap {
+    display: none !important;
+  }
+  .cycle-summary-visuals .drop-wrap {
     display: flex !important;
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: clamp(2px, 1.2vh, 10px) !important;
+    width: clamp(230px, 36vh, 290px) !important;
+    height: calc(clamp(230px, 36vh, 290px) * 170 / 160) !important;
+    max-width: 90% !important;
+    margin: 0 auto !important;
+    position: relative !important;
+    order: 1 !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring {
     width: 100% !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-  }
-  /* min-height aquí es un SUELO, no un techo: si un día muy cargado (banner + chips +
-     botones) deja poco hueco, preferimos que la tarjeta crezca un poco más que la
-     pantalla (y haya que bajar un pelín) antes que dejar los anillos ilegibles. */
-  .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
-    width: clamp(155px, 44vw, 195px) !important;
-  }
-  .cycle-summary-top.has-ring .cycle-ring-wrap.is-secondary {
-    width: clamp(120px, 34vw, 155px) !important;
-    margin-left: 0 !important;
-  }
-  .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
-    width: clamp(180px, 50vw, 230px) !important;
-    margin: 0 auto !important;
-  }
-  .cycle-summary-top.has-ring .cycle-ring.is-primary,
-  .cycle-summary-top.has-ring .cycle-ring.is-secondary {
-    width: auto !important;
     height: 100% !important;
-    max-width: 100% !important;
-    max-height: 100% !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+    opacity: 1 !important;
   }
-
-  .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(58px, 16.5vw, 90px) !important;
+  .cycle-summary-visuals .drop-wrap .cycle-ring > svg {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
   }
-  .cycle-ring.is-primary .cycle-ring-label span:first-child {
-    font-size: 11px !important;
-  }
-  .cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 13px !important;
-  }
-  .cycle-ring.is-primary .cycle-ring-context {
-    font-size: 11.5px !important;
-  }
-
-  .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(27px, 7vw, 33px) !important;
-  }
-  .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 10.5px !important;
-    margin-bottom: 2px !important;
-  }
-  .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 11.5px !important;
-  }
-  .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 9.5px !important;
+  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
+    font-size: clamp(48px, 7vh, 66px) !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
