@@ -37,6 +37,8 @@ function nested(value: unknown, fields: Record<string, Rule>, label: string): vo
 
 export function validateSettings(value: unknown, defaults: UserSettings): UserSettings {
   check(value, {
+    reproductiveStatus: oneOf('cycling', 'pregnancy', 'postpartum', 'menopause'),
+    nativeHealthEnabled: bool, nativeWidgetEnabled: bool,
     userName: text, averageCycleLength: number(15, 120), averagePeriodLength: number(1, 30),
     lutealPhaseLength: number(1, 30), lastPeriodStartDate: dateOrEmpty,
     theme: oneOf('light', 'dark', 'system', 'refugio'), hasPCOS: bool,
@@ -101,6 +103,7 @@ export function validateLogs(value: unknown): Record<string, DailyLog> {
     if (!isDateKey(date)) throw new Error('El historial contiene una fecha no válida.');
     check(candidate, {
       date: v => v === date, isPeriod: bool, flow, isIrregularBleeding: bool, isCycleStart: bool,
+      healthImported: bool,
       notes: text, weight: number(1, 600), sleepHours: number(0, 24), hydrationGlasses: number(0, 100),
       intimacy: oneOf('protected', 'unprotected', 'none'), cervicalMucus: oneOf('dry', 'sticky', 'creamy', 'egg_white', 'unusual_brown'),
       bbt: number(25, 45), recordedAt: v => typeof v === 'string' && Number.isFinite(Date.parse(v))

@@ -43,7 +43,7 @@ export function getDefaultSettings(): UserSettings {
     averagePeriodLength: 5,
     lutealPhaseLength: 14,
     lastPeriodStartDate: '',
-    theme: 'system',
+    theme: 'light',
     worstDayOfPeriod: 1,
     typicalFlowIntensity: 'medium',
     regularityPreference: 'mostly_regular'

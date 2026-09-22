@@ -1,7 +1,8 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { containDialogFocus } from '../../utils/dialogFocus';
-import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Leaf, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { DropMascot } from '../Mascot/DropMascot';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
 import { CHAT_QUIZ_SUGGESTIONS, detectChatQuiz, generateChatResponse, isUrgentChatMessage, LOCAL_CHAT_TOPICS, topicSuggestion } from '../../services/aiAgent';
@@ -313,8 +314,8 @@ function ChatSession({
     <div className="flex h-full min-h-0 flex-col">
       <header className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 pt-[max(env(safe-area-inset-top),12px)] pb-3">
         <div className="flex items-center gap-2">
-          <Leaf aria-hidden="true" className="size-5 shrink-0 text-[var(--accent)]" />
-          <h2 id="chat-title" className="min-w-0 flex-1 text-base font-semibold">Chat</h2>
+          <DropMascot phase={currentDayInfo.phase} aria-hidden="true" size={20} className="shrink-0 text-[var(--accent)]" />
+          <h2 id="chat-title" className="min-w-0 flex-1 text-base font-semibold">Confidente</h2>
           <button type="button" onClick={() => setShowCatalog(value => !value)} className={iconControl} aria-label="Catálogo de temas" title="Catálogo de temas" aria-expanded={showCatalog} aria-controls="chat-catalog"><BookOpen className="size-5" /></button>
           <button type="button" onClick={() => setConfirmClear(value => !value)} className={iconControl} aria-label="Borrar historial" title="Borrar historial"><Trash2 className="size-5" /></button>
           <button type="button" onClick={onClose} className={iconControl} aria-label="Cerrar chat" title="Cerrar chat"><X className="size-5" /></button>
@@ -335,7 +336,10 @@ function ChatSession({
             {showCatalog ? 'Ocultar catálogo' : 'Ver todos'}
           </button>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+        <div
+          className="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar"
+          style={{ WebkitMaskImage: 'linear-gradient(to right, black 90%, transparent 100%)', maskImage: 'linear-gradient(to right, black 90%, transparent 100%)' }}
+        >
           {CHAT_QUIZ_SUGGESTIONS.map(s => (
             <button
               key={s.id}

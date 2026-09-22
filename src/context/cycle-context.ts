@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { ChroniclerResponse } from '../types/chronicler';
-import type { CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
+import type { ProfileCategoryUpdate, CycleDayInfo, DailyLog, FlowIntensity, SymptomItem, UserSettings, IntimacyLog, MedicalBiomarkers, CervicalMucusType, MedicationItem } from '../types/cycle';
 import type { NotificationPreference, ScheduledNotification } from '../types/notifications';
 import type { CycleStatistics, UpcomingMilestones } from '../types/prediction';
 import type { QuizResult } from '../types/quiz';
@@ -12,7 +12,7 @@ export interface CycleContextType {
   todayDate: string;
   settings: UserSettings;
   updateSettings: (newSettings: Partial<UserSettings>) => void;
-  updateProfileCategory: (category: 'cycle' | 'body' | 'lifestyle', data: any) => void;
+  updateProfileCategory: (...args: ProfileCategoryUpdate) => void;
   logs: Record<string, DailyLog>;
   currentDayInfo: CycleDayInfo;
   getDayInfo: (dateStr: string) => CycleDayInfo;
@@ -36,6 +36,7 @@ export interface CycleContextType {
   togglePeriodForDate: (date: string, flow?: FlowIntensity) => void;
   setPeriodFlowForDate: (date: string, flow: FlowIntensity) => void;
   startPeriodOnDate: (date: string) => void;
+  recoverPeriod: (start: string, end: string) => void;
   denyPeriodOnDate: (date: string) => void;
   toggleSpottingForDate: (date: string) => void;
   logBleedingForDate: (date: string, options: { flow: FlowIntensity; isCycleStart: boolean; isIrregular: boolean }) => void;

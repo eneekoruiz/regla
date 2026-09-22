@@ -12,10 +12,14 @@ interface CycleSyncingModalProps {
   initialPhase?: CyclePhase;
 }
 
+type GuidePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
+const isGuidePhase = (phase: CyclePhase | undefined): phase is GuidePhase =>
+  phase === 'menstrual' || phase === 'follicular' || phase === 'ovulation' || phase === 'luteal';
+
 export function CycleSyncingModal({ isOpen, onClose, initialPhase }: CycleSyncingModalProps) {
   const { currentDayInfo, hasEnoughData } = useCycle();
-  const [selectedPhase, setSelectedPhase] = useState<CyclePhase>(initialPhase || currentDayInfo.phase || 'menstrual');
-  const phaseDetails: Record<CyclePhase, {
+  const [selectedPhase, setSelectedPhase] = useState<GuidePhase>(isGuidePhase(initialPhase) ? initialPhase : isGuidePhase(currentDayInfo.phase) ? currentDayInfo.phase : 'menstrual');
+  const phaseDetails: Record<GuidePhase, {
     title: string;
     hormoneState: string;
     nutrition: string[];
@@ -103,7 +107,7 @@ export function CycleSyncingModal({ isOpen, onClose, initialPhase }: CycleSyncin
 
 
   const currentInfo = phaseDetails[selectedPhase];
-  const tabLabels: Record<CyclePhase, string> = { menstrual: 'Regla', follicular: 'Folicular', ovulation: 'Ovulación', luteal: 'Lútea' };
+  const tabLabels: Record<GuidePhase, string> = { menstrual: 'Regla', follicular: 'Folicular', ovulation: 'Ovulación', luteal: 'Lútea' };
   const sections = [
     { title: 'Nutrición', icon: Apple, items: currentInfo.nutrition },
     { title: 'Actividad física', icon: Dumbbell, items: currentInfo.fitness },
@@ -112,7 +116,7 @@ export function CycleSyncingModal({ isOpen, onClose, initialPhase }: CycleSyncin
   return <ModalFrame isOpen={isOpen} onClose={onClose} title="Guía de fases"
     footer={<button type="button" onClick={onClose} className={modalSecondaryButton}>Cerrar</button>}>
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Fases del ciclo">
-      {(Object.keys(tabLabels) as CyclePhase[]).map(phase => <button type="button" key={phase} aria-pressed={selectedPhase === phase} onClick={() => { hapticSelect(); setSelectedPhase(phase); }} className={`${modalChoice} ${selectedPhase === phase ? modalSelected : modalUnselected}`}>
+      {(Object.keys(tabLabels) as GuidePhase[]).map(phase => <button type="button" key={phase} aria-pressed={selectedPhase === phase} onClick={() => { hapticSelect(); setSelectedPhase(phase); }} className={`${modalChoice} ${selectedPhase === phase ? modalSelected : modalUnselected}`}>
         <span className="block font-semibold">{tabLabels[phase]}</span>
         {hasEnoughData && currentDayInfo.phase === phase && <span className="block text-[13px]">Estimada hoy</span>}
       </button>)}

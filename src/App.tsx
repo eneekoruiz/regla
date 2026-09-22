@@ -1,6 +1,8 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, FileDown, Heart, Leaf, MessageCircle, NotebookPen, Pill, Plus, RotateCcw, Sparkles, Thermometer, Upload, UserRound, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import { DropMascot } from './components/Mascot/DropMascot';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import { ToastProvider } from './context/ToastContext';
@@ -21,13 +23,13 @@ import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
 import { parseDateKey } from './utils/cycleCalculator';
-import { clearReportedStorageError, hasReportedStorageError } from './utils/storage';
+import { clearReportedStorageError, getDataStorageKey, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
 import type { ChatQuizKey } from './services/aiAgent';
 import type { QuizAnswer } from './components/Chat/chatHistory';
 import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
-import { calculateUpcomingMilestones } from './services/predictiveEngine';
+import { calculateUpcomingMilestones, detectCycleRecovery } from './services/predictiveEngine';
 
 
 import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
@@ -62,17 +64,16 @@ const CycleAnalyticsModal = resilientLazy(() => import('./components/Modals/Cycl
 const SymptothermalModal = resilientLazy(() => import('./components/Modals/SymptothermalModal').then(m => ({ default: m.SymptothermalModal })));
 const MedicationTrackerModal = resilientLazy(() => import('./components/Modals/MedicationTrackerModal').then(m => ({ default: m.MedicationTrackerModal })));
 const CycleSyncingModal = resilientLazy(() => import('./components/Modals/CycleSyncingModal').then(m => ({ default: m.CycleSyncingModal })));
-const UniversalImportModal = resilientLazy(() => import('./components/Modals/UniversalImportModal').then(m => ({ default: m.UniversalImportModal })));
-const MedicalExportModal = resilientLazy(() => import('./components/Modals/MedicalExportModal').then(m => ({ default: m.MedicalExportModal })));
 const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInstallModal').then(m => ({ default: m.PwaInstallModal })));
 const PastCycleRecoveryModal = resilientLazy(() => import('./components/Modals/PastCycleRecoveryModal').then(m => ({ default: m.PastCycleRecoveryModal })));
+const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals/CycleRecoveryBottomSheet').then(m => ({ default: m.CycleRecoveryBottomSheet })));
 
-type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'import' | 'export' | 'install' | 'recovery';
+type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, upcomingMilestones } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
@@ -93,9 +94,14 @@ function MainScreen() {
   const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
   const [hasAutoOpenedDaily, setHasAutoOpenedDaily] = useState(false);
+  const [recoveryDismissed, setRecoveryDismissed] = useState(false);
+  const recoveryKey = getDataStorageKey(`regla_catchup_${todayDate}`);
+  const recovery = recoveryDismissed || (typeof localStorage !== 'undefined' && localStorage.getItem(recoveryKey) === 'true')
+    ? null
+    : detectCycleRecovery(cycleStats, todayDate);
 
   useEffect(() => {
-    if (!hasAutoOpenedDaily && view === 'diary' && todayDate) {
+    if (!hasAutoOpenedDaily && !recovery && view === 'diary' && todayDate) {
       const todayLog = logs[todayDate];
       const hasLoggedToday = Boolean(
         todayLog?.isPeriod ||
@@ -108,13 +114,19 @@ function MainScreen() {
       if (!hasLoggedToday) {
         const timer = setTimeout(() => {
           setModal('daily');
+          setHasAutoOpenedDaily(true);
         }, 350);
-        setHasAutoOpenedDaily(true);
         return () => clearTimeout(timer);
       }
-      setHasAutoOpenedDaily(true);
+      const timer = setTimeout(() => setHasAutoOpenedDaily(true), 0);
+      return () => clearTimeout(timer);
     }
-  }, [hasAutoOpenedDaily, view, logs, todayDate]);
+  }, [hasAutoOpenedDaily, recovery, view, logs, todayDate]);
+  useEffect(() => {
+    if (!recovery || view !== 'diary' || modal !== null) return;
+    const timer = window.setTimeout(() => setModal('recovery'), 0);
+    return () => window.clearTimeout(timer);
+  }, [modal, recovery, view]);
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   const toast = useToast();
   useEffect(() => {
@@ -130,6 +142,15 @@ function MainScreen() {
   }, [toast]);
   const openModal = (next: ModalName) => { setIsSettingsOpen(false); setModal(next); };
   const closeModal = () => setModal(null);
+  const dismissRecovery = () => {
+    setRecoveryDismissed(true);
+    try { localStorage.setItem(recoveryKey, 'true'); } catch { /* Dismissal remains local to this session. */ }
+    closeModal();
+  };
+  const confirmRecovery = (start: string, end: string) => {
+    recoverPeriod(start, end);
+    dismissRecovery();
+  };
   const openBleedingModal = (type: 'period' | 'irregular' = 'period') => { setPeriodModalType(type); openModal('period'); };
   const openChat = (message?: string) => { setChatMessage(message || null); openModal('chat'); };
   const openChatWithQuiz = (quizKey: ChatQuizKey) => { setChatQuizKey(quizKey); openModal('chat'); };
@@ -151,6 +172,32 @@ function MainScreen() {
   const healthAdvice = log?.flow === 'very_heavy' && selectedDate === todayDate ? generateDailyWellnessAdvice({ ...currentDayInfo, date: selectedDate, flow: log.flow }) : null;
   const hasPeriod = Boolean(log?.isPeriod || log?.isIrregularBleeding);
   const hasIntimacy = Boolean(log?.intimacyLog && log.intimacyLog.activity !== 'none');
+
+  // En móvil, la tarjeta de la gota/círculo debe ocupar justo lo que quede de la primera
+  // pantalla (hasta la barra de navegación inferior), sea cual sea el tamaño real del
+  // teléfono. Medimos en vivo en vez de adivinar un hueco fijo, que variaba por dispositivo.
+  useLayoutEffect(() => {
+    if (view !== 'diary') return;
+    const measure = () => {
+      const card = document.querySelector('.cycle-summary') as HTMLElement | null;
+      if (!card) return;
+      if (window.innerWidth > 700) { card.style.removeProperty('--hero-fill'); return; }
+      const nav = document.querySelector('.primary-navigation') as HTMLElement | null;
+      const top = card.getBoundingClientRect().top;
+      const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+      const available = window.innerHeight - top - navHeight - 10;
+      card.style.setProperty('--hero-fill', `${Math.max(360, Math.round(available))}px`);
+    };
+    measure();
+    const raf = requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    window.addEventListener('orientationchange', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('orientationchange', measure);
+    };
+  }, [view, online, healthAdvice, selectedDate]);
   const allQuizResults = useMemo(() => {
     const list: QuizResult[] = [];
     for (const l of Object.values(logs)) {
@@ -170,8 +217,6 @@ function MainScreen() {
   }, [cycleStats, selectedDate]);
   const daysNext = selectedMilestones.daysUntilNextPeriod;
   const daysToNext = typeof daysNext === 'number' && daysNext > 0 ? daysNext : Math.max(0, cycleLength - cycleDay + 1);
-  const daysToOvu = selectedMilestones.daysUntilNextOvulation;
-  const isApproachingPeriod = (typeof daysNext === 'number' && daysNext <= 10) || (!daysNext && daysToNext <= 10) || hasPeriod;
   const hasMedications = Boolean(log?.medications?.some(m => m.taken));
   const hasIrregularBleeding = Boolean(log?.isIrregularBleeding);
   const tools = [
@@ -179,10 +224,7 @@ function MainScreen() {
     { id: 'symptothermal' as const, name: 'Temperatura y moco', description: 'Tus observaciones del día', icon: Thermometer },
     { id: 'medication' as const, name: 'Medicación', description: 'Tomas, dosis y suplementos', icon: Pill },
     { id: 'care' as const, name: 'Cuidados del ciclo', description: 'Bienestar en cada fase', icon: Leaf },
-    { id: 'profile' as const, name: 'Mi perfil', description: 'Ciclo, cuerpo y hábitos', icon: UserRound },
-    { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: MessageCircle },
-    { id: 'import' as const, name: 'Importar registros', description: 'Texto, CSV y copias de seguridad', icon: Upload },
-    { id: 'export' as const, name: 'Informe de salud', description: 'Tu historial para la consulta', icon: FileDown },
+    { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: (props: LucideProps) => <DropMascot phase={currentDayInfo.phase} {...props} /> },
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
   return <MobileContainer>
@@ -403,7 +445,7 @@ function MainScreen() {
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
               <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><MessageCircle size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
+              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
             </aside>
           </div>
         </>}
@@ -545,7 +587,9 @@ function MainScreen() {
     </main>
     <Suspense fallback={<Loading/>}>
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
-      {modal === 'recovery' && <PastCycleRecoveryModal isOpen onClose={closeModal}/>}
+      {modal === 'recovery' && (recovery
+        ? <CycleRecoveryBottomSheet recovery={recovery} today={todayDate} onConfirm={confirmRecovery} onSkip={dismissRecovery}/>
+        : <PastCycleRecoveryModal isOpen onClose={closeModal}/>)}
       {modal === 'period' && <PeriodFlowModal key={selectedDate} isOpen initialType={periodModalType} onClose={closeModal}/>}
       {modal === 'intimacy' && <IntimacyModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'daily' && <DailyLogBottomSheet key={selectedDate} isOpen onClose={closeModal} onOpenSymptothermal={() => openModal('symptothermal')} onOpenMedications={() => openModal('medication')}/>}
@@ -555,8 +599,6 @@ function MainScreen() {
       {modal === 'symptothermal' && <SymptothermalModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'medication' && <MedicationTrackerModal key={selectedDate} isOpen onClose={closeModal}/>}
       {modal === 'care' && <CycleSyncingModal isOpen initialPhase={carePhase} onClose={closeModal}/>}
-      {modal === 'import' && <UniversalImportModal isOpen onClose={closeModal}/>}
-      {modal === 'export' && <MedicalExportModal isOpen onClose={closeModal}/>}
       {modal === 'chat' && (
         <ChatDrawer
           isOpen

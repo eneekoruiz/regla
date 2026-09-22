@@ -1377,8 +1377,9 @@
   .mobile-install-pill { display: none; }
   .navigation-bottom { margin: 0; }
   .navigation-utilities { padding: 0; gap: 7px; align-items: center; }
-  .primary-navigation { position: fixed; inset: auto 0 0; margin: 0; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); flex-direction: row; justify-content: space-around; border-top: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 8px; z-index: 100; }
-  .navigation-item { flex: 1; flex-direction: column; justify-content: center; gap: 5px; font-size: 11px; min-height: 54px; padding: 6px 8px; margin-bottom: 0; width: auto; border: none; background: transparent; box-shadow: none; transition: transform 0.1s ease; color: var(--text-secondary); font-weight: 600; }
+  .primary-navigation { display: flex; position: fixed; inset: auto 0 0; margin: 0; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); flex-direction: row; justify-content: space-around; border-top: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 2px; z-index: 100; }
+  .navigation-item { flex: 1; min-width: 0; flex-direction: column; justify-content: center; gap: 4px; font-size: 10.5px; min-height: 54px; padding: 6px 4px; margin-bottom: 0; width: auto; border: none; background: transparent; box-shadow: none; transition: transform 0.1s ease; color: var(--text-secondary); font-weight: 600; }
+  .navigation-item span { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .navigation-item.is-active { background: transparent; border: none; box-shadow: none; color: var(--accent); }
   .navigation-item:hover { background: transparent; border: none; box-shadow: none; transform: none; }
   .navigation-item:active { transform: scale(0.92); }
@@ -1408,7 +1409,8 @@
   .tool-card { padding: 16px 18px; min-height: 118px; gap: 10px; }
   .tool-card strong { font-size: 15px; }
   .tool-card span { font-size: 12.5px; }
-  .calendar-workspace { min-height: 480px; }
+  .calendar-workspace { min-height: 0; }
+  .tools-workspace { padding-top: 4px; }
 }
 @media (max-width: 370px) {
   .workspace { padding-inline: 14px; }
@@ -1563,7 +1565,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: safe center;
     padding: clamp(20px, 4vh, 48px) 16px;
     gap: 0;
   }
@@ -1602,6 +1604,9 @@
     align-items: center !important;
     text-align: center !important;
     gap: 10px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-header {
     display: flex !important;
@@ -1625,16 +1630,34 @@
     text-align: center !important;
     font-size: 13px !important;
   }
+  /* La tarjeta ocupa justo lo que queda de la primera pantalla (medido en vivo por
+     App.tsx vía --hero-fill); min() con el cálculo antiguo actúa solo de red de
+     seguridad antes de que el JS mida, o si por lo que sea no llega a ejecutarse. */
+  .cycle-summary {
+    min-height: var(--hero-fill, min(680px, calc(100dvh - 130px))) !important;
+  }
+  .cycle-summary-motion {
+    justify-content: flex-start !important;
+  }
+  /* Las dos gotas se apilan en vertical en vez de compartir el ancho, y cada una es un
+     hijo flex:1 de este contenedor: así el propio flexbox reparte TODO el alto disponible
+     entre ambas (sin adivinar con vh, que no sabe cuánto ocupan alrededor los chips/botones
+     y antes hacía que el conjunto se desbordara por debajo de la pantalla). */
   .cycle-summary-visuals {
     display: flex !important;
-    flex-direction: row !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: clamp(6px, 1.8vw, 12px) !important;
+    gap: clamp(2px, 1.2vh, 10px) !important;
     width: 100% !important;
     margin: 0 auto !important;
     padding: 0 !important;
   }
+  /* min-height aquí es un SUELO, no un techo: si un día muy cargado (banner + chips +
+     botones) deja poco hueco, preferimos que la tarjeta crezca un poco más que la
+     pantalla (y haya que bajar un pelín) antes que dejar los anillos ilegibles. */
   .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
     width: clamp(155px, 44vw, 195px) !important;
   }
@@ -1646,32 +1669,39 @@
     width: clamp(180px, 50vw, 230px) !important;
     margin: 0 auto !important;
   }
-  
+  .cycle-summary-top.has-ring .cycle-ring.is-primary,
+  .cycle-summary-top.has-ring .cycle-ring.is-secondary {
+    width: auto !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
   .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(52px, 14vw, 76px) !important;
+    font-size: clamp(58px, 16.5vw, 90px) !important;
   }
   .cycle-ring.is-primary .cycle-ring-label span:first-child {
-    font-size: 10px !important;
+    font-size: 11px !important;
   }
   .cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
   .cycle-ring.is-primary .cycle-ring-context {
-    font-size: 10.5px !important;
+    font-size: 11.5px !important;
   }
-  
+
   .cycle-ring.is-secondary .cycle-ring-label strong {
-    font-size: clamp(24px, 6vw, 28px) !important;
+    font-size: clamp(27px, 7vw, 33px) !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:first-child {
-    font-size: 10px !important;
+    font-size: 10.5px !important;
     margin-bottom: 2px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
   .cycle-ring.is-secondary .cycle-ring-context {
-    font-size: 9px !important;
+    font-size: 9.5px !important;
   }
   .cycle-summary-top.has-ring .cycle-summary-side-actions {
     align-items: center !important;
@@ -1746,6 +1776,8 @@
 /* Banner de recuperación para días pasados no registrados */
 /* Banner de recuperación para días pasados no registrados */
 .past-catchup-banner {
+  width: 100%;
+  box-sizing: border-box;
   margin: 8px 0 6px;
   padding: 8px 12px;
   background: color-mix(in srgb, #f59e0b 10%, var(--bg-card));
@@ -1754,7 +1786,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 .past-catchup-body {

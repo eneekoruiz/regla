@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { formatDateKey, SPANISH_MONTHS_FULL } from '../../utils/cycleCalculator';
+import { predictDayStatus } from '../../services/predictiveEngine';
 
 interface YearViewCalendarProps {
   onSelectMonth: (key: string) => void;
@@ -18,7 +19,7 @@ export function YearViewCalendar({
   onOpenLegendModal,
   onOpenCycleSyncing
 }: YearViewCalendarProps) {
-  const { todayDate, logs, getDayInfo, hasEnoughData, isRefugio } = useCycle();
+  const { todayDate, logs, cycleStats, hasEnoughData, isRefugio } = useCycle();
   const [year, setYear] = useState(initialYear ?? Number(todayDate.slice(0, 4)));
 
   useEffect(() => {
@@ -148,11 +149,12 @@ export function YearViewCalendar({
                 ))}
                 {Array.from({ length: days }, (_, index) => {
                   const date = formatDateKey(new Date(year, month, index + 1));
-                  const info = getDayInfo(date);
+                  const prediction = predictDayStatus(date, cycleStats, logs);
+                  const hasLog = Boolean(logs[date]);
                   const recordedPeriod = Boolean(logs[date]?.isPeriod);
-                  const period = recordedPeriod || (hasEnoughData && Boolean(info?.isPeriod));
-                  const fertile = hasEnoughData && Boolean(info?.isFertileWindow);
-                  const ovulation = hasEnoughData && Boolean(info?.isOvulationDay);
+                  const period = recordedPeriod || (hasEnoughData && prediction.isPeriod);
+                  const fertile = hasEnoughData && prediction.isFertileWindow;
+                  const ovulation = hasEnoughData && prediction.isOvulationDay;
                   const isToday = date === todayDate;
 
                   const state = recordedPeriod
@@ -193,7 +195,7 @@ export function YearViewCalendar({
                       }`}
                     >
                       <span>{index + 1}</span>
-                      {info.hasLog && (
+                      {hasLog && (
                         <span aria-hidden="true" className="absolute bottom-0.5 h-1 w-1 rounded-full bg-current opacity-70" />
                       )}
                     </button>

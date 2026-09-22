@@ -15,9 +15,15 @@
     "test:accounts": "node scripts/verify-accounts.mjs",
     "test:e2e": "playwright test",
     "test:selenium": "node scripts/selenium-review.mjs",
-    "test:visual": "node scripts/visual-review.mjs"
+    "test:visual": "node scripts/visual-review.mjs",
+    "native:sync": "npm run build && cap sync",
+    "native:android": "cap open android",
+    "native:ios": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1",
     "@supabase/supabase-js": "^2.113.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/canvas-confetti": "^1.9.0",
@@ -40,6 +46,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@capacitor/cli": "^8.4.3",
     "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

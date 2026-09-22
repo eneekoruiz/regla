@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, ShieldCheck, Download, CheckCircle2, WifiOff, UserRound } from 'lucide-react';
+import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, Download, CheckCircle2, WifiOff, UserRound } from 'lucide-react';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useSyncExternalStore } from 'react';
 import { useCycle } from '../../hooks/useCycle';

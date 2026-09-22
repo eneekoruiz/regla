@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle, Sparkles, RotateCcw } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
+import { PastCatchupBanner, type PastCatchupAction } from './PastCatchupBanner';
+import { moodForPhase } from '../../utils/mascotFace';
+import { MascotFaceGroup } from '../Mascot/MascotFaceGroup';
 
 export function HeroStatus({
   onRecordPeriod,
@@ -22,7 +25,7 @@ export function HeroStatus({
   topContent?: React.ReactNode;
   children?: React.ReactNode;
 }) {
-  const { currentDayInfo: day, upcomingMilestones, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
+  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
   const toast = useToast();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
   // Mejora 6: estado para doble confirmación antes de borrar registro de regla
@@ -253,7 +256,6 @@ export function HeroStatus({
   const activeDuration = isPeriodDay ? periodLength : cycleLength;
   const activeDay = isPeriodDay ? Math.min(cycleDay, periodLength) : cycleDay;
   const progress = hasCycle && activeDuration > 0 ? Math.min(1, Math.max(0, activeDay / activeDuration)) : 0;
-  const circumference = 2 * Math.PI * 55;
   const showRing = hasCycle;
 
   // Cuando se muestran los diales visuales gemelos, la cabecera indica el día y fase sin repetir la cuenta atrás
@@ -282,6 +284,45 @@ export function HeroStatus({
   const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
   const isAnnotated = Boolean(hasAnyLog);
   const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
+
+  // Como mucho un aviso de "ponte al día" a la vez: el más relevante gana, en vez de apilarlos.
+  const catchupBanner: {
+    tone?: 'gold';
+    badge: string;
+    title: string;
+    sub: string;
+    actions: PastCatchupAction[];
+  } | null = isLikelyMissedOnePeriod
+    ? {
+        tone: 'gold',
+        badge: 'POSIBLE REGLA OLVIDADA',
+        title: '¿Te bajó la regla el mes pasado?',
+        sub: `Hace más de ${cycleLength + 10} días de tu último registro de periodo.`,
+        actions: [{ label: 'Completar mes pasado', icon: null, onClick: () => onOpenRecoveryModal?.() }]
+      }
+    : isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular)
+    ? {
+        badge: 'AYER SIN REGISTRAR',
+        title: '¿Se te olvidó apuntar ayer?',
+        sub: 'Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.',
+        actions: [
+          { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onRecordPeriod, 50); } },
+          { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onOpenDailyModal, 50); } }
+        ]
+      }
+    : isPast && !hasAnyLog
+    ? {
+        badge: daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros',
+        title: daysAgo <= 3
+          ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
+          : '¿Tuviste regla o sensaciones este día?',
+        sub: 'Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.',
+        actions: [
+          { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: onRecordPeriod },
+          { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: onOpenDailyModal }
+        ]
+      }
+    : null;
 
   // 4 fases del ciclo con colores sincronizados al 100% con el calendario superior:
   // 1. Menstruación (Rosa - var(--rose))
@@ -410,6 +451,20 @@ export function HeroStatus({
 
   const remainingPeriodDays = Math.max(0, periodLength - cycleDay);
 
+  // Color e identidad de la gota: mismo criterio que el arco de progreso,
+  // reutilizado también para la carita de la mascota (Elemento 1).
+  const dropInkColor =
+    hasCycle && daysToNext <= 5 && !day.isPeriod
+      ? '#c9636b'
+      : hasCycle && day.isOvulationDay
+        ? '#7da87d'
+        : hasCycle && day.isFertileWindow && !day.isPeriod
+          ? '#e5a93c'
+          : hasCycle && day.phase === 'luteal'
+            ? '#9d8189'
+            : 'var(--phase-ink)';
+  const dropMood = moodForPhase(hasCycle ? day.phase : 'follicular');
+
   return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
@@ -495,17 +550,7 @@ export function HeroStatus({
                   <path
                     d="M 80 6 C 58 18 16 56 16 98 A 64 64 0 0 0 144 98 C 144 56 102 18 80 6 Z"
                     fill="none"
-                    stroke={
-                      hasCycle && daysToNext <= 5 && !day.isPeriod
-                        ? '#c9636b'
-                        : hasCycle && day.isOvulationDay
-                          ? '#7da87d'
-                          : hasCycle && day.isFertileWindow && !day.isPeriod
-                            ? '#e5a93c'
-                            : hasCycle && day.phase === 'luteal'
-                              ? '#9d8189'
-                              : 'var(--phase-ink)'
-                    }
+                    stroke={dropInkColor}
                     strokeWidth="6"
                     strokeLinejoin="round"
                     strokeLinecap="round"
@@ -514,6 +559,10 @@ export function HeroStatus({
                     strokeDashoffset={100 * (1 - Math.max(0, Math.min(1, progress)))}
                     style={{ transition: 'stroke 0.6s ease, stroke-dashoffset 0.6s ease' }}
                   />
+                  {/* La propia gota con carita: gesto mínimo dentro de la punta,
+                      sin añadir ningún elemento nuevo en pantalla. El humor
+                      cambia según la fase (tranquila/con energía/más calmada). */}
+                  <MascotFaceGroup mood={dropMood} color={dropInkColor} opacity={0.75} />
                 </svg>
                 <span className="cycle-ring-label">
                     {isFuture ? (
@@ -599,12 +648,21 @@ export function HeroStatus({
                         </>
                       )
                     ) : awaitingPeriod ? (
-                    <>
-                      <span>Esperando</span>
-                      <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength + 1)}</strong>
-                      <span>días</span>
-                      <span className="cycle-ring-context">de retraso</span>
-                    </>
+                    elapsedDays === cycleLength ? (
+                      <>
+                        <span>Fecha estimada</span>
+                        <strong className="cycle-ring-day-number is-text" style={{ fontSize: 'clamp(24px, 3.8vw, 32px)', fontStyle: 'normal' }}>Hoy</strong>
+                        <span>de tu regla</span>
+                        <span className="cycle-ring-context">registra en cuanto empiece</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Esperando</span>
+                        <strong className="cycle-ring-day-number">+{Math.max(1, elapsedDays - cycleLength)}</strong>
+                        <span>días</span>
+                        <span className="cycle-ring-context">de retraso</span>
+                      </>
+                    )
                   ) : daysToNext === 1 ? (
                     <>
                       <span>Queda</span>
@@ -982,109 +1040,8 @@ export function HeroStatus({
         </div>
       )}
 
-      {/* Banner de recuperacin de ciclo perdido (1 mes) */}
-      {isLikelyMissedOnePeriod && (
-        <div className="past-catchup-banner" style={{ background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' }} role="region" aria-label="Aviso de regla olvidada">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge" style={{ color: 'var(--gold)' }}>
-              <Clock size={13} aria-hidden="true" />
-              <span>POSIBLE REGLA OLVIDADA</span>
-            </div>
-            <p className="past-catchup-title" style={{ color: 'var(--gold)' }}>¿Te bajó la regla el mes pasado?</p>
-            <p className="past-catchup-sub" style={{ opacity: 0.9 }}>
-              Hace más de {cycleLength + 10} días de tu último registro de periodo.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              style={{ background: 'var(--gold)', color: '#fff', borderColor: 'var(--gold)' }}
-              onClick={onOpenRecoveryModal}
-            >
-              Completar mes pasado
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Aviso para HOY si ayer quedó sin registrar (unificado con la tarjeta naranja) */}
-      {isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular) && (
-        <div className="past-catchup-banner" role="region" aria-label="Aviso de registro pasado">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge">
-              <Clock size={13} aria-hidden="true" />
-              <span>AYER SIN REGISTRAR</span>
-            </div>
-            <p className="past-catchup-title">¿Se te olvidó apuntar ayer?</p>
-            <p className="past-catchup-sub">
-              Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              onClick={() => {
-                setSelectedDate(yesterdayKey);
-                setTimeout(onRecordPeriod, 50);
-              }}
-            >
-              <Droplets size={14} />
-              Anotar regla
-            </button>
-            <button
-              type="button"
-              className="aura-button sm"
-              onClick={() => {
-                setSelectedDate(yesterdayKey);
-                setTimeout(onOpenDailyModal, 50);
-              }}
-            >
-              <Plus size={14} />
-              Anotar síntomas
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Banner visual para DÍAS PASADOS no registrados */}
-      {isPast && !hasAnyLog && (
-        <div className="past-catchup-banner" role="region" aria-label="Aviso de registro pasado">
-          <div className="past-catchup-body">
-            <div className="past-catchup-badge">
-              <Clock size={13} aria-hidden="true" />
-              <span>{daysAgo <= 3 ? `${daysAgoLabel} sin registrar` : 'Día pasado sin registros'}</span>
-            </div>
-            <p className="past-catchup-title">
-              {daysAgo <= 3
-                ? `¿Se te olvidó apuntar ${daysAgo === 1 ? 'ayer' : daysAgoLabel.toLowerCase()}?`
-                : '¿Tuviste regla o sensaciones este día?'}
-            </p>
-            <p className="past-catchup-sub">
-              Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.
-            </p>
-          </div>
-          <div className="past-catchup-actions">
-            <button
-              type="button"
-              className="aura-button sm primary"
-              onClick={onRecordPeriod}
-            >
-              <Droplets size={14} />
-              Anotar regla
-            </button>
-            <button
-              type="button"
-              className="aura-button sm"
-              onClick={onOpenDailyModal}
-            >
-              <Plus size={14} />
-              Anotar síntomas
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Como mucho un aviso de "ponte al día" a la vez, con el más relevante primero, para no saturar la pantalla. */}
+      {catchupBanner && <PastCatchupBanner {...catchupBanner} />}
 
       {!hasCycle && (
         <div className="first-record-empty-state">

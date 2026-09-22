@@ -5,6 +5,7 @@ import type { NotificationPreference } from '../types/notifications';
 import type { QuizResult } from '../types/quiz';
 import { CycleContext } from './cycle-context';
 import { addQuizResultToLogs } from '../services/quizResults';
+import { chronicleRecoveredPeriod } from '../services/recoveryChronicler';
 import { formatDateKey, generateDaysRange, getCycleDayInfo } from '../utils/cycleCalculator';
 import type { ParseResult } from '../utils/nlpParser';
 import { parseNaturalLanguageInput } from '../utils/nlpParser';
@@ -461,6 +462,12 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const recoverPeriod = (start: string, end: string) => {
+    const recovered = chronicleRecoveredPeriod(logsRef.current, start, end, todayDate);
+    updateLogs(() => recovered);
+    updateSettings({ lastPeriodStartDate: end > settingsRef.current.lastPeriodStartDate ? start : settingsRef.current.lastPeriodStartDate });
+  };
+
   const logIntimacyForDate = (dateStr: string, intimacyData: IntimacyLog | null) => {
     updateLogs((prev) => {
       const currentLog = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
@@ -750,6 +757,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         togglePeriodForDate,
         setPeriodFlowForDate,
         startPeriodOnDate,
+        recoverPeriod,
         denyPeriodOnDate,
         toggleSpottingForDate,
         logBleedingForDate,

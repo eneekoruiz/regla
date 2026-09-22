@@ -5,9 +5,30 @@ import type {
   PredictedDateInfo,
   UpcomingMilestones
 } from '../types/prediction';
+import { biologicalReducer, INITIAL_BIOLOGICAL_STATE } from './biologicalMachine';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../utils/dateKey';
 
 const bounded = (value: number, fallback: number, min: number, max: number) => Number.isFinite(value) && value >= min && value <= max ? value : fallback;
+
+export interface CycleRecovery {
+  anchor: string;
+  startDate: string;
+  endDate: string;
+}
+
+/** An invitation to confirm missing history, never an automatically recorded period. */
+export function detectCycleRecovery(stats: CycleStatistics, today: string): CycleRecovery | null {
+  if (!isDateKey(today) || !isDateKey(stats.lastVerifiedPeriodStart) ||
+    (stats.reproductiveStatus && stats.reproductiveStatus !== 'cycling') || stats.isHormonalBirthControl) return null;
+  const average = bounded(stats.estimatedCycleLength, 28, 15, 120);
+  const anchor = parseDateKey(stats.lastVerifiedPeriodStart);
+  if (diffDays(anchor, parseDateKey(today)) <= 1.5 * average) return null;
+  const start = new Date(anchor);
+  start.setDate(start.getDate() + Math.round(average));
+  const end = new Date(start);
+  end.setDate(end.getDate() + Math.round(bounded(stats.estimatedPeriodLength, 5, 1, 30)) - 1);
+  return { anchor: stats.lastVerifiedPeriodStart, startDate: formatDateKey(start), endDate: formatDateKey(end) > today ? today : formatDateKey(end) };
+}
 
 interface PeriodCluster {
   startDate: string;
@@ -115,9 +136,12 @@ export function detectHistoricalCycles(clusters: PeriodCluster[], hasPCOS: boole
  */
 export function calculateCycleStatistics(
   logs: Record<string, DailyLog>,
-  settings: UserSettings
+  settings: UserSettings,
+  today = formatDateKey(new Date())
 ): CycleStatistics {
   const isPCOSModeActive = !!settings.hasPCOS || settings.cycleProfile?.regularity === 'pcos';
+  const isIrregular = isPCOSModeActive || settings.cycleProfile?.regularity === 'irregular' || settings.regularityPreference === 'irregular';
+  const reproductiveStatus = settings.reproductiveStatus || 'cycling';
   const birthControl = settings.cycleProfile?.birthControl || 'none';
   const isBirthControlPill = birthControl === 'pill';
   const isHormonalBirthControl = isBirthControlPill || birthControl === 'iud_hormonal' || birthControl === 'implant';
@@ -126,12 +150,11 @@ export function calculateCycleStatistics(
   const defaultCycle = bounded(settings.averageCycleLength, 28, 15, 120);
   const defaultPeriod = Math.min(defaultCycle - 1, bounded(settings.averagePeriodLength, 5, 1, 30));
   const lutealPhaseLength = Math.min(defaultCycle - 1, bounded(settings.lutealPhaseLength, 14, 1, 30));
-  const today = formatDateKey(new Date());
   const anchorLog = logs[settings.lastPeriodStartDate];
   const fallbackAnchor = isDateKey(settings.lastPeriodStartDate) && settings.lastPeriodStartDate <= today && (!anchorLog || (anchorLog.isPeriod && !anchorLog.isIrregularBleeding && anchorLog.flow !== 'spotting')) ? settings.lastPeriodStartDate : '';
   const recordedLogs = Object.fromEntries(Object.entries(logs).filter(([date]) => date <= today));
   const clusters = extractPeriodClusters(recordedLogs, fallbackAnchor, defaultPeriod);
-  const cycles = detectHistoricalCycles(clusters, isPCOSModeActive);
+  const cycles = detectHistoricalCycles(clusters, isIrregular);
 
   // Find verified period start: prioritize the most recent real period cluster logged by user
   let lastVerifiedPeriodStart = fallbackAnchor;
@@ -159,18 +182,18 @@ export function calculateCycleStatistics(
     return {
       estimatedCycleLength: defaultCycle,
       estimatedPeriodLength: defaultPeriod,
-      variabilityDays: isPCOSModeActive ? 6.0 : (isBirthControlPill ? 1.0 : 2.0),
+      variabilityDays: isIrregular ? 6.0 : (isBirthControlPill ? 1.0 : 2.0),
       lutealPhaseLength,
       totalCyclesAnalyzed: 0,
       lastVerifiedPeriodStart,
       confidenceScore: lastVerifiedPeriodStart ? 0.6 : 0,
-      isPCOSModeActive,
+      isPCOSModeActive, isIrregular, reproductiveStatus,
       birthControl,
       isHormonalBirthControl,
       historicalCycles: [],
       delayTrendDescription: isPCOSModeActive
         ? 'Modo SOP activo: Algoritmo adaptado para variabilidad natural ampliada.'
-        : (isBirthControlPill ? 'Píldora anticonceptiva: Ciclos de 28 días con sangrado regular.' : 'Esperando registrar tu primer ciclo completo para calcular tendencias.'),
+        : (isBirthControlPill ? 'Con anticoncepción hormonal, registra el sangrado observado; no se calcula ovulación.' : 'Esperando registrar tu primer ciclo completo para calcular tendencias.'),
       insights: profileInsights
     };
   }
@@ -193,14 +216,14 @@ export function calculateCycleStatistics(
     return {
       estimatedCycleLength,
       estimatedPeriodLength,
-      variabilityDays: isPCOSModeActive ? 6.0 : 2.0,
+      variabilityDays: isIrregular ? 6.0 : 2.0,
       lutealPhaseLength,
       totalCyclesAnalyzed: 1,
       lastVerifiedPeriodStart,
       confidenceScore: 0.75,
       lastCycleDelayDays,
       delayTrendDescription,
-      isPCOSModeActive,
+      isPCOSModeActive, isIrregular, reproductiveStatus,
       birthControl,
       isHormonalBirthControl,
       historicalCycles: cycles,
@@ -217,7 +240,7 @@ export function calculateCycleStatistics(
   let outlierCount = 0;
   let calculationCycles = cycles;
 
-  if (cycles.length >= 3 && !isPCOSModeActive) {
+  if (cycles.length >= 3 && !isIrregular) {
     const typical = cycles.filter(c => {
       const dev = Math.abs(c.lengthDays - medianLength);
       return dev <= 7;
@@ -260,7 +283,7 @@ export function calculateCycleStatistics(
   const confidenceScore = Math.min(0.98, 0.65 + calculationCycles.length * 0.08);
 
   // Broad screening language only; these messages are not diagnoses.
-  let irregularityAlert: any = undefined;
+  let irregularityAlert: CycleStatistics['irregularityAlert'];
   if (!isPCOSModeActive && calculationCycles.length >= 2) {
     if (variabilityDays >= 7) {
       irregularityAlert = {
@@ -314,7 +337,7 @@ export function calculateCycleStatistics(
     confidenceScore,
     lastCycleDelayDays,
     delayTrendDescription,
-    isPCOSModeActive,
+    isPCOSModeActive, isIrregular, reproductiveStatus,
     birthControl,
     isHormonalBirthControl,
     historicalCycles: cycles,
@@ -333,123 +356,40 @@ export function predictDayStatus(
   logs: Record<string, DailyLog>
 ): PredictedDateInfo {
   const userLog = logs[targetDateStr];
-
-  // Handle empty / uncalibrated state when no period start date is verified
-  if (!isDateKey(stats.lastVerifiedPeriodStart) || !isDateKey(targetDateStr)) {
-    const isPeriod = !!userLog?.isPeriod;
-    return {
-      date: targetDateStr,
-      isHistorical: !!userLog,
-      isPeriod,
-      flow: userLog?.flow,
-      isFertileWindow: false,
-      isOvulationDay: false,
-      phase: isPeriod ? 'menstrual' : 'follicular',
-      dayOfCycle: 1,
-      cycleNumberOffset: 0,
-      confidence: 0
-    };
-  }
-
-  const targetDate = parseDateKey(targetDateStr);
-  const anchorDate = parseDateKey(stats.lastVerifiedPeriodStart);
-  const totalDaysDiff = diffDays(anchorDate, targetDate);
-
   const cycleLen = Math.round(bounded(stats.estimatedCycleLength, 28, 15, 120));
-  const periodLen = Math.round(bounded(stats.estimatedPeriodLength, 5, 1, 30));
-  const lutealLen = bounded(stats.lutealPhaseLength, 14, 1, 30);
-
-  // Cycle offset from anchor (0 = current cycle from anchor, 1 = next cycle, -1 = prior)
-  const cycleOffset = Math.floor(totalDaysDiff / cycleLen);
-  const cycleStartDays = cycleOffset * cycleLen;
-  let dayOfCycle = Math.floor(totalDaysDiff - cycleStartDays) + 1;
-  if (dayOfCycle <= 0) dayOfCycle = 1;
-  if (dayOfCycle > Math.round(cycleLen)) dayOfCycle = Math.round(cycleLen);
-
-  const historicalCycle = stats.historicalCycles?.find(cycle => cycle.startDate <= targetDateStr && !!cycle.endDate && targetDateStr < cycle.endDate);
-  if (historicalCycle) dayOfCycle = diffDays(parseDateKey(historicalCycle.startDate), targetDate) + 1;
-
-  const isHormonalBirthControl = Boolean(stats.isHormonalBirthControl);
-  const ovulationDay = Math.max(periodLen + 1, Math.round(cycleLen - lutealLen));
-  const fertileStart = Math.max(1, ovulationDay - 5);
-  const fertileEnd = Math.min(Math.round(cycleLen), ovulationDay + 1);
-
-  // 1. Check historical log truth
-  if (userLog && userLog.isPeriod !== undefined) {
-    const isPeriod = userLog.isPeriod;
-    const isOvulationDay = !isPeriod && !isHormonalBirthControl && dayOfCycle === ovulationDay;
-    const isFertileWindow = !isPeriod && !isHormonalBirthControl && dayOfCycle >= fertileStart && dayOfCycle <= fertileEnd;
-
-    let phase = isPeriod 
-      ? 'menstrual' 
-      : isOvulationDay 
-      ? 'ovulation' 
-      : dayOfCycle < ovulationDay 
-      ? 'follicular' 
-      : 'luteal';
-
-    return {
-      date: targetDateStr,
-      isHistorical: true,
-      isPeriod,
-      flow: userLog.flow,
-      isFertileWindow,
-      isOvulationDay,
-      phase: phase as any,
-      dayOfCycle,
-      cycleNumberOffset: cycleOffset,
-      confidence: stats.confidenceScore
-    };
-  }
-
-  // 2. Compute Probabilistic / Adaptive Prediction (ONLY for current and future dates)
-  // If target date is prior to the user's verified cycle start and has no log,
-  // do NOT invent retro-active predictions for past months (August, July, June, etc.)
-  if (!userLog && totalDaysDiff < 0 && !historicalCycle) {
-    return {
-      date: targetDateStr,
-      isHistorical: false,
-      isPeriod: false,
-      isFertileWindow: false,
-      isOvulationDay: false,
-      phase: 'follicular',
-      dayOfCycle: 1,
-      cycleNumberOffset: cycleOffset,
-      confidence: 0
-    };
-  }
-
-  const isPeriod = dayOfCycle >= 1 && dayOfCycle <= Math.round(periodLen);
-  const isOvulationDay = !isHormonalBirthControl && dayOfCycle === ovulationDay;
-  const isFertileWindow = !isHormonalBirthControl && dayOfCycle >= fertileStart && dayOfCycle <= fertileEnd;
-
-  let phase: 'menstrual' | 'follicular' | 'ovulation' | 'luteal' = 'follicular';
-  if (isPeriod) {
-    phase = 'menstrual';
-  } else if (isOvulationDay) {
-    phase = 'ovulation';
-  } else if (dayOfCycle < ovulationDay) {
-    phase = 'follicular';
-  } else {
-    phase = 'luteal';
-  }
-
-  // Confidence decays gradually for cycles far in the future
-  const confidence = Math.max(0.4, stats.confidenceScore * Math.pow(0.92, Math.abs(cycleOffset)));
-
+  const periodLen = Math.min(cycleLen - 1, Math.round(bounded(stats.estimatedPeriodLength, 5, 1, 30)));
+  const lutealLen = Math.min(cycleLen - 1, bounded(stats.lutealPhaseLength, 14, 1, 30));
+  const valid = isDateKey(stats.lastVerifiedPeriodStart) && isDateKey(targetDateStr);
+  const targetDate = parseDateKey(targetDateStr);
+  const today = formatDateKey(new Date());
+  const elapsed = valid ? diffDays(parseDateKey(stats.lastVerifiedPeriodStart), targetDate) : 0;
+  const historicalCycle = stats.historicalCycles?.find(c => c.startDate <= targetDateStr && !!c.endDate && targetDateStr < c.endDate);
+  const hasAnchor = valid && (elapsed >= 0 || !!historicalCycle);
+  // A future projection may repeat; an ongoing observed cycle never restarts itself.
+  const projected = targetDateStr > today;
+  const cycleOffset = hasAnchor && projected ? Math.max(0, Math.floor(elapsed / cycleLen)) : 0;
+  const dayOfCycle = !hasAnchor ? 0 : historicalCycle
+    ? diffDays(parseDateKey(historicalCycle.startDate), targetDate) + 1
+    : elapsed - cycleOffset * cycleLen + 1;
+  const overdue = hasAnchor && !projected && !historicalCycle && elapsed >= cycleLen;
+  const irregular = Boolean(stats.isIrregular || stats.isPCOSModeActive);
+  const ovulationDay = Math.min(cycleLen, Math.max(periodLen + 1, Math.round(cycleLen - lutealLen)));
+  const observedPeriod = userLog ? Boolean(userLog.isPeriod && !userLog.isIrregularBleeding && userLog.flow !== 'spotting') : undefined;
+  const state = biologicalReducer(INITIAL_BIOLOGICAL_STATE, { type: 'RECONCILE', evidence: {
+    reproductiveStatus: stats.reproductiveStatus, hormonal: Boolean(stats.isHormonalBirthControl),
+    uncertain: irregular || overdue, hasAnchor, observedPeriod,
+    estimatedPeriod: dayOfCycle >= 1 && dayOfCycle <= periodLen,
+    day: dayOfCycle, ovulationDay,
+  }});
+  const active = !['pregnancy', 'postpartum', 'menopause', 'hormonal'].includes(state.value);
   return {
-    date: targetDateStr,
-    isHistorical: false,
-    isPeriod,
-    flow: isPeriod ? (dayOfCycle === 1 || dayOfCycle === Math.round(periodLen) ? 'light' : 'medium') : undefined,
-    isFertileWindow,
-    isOvulationDay,
-    phase,
-    dayOfCycle,
-    cycleNumberOffset: cycleOffset,
-    confidence
+    date: targetDateStr, isHistorical: !!userLog, phase: state.value,
+    isPeriod: state.isPeriod, isOvulationDay: state.isOvulationDay, isFertileWindow: state.isFertileWindow,
+    flow: userLog?.flow, dayOfCycle: active ? dayOfCycle : 0, cycleNumberOffset: cycleOffset,
+    confidence: !hasAnchor || state.value === 'unknown' || !active ? 0 : Math.max(0, Math.min(1, stats.confidenceScore * Math.pow(0.92, cycleOffset))),
   };
 }
+
 
 /**
  * Calculates next milestone dates for cycle management
@@ -458,7 +398,7 @@ export function calculateUpcomingMilestones(
   stats: CycleStatistics,
   referenceDateStr: string
 ): UpcomingMilestones {
-  if (!isDateKey(stats.lastVerifiedPeriodStart) || !isDateKey(referenceDateStr)) {
+  if (!isDateKey(stats.lastVerifiedPeriodStart) || !isDateKey(referenceDateStr) || (stats.reproductiveStatus && stats.reproductiveStatus !== 'cycling') || stats.isHormonalBirthControl) {
     return { nextPeriodStartDate: '', nextPeriodEndDate: '', nextOvulationDate: '', nextFertileWindowStart: '', nextFertileWindowEnd: '', daysUntilNextPeriod: 0, daysUntilNextOvulation: 0 };
   }
   const refDate = parseDateKey(referenceDateStr);
@@ -466,11 +406,11 @@ export function calculateUpcomingMilestones(
   const daysDiff = diffDays(anchorDate, refDate);
 
   const cycleLen = Math.round(bounded(stats.estimatedCycleLength, 28, 15, 120));
-  const periodLen = Math.round(bounded(stats.estimatedPeriodLength, 5, 1, 30));
-  const lutealLen = bounded(stats.lutealPhaseLength, 14, 1, 30);
+  const periodLen = Math.min(cycleLen - 1, Math.round(bounded(stats.estimatedPeriodLength, 5, 1, 30)));
+  const lutealLen = Math.min(cycleLen - 1, bounded(stats.lutealPhaseLength, 14, 1, 30));
   // Keep the current expected period visible while it is overdue. Using ceil
   // here skipped directly to the following cycle after only one missed day.
-  const cycleIndex = Math.max(1, Math.floor(daysDiff / cycleLen));
+  const cycleIndex = 1;
 
   // Next cycle start date
   const nextStart = new Date(anchorDate);
@@ -480,7 +420,7 @@ export function calculateUpcomingMilestones(
   nextEnd.setDate(nextStart.getDate() + Math.round(periodLen) - 1);
 
   // Next ovulation date
-  const ovulationOffset = Math.max(periodLen + 1, Math.round(cycleLen - lutealLen)) - 1;
+  const ovulationOffset = Math.min(cycleLen, Math.max(periodLen + 1, Math.round(cycleLen - lutealLen))) - 1;
   const ovulationCycle = Math.max(0, Math.ceil((daysDiff - ovulationOffset) / cycleLen));
   const nextOvulation = new Date(anchorDate);
   nextOvulation.setDate(anchorDate.getDate() + ovulationCycle * cycleLen + ovulationOffset);
@@ -504,11 +444,11 @@ export function calculateUpcomingMilestones(
   return {
     nextPeriodStartDate: formatDateKey(nextStart),
     nextPeriodEndDate: formatDateKey(nextEnd),
-    nextOvulationDate: stats.isHormonalBirthControl ? '' : formatDateKey(nextOvulation),
-    nextFertileWindowStart: stats.isHormonalBirthControl ? '' : formatDateKey(nextFertileStart),
-    nextFertileWindowEnd: stats.isHormonalBirthControl ? '' : formatDateKey(nextFertileEnd),
+    nextOvulationDate: (stats.isHormonalBirthControl || stats.isIrregular || stats.isPCOSModeActive || daysDiff >= cycleLen) ? '' : formatDateKey(nextOvulation),
+    nextFertileWindowStart: (stats.isHormonalBirthControl || stats.isIrregular || stats.isPCOSModeActive || daysDiff >= cycleLen) ? '' : formatDateKey(nextFertileStart),
+    nextFertileWindowEnd: (stats.isHormonalBirthControl || stats.isIrregular || stats.isPCOSModeActive || daysDiff >= cycleLen) ? '' : formatDateKey(nextFertileEnd),
     daysUntilNextPeriod,
-    daysUntilNextOvulation: stats.isHormonalBirthControl ? 0 : daysUntilNextOvulation,
+    daysUntilNextOvulation: (stats.isHormonalBirthControl || stats.isIrregular || stats.isPCOSModeActive || daysDiff >= cycleLen) ? 0 : daysUntilNextOvulation,
     periodConfidenceRange: {
       minDate: formatDateKey(minConfidenceDate),
       maxDate: formatDateKey(maxConfidenceDate)

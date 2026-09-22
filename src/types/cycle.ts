@@ -1,7 +1,8 @@
 import type { NotificationPreference } from './notifications';
 import type { QuizResult } from './quiz';
 
-export type CyclePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal';
+export type ReproductiveStatus = 'cycling' | 'pregnancy' | 'postpartum' | 'menopause';
+export type CyclePhase = 'menstrual' | 'follicular' | 'ovulation' | 'luteal' | 'unknown' | 'pregnancy' | 'postpartum' | 'menopause' | 'hormonal';
 
 export type FlowIntensity = 'spotting' | 'light' | 'medium' | 'heavy' | 'very_heavy';
 
@@ -64,6 +65,7 @@ export interface MedicationItem {
 }
 
 export interface DailyLog {
+  healthImported?: boolean;
   date: string; // ISO 'YYYY-MM-DD'
   isPeriod: boolean;
   flow?: FlowIntensity;
@@ -108,6 +110,9 @@ export interface LifestyleProfileData {
 }
 
 export interface UserSettings {
+  nativeHealthEnabled?: boolean;
+  nativeWidgetEnabled?: boolean;
+  reproductiveStatus?: ReproductiveStatus;
   userName: string;
   averageCycleLength: number; // e.g., 28
   averagePeriodLength: number; // e.g., 5
@@ -148,3 +153,5 @@ export interface CycleDayInfo {
   notes?: string;
   hasLog: boolean;
 }
+
+export type ProfileCategoryUpdate = [category: 'cycle', data: CycleProfileData] | [category: 'body', data: BodyProfileData] | [category: 'lifestyle', data: LifestyleProfileData];
