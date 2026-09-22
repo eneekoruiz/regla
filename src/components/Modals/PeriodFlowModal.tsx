@@ -5,6 +5,7 @@ import { useToast } from '../../context/toast';
 import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalSecondaryButton, modalSelected, modalUnselected } from './modalStyles';
+import { hapticSelect, hapticSuccess } from '../../utils/haptics';
 
 const FLOW_LEVELS: { id: FlowIntensity; label: string; count: number }[] = [
   { id: 'spotting', label: 'Manchado', count: 1 },
@@ -37,6 +38,7 @@ export function PeriodFlowModal({
     try {
       if (hasBleeding && !remove) logBleedingForDate(selectedDate, { flow, isCycleStart: bleedingType === 'period' && isCycleStart, isIrregular: bleedingType === 'irregular' });
       else denyPeriodOnDate(selectedDate);
+      hapticSuccess();
       toast.success(remove ? 'Registro de sangrado eliminado' : 'Sangrado registrado');
       onClose();
     } catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
@@ -49,13 +51,13 @@ export function PeriodFlowModal({
       <button type="button" onClick={() => save()} className="aura-button rose min-w-0"><Check size={17} aria-hidden="true" /> Guardar registro</button>
     </>}>
     <fieldset><legend className="mb-2 text-sm font-semibold">¿Hubo sangrado?</legend>
-      <div className="grid grid-cols-2 gap-2">{[true, false].map(value => <button key={String(value)} type="button" aria-pressed={hasBleeding === value} onClick={() => setHasBleeding(value)} className={`${modalChoice} ${hasBleeding === value ? modalSelected : modalUnselected}`}>{value ? 'Sí, hubo sangrado' : 'Sin sangrado'}</button>)}</div>
+      <div className="grid grid-cols-2 gap-2">{[true, false].map(value => <button key={String(value)} type="button" aria-pressed={hasBleeding === value} onClick={() => { setHasBleeding(value); hapticSelect(); }} className={`${modalChoice} ${hasBleeding === value ? modalSelected : modalUnselected}`}>{value ? 'Sí, hubo sangrado' : 'Sin sangrado'}</button>)}</div>
     </fieldset>
     {hasBleeding && <>
       <fieldset><legend className="mb-2 text-sm font-semibold">Tipo de sangrado</legend>
-        <div className="grid grid-cols-2 gap-2">{(['period', 'irregular'] as const).map(value => <button key={value} type="button" aria-pressed={bleedingType === value} onClick={() => setBleedingType(value)} className={`${modalChoice} ${bleedingType === value ? modalSelected : modalUnselected}`}>{value === 'period' ? 'Regla menstrual' : 'Sangrado irregular'}</button>)}</div>
+        <div className="grid grid-cols-2 gap-2">{(['period', 'irregular'] as const).map(value => <button key={value} type="button" aria-pressed={bleedingType === value} onClick={() => { setBleedingType(value); hapticSelect(); }} className={`${modalChoice} ${bleedingType === value ? modalSelected : modalUnselected}`}>{value === 'period' ? 'Regla menstrual' : 'Sangrado irregular'}</button>)}</div>
       </fieldset>
-      {bleedingType === 'period' ? <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={isCycleStart} onChange={event => setIsCycleStart(event.target.checked)} className="h-5 w-5 shrink-0 accent-[var(--rose)]" />Es el primer día de un nuevo ciclo</label>
+      {bleedingType === 'period' ? <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={isCycleStart} onChange={event => { setIsCycleStart(event.target.checked); hapticSelect(); }} className="h-5 w-5 shrink-0 accent-[var(--rose)]" />Es el primer día de un nuevo ciclo</label>
         : <p className="text-sm text-[var(--text-secondary)]">El sangrado irregular no iniciará un nuevo ciclo.</p>}
       <fieldset><legend className="mb-2 text-sm font-semibold">Intensidad del flujo</legend>
         <div className="grid grid-cols-2 gap-2">{FLOW_LEVELS.map(item => (
@@ -63,7 +65,7 @@ export function PeriodFlowModal({
             key={item.id}
             type="button"
             aria-pressed={flow === item.id}
-            onClick={() => setFlow(item.id)}
+            onClick={() => { setFlow(item.id); hapticSelect(); }}
             className={`${modalChoice} flex items-center justify-between ${flow === item.id ? modalSelected : modalUnselected}`}
           >
             <span>{item.label}</span>

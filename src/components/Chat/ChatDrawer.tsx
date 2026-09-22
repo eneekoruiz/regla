@@ -331,13 +331,48 @@ function ChatSession({
     { id: 'yesterday_tired', label: '😴 Ayer estuve muy cansada', action: 'ask', prompt: 'Ayer estuve muy cansada' }
   ];
 
-  const welcome: ChatMessageWithQuiz = needsYesterdayCatchup
+  const isSelectedPast = selectedDate < todayDate;
+  const isSelectedYesterday = selectedDate === yesterdayKey;
+  const selectedLog = logs[selectedDate];
+  const hasLogForSelected = Boolean(
+    selectedLog && (
+      selectedLog.isPeriod ||
+      selectedLog.isIrregularBleeding ||
+      (selectedLog.symptoms && selectedLog.symptoms.length > 0) ||
+      selectedLog.notes ||
+      (selectedLog.intimacyLog && selectedLog.intimacyLog.activity !== 'none') ||
+      selectedLog.medications?.some(m => m.taken) ||
+      selectedLog.bbt !== undefined
+    )
+  );
+
+  const selectedDateFormatted = (() => {
+    const d = new Date(selectedDate + 'T12:00:00');
+    return isNaN(d.getTime()) ? selectedDate : d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  })();
+
+  const PAST_DATE_SUGGESTIONS: ChatSuggestion[] = [
+    { id: 'past_period', label: '🩸 Tuve la regla', action: 'ask', prompt: 'Tuve la regla' },
+    { id: 'past_calm', label: '🌸 Estuve bien, sin molestias', action: 'ask', prompt: 'Estuve bien sin molestias' },
+    { id: 'past_cramps', label: '⚡ Tuve cólicos o dolor', action: 'ask', prompt: 'Tuve dolor y cólicos' },
+    { id: 'past_tired', label: '😴 Estuve cansada', action: 'ask', prompt: 'Sentí mucho cansancio' }
+  ];
+
+  const welcome: ChatMessageWithQuiz = (needsYesterdayCatchup && (isSelectedYesterday || selectedDate === todayDate))
     ? {
         id: 'welcome-yesterday',
         role: 'assistant',
         timestamp: '',
         content: '¡Hola! He visto que ayer no dejamos nada registrado en tu diario.\n\n¿Cómo fue tu día ayer? Si te bajó la regla o estuviste tranquila, dímelo y lo guardo directamente en tu registro de ayer:',
         suggestions: YESTERDAY_SUGGESTIONS
+      }
+    : (isSelectedPast && !hasLogForSelected)
+    ? {
+        id: `welcome-past-${selectedDate}`,
+        role: 'assistant',
+        timestamp: '',
+        content: `Veo que estás mirando el ${selectedDateFormatted}.\n\nNo tienes notas ni síntomas guardados en esta fecha. ¿Quieres que anotemos si tuviste regla o sensaciones para mantener tus previsiones al día?`,
+        suggestions: PAST_DATE_SUGGESTIONS
       }
     : {
         id: 'welcome',

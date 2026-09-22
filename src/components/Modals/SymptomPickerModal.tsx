@@ -3,6 +3,7 @@ import { Check, Search } from 'lucide-react';
 import { KNOWN_SYMPTOMS } from '../../utils/nlpParser';
 import type { SymptomItem, SymptomCategory } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
+import { hapticSelect, hapticSuccess } from '../../utils/haptics';
 import {
   modalCategoryPill,
   modalCategorySelected,
@@ -59,7 +60,14 @@ export function SymptomPickerModal({
       errorMessage={error}
       onClearError={() => setError('')}
       footer={
-        <button type="button" onClick={onClose} className={modalPrimaryButton}>
+        <button
+          type="button"
+          onClick={() => {
+            hapticSuccess();
+            onClose();
+          }}
+          className={modalPrimaryButton}
+        >
           <Check size={17} aria-hidden="true" />
           Listo
         </button>
@@ -89,7 +97,10 @@ export function SymptomPickerModal({
             key={g.id}
             type="button"
             aria-pressed={group === g.id}
-            onClick={() => setGroup(g.id)}
+            onClick={() => {
+              setGroup(g.id);
+              hapticSelect();
+            }}
             className={`${modalCategoryPill} ${group === g.id ? modalCategorySelected : modalCategoryUnselected}`}
           >
             <span aria-hidden="true">{g.emoji}</span>{' '}{g.label}
@@ -115,6 +126,7 @@ export function SymptomPickerModal({
                     emoji: item.emoji,
                     severity: 'moderate',
                   });
+                  hapticSelect();
                   setError('');
                 } catch {
                   setError('No se ha guardado el síntoma. Vuelve a intentarlo.');

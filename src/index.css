@@ -35,19 +35,19 @@
   }
   .dark, html.theme-refugio {
     color-scheme: dark;
-    --bg-root: #23191d; /* Deep Plum instead of generic black */
-    --bg-card: #2e2227; /* Rich Plum */
-    --bg-card-inner: #3a2b32;
+    --bg-root: #21181c; /* Deep Plum/Espresso instead of generic black */
+    --bg-card: #2b1f25; /* Rich Plum */
+    --bg-card-inner: #36282f;
     --bg-pill-selected: #e3a6a6;
-    --bg-pill: #423038;
-    --bg-input-bar: #2e2227;
-    --bg-chip: #3a2b32;
-    --border-card: #45323a;
-    --border-subtle: #45323a;
-    --text-primary: #f0e6eb; /* Soft pearl pink/white */
-    --text-secondary: #c2b2b9;
-    --text-tertiary: #8f7f86;
-    --text-muted: #8f7f86;
+    --bg-pill: #3f2e37;
+    --bg-input-bar: #2b1f25;
+    --bg-chip: #36282f;
+    --border-card: #453039;
+    --border-subtle: #453039;
+    --text-primary: #f2e8ed; /* Soft pearl pink/white */
+    --text-secondary: #c7b6be;
+    --text-tertiary: #96848c;
+    --text-muted: #96848c;
     --accent: #e3a6a6;
     --accent-soft: #4a343b;
     --accent-on: #1a1216;
@@ -1466,6 +1466,27 @@
   .confidente-link small { font-size: 10.5px; }
   .past-catchup-banner { margin: 4px 0 2px; padding: 5px 10px; }
   .quick-log { min-height: 36px; padding: 4px 10px; font-size: 11.5px; }
+}
+
+@media (min-width: 701px) and (max-height: 720px) {
+  .workspace { padding: 6px 16px 6px; }
+  .page-topline { margin-bottom: 1px; }
+  .date-toolbar { margin-bottom: 1px; }
+  .day-pill { width: 40px; height: 42px; }
+  .diary-grid { margin-top: 2px; row-gap: 4px; }
+  .cycle-summary { padding: 8px 14px 6px; }
+  .cycle-summary-visuals {
+    min-height: 165px;
+    gap: clamp(10px, 1.8vw, 24px);
+    padding: 2px 6px;
+  }
+  .cycle-ring-wrap.is-primary { width: clamp(215px, 32vh, 275px); }
+  .cycle-ring-wrap.is-secondary { width: clamp(195px, 30vh, 255px); }
+  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(40px, 5.6vh, 52px); }
+  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(30px, 4.4vh, 40px); }
+  .advice-card { min-height: 95px; padding: 8px 12px; }
+  .confidente-link { padding: 6px 12px; min-height: 36px; }
+  .quick-log { min-height: 34px; padding: 4px 8px; font-size: 11px; }
 }
 
 @media (min-width: 701px) and (max-height: 650px) {
