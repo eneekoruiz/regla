@@ -22,7 +22,7 @@ import { WellnessTipCard } from './components/Cards/WellnessTipCard';
 import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
-import { parseDateKey } from './utils/cycleCalculator';
+import { formatDateKey, parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, getDataStorageKey, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
 import type { ChatQuizKey } from './services/aiAgent';
@@ -73,9 +73,30 @@ const Loading = () => <div className="view-loading" role="status">Cargando…</d
 
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod, hasEnoughData } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+
+  const yesterdayKey = (() => {
+    const d = parseDateKey(todayDate);
+    d.setDate(d.getDate() - 1);
+    return formatDateKey(d);
+  })();
+  const yesterdayLog = logs[yesterdayKey];
+  const yesterdayHasLog = Boolean(
+    yesterdayLog && (
+      yesterdayLog.isPeriod ||
+      yesterdayLog.isIrregularBleeding ||
+      (yesterdayLog.symptoms && yesterdayLog.symptoms.length > 0) ||
+      yesterdayLog.notes ||
+      (yesterdayLog.intimacyLog && yesterdayLog.intimacyLog.activity !== 'none') ||
+      yesterdayLog.medications?.some(m => m.taken) ||
+      yesterdayLog.bbt !== undefined
+    )
+  );
+  const isToday = selectedDate === todayDate;
+  const needsYesterdayCatchup = isToday && hasEnoughData && currentDayInfo.dayOfCycle > 0 && !yesterdayHasLog;
+
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
       return !sessionStorage.getItem('aura_dismiss_install_banner');
@@ -445,7 +466,21 @@ function MainScreen() {
             </div>
             <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
               <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
+              <button
+                type="button"
+                className={`confidente-link${needsYesterdayCatchup ? ' has-urgent-reminder' : ''}`}
+                onClick={() => openChat()}
+                aria-label="Abrir chat confidente"
+              >
+                <span className="confidente-symbol">
+                  <DropMascot phase={currentDayInfo.phase} size={22}/>
+                </span>
+                <span>
+                  <strong>{needsYesterdayCatchup ? 'Ayer sin registrar · Hablemos' : 'Hablemos de cómo estás'}</strong>
+                  <small>{needsYesterdayCatchup ? 'Ponte al día con tu Confidente' : 'Tu Confidente, también sin conexión'}</small>
+                </span>
+                <ArrowRight size={18}/>
+              </button>
             </aside>
           </div>
         </>}

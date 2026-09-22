@@ -14,7 +14,7 @@ export interface PastCatchupAction {
  * attributes and styling only need to be correct in one place.
  */
 export function PastCatchupBanner({ tone, badge, title, sub, actions }: {
-  tone?: 'gold';
+  tone?: 'gold' | 'urgent';
   badge: ReactNode;
   title: string;
   sub: string;
@@ -22,7 +22,7 @@ export function PastCatchupBanner({ tone, badge, title, sub, actions }: {
 }) {
   const goldStyle = tone === 'gold' ? { background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' } : undefined;
   return (
-    <div className="past-catchup-banner" style={goldStyle} role="region" aria-label="Aviso de registro pasado">
+    <div className={`past-catchup-banner${tone === 'urgent' ? ' is-urgent' : ''}`} style={goldStyle} role="region" aria-label="Aviso de registro pasado">
       <div className="past-catchup-body">
         <div className="past-catchup-badge" style={tone === 'gold' ? { color: 'var(--gold)' } : undefined}>
           <Clock size={13} aria-hidden="true" />

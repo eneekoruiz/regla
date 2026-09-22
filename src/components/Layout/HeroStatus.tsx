@@ -25,7 +25,7 @@ export function HeroStatus({
   topContent?: React.ReactNode;
   children?: React.ReactNode;
 }) {
-  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
+  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate, logMultipleSymptoms } = useCycle();
   const toast = useToast();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
   // Mejora 6: estado para doble confirmación antes de borrar registro de regla
@@ -287,7 +287,7 @@ export function HeroStatus({
 
   // Como mucho un aviso de "ponte al día" a la vez: el más relevante gana, en vez de apilarlos.
   const catchupBanner: {
-    tone?: 'gold';
+    tone?: 'gold' | 'urgent';
     badge: string;
     title: string;
     sub: string;
@@ -300,12 +300,21 @@ export function HeroStatus({
         sub: `Hace más de ${cycleLength + 10} días de tu último registro de periodo.`,
         actions: [{ label: 'Completar mes pasado', icon: null, onClick: () => onOpenRecoveryModal?.() }]
       }
-    : isToday && hasCycle && !yesterdayHasLog && (hasAnyAnnotation || isRecorded || isIrregular)
+    : isToday && hasCycle && !yesterdayHasLog
     ? {
+        tone: 'urgent',
         badge: 'AYER SIN REGISTRAR',
         title: '¿Se te olvidó apuntar ayer?',
         sub: 'Aún puedes añadir si tuviste la regla o cómo te encontrabas para que tus previsiones no pierdan precisión.',
         actions: [
+          {
+            label: 'Estuve bien',
+            icon: <Check size={14} />,
+            onClick: () => {
+              logMultipleSymptoms(yesterdayKey, [{ id: 'calm_day', name: 'Día normal sin molestias', category: 'general', emoji: '✨' }]);
+              toast.success('Anotado: ayer fue un día tranquilo');
+            }
+          },
           { label: 'Anotar regla', icon: <Droplets size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onRecordPeriod, 50); } },
           { label: 'Anotar síntomas', icon: <Plus size={14} />, onClick: () => { setSelectedDate(yesterdayKey); setTimeout(onOpenDailyModal, 50); } }
         ]

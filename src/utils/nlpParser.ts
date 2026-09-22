@@ -22,7 +22,7 @@ export const KNOWN_SYMPTOMS: SymptomRule[] = [
     name: 'Día normal sin molestias',
     category: 'general',
     emoji: '✨',
-    patterns: [/\b(d[ií]a\s+normal|sin\s+(dolor|molestias?|s[ií]ntomas?)|todo\s+(bien|tranquilo)|bien\s+sin\s+dolor)\b/i]
+    patterns: [/\b(d[ií]a\s+normal|sin\s+(dolor|molestias?|s[ií]ntomas?)|todo\s+(bien|tranquilo)|bien\s+sin\s+dolor|estuve\s+bien|ayer\s+bien)\b/i]
   },
   {
     id: 'cramps',
@@ -201,7 +201,7 @@ export function parseNaturalLanguageInput(rawInput: string): ParseResult {
     matchedKeywords.push('🩸 Flujo Ligero');
   }
 
-  if (/\b(me\s+ha\s+bajado\s+(la\s+regla|el\s+periodo)|empez[oó]\s+(la\s+regla|mi\s+periodo|el\s+sangrado)|primer\s+d[ií]a\s+de\s+regla)\b/i.test(lower)) {
+  if (/\b((me\s+ha\s+bajado|me\s+baj[oó]|ayer\s+me\s+baj[oó])\s+(la\s+regla|el\s+periodo)|ayer\s+tuve\s+(la\s+)?regla|empez[oó]\s+(la\s+regla|mi\s+periodo|el\s+sangrado)|primer\s+d[ií]a\s+de\s+regla)\b/i.test(lower)) {
     periodAction = 'start';
     if (!flow) {
       flow = defaultSeverity === 'mild' ? 'light' : defaultSeverity === 'intense' ? 'heavy' : 'medium';

@@ -157,17 +157,19 @@ function isInformativeQuery(text: string): boolean {
 
 function isPersonalSymptomStatement(text: string): boolean {
   if (isInformativeQuery(text)) return false;
-  const hasPersonalCue = /\b(tengo|siento|me duele[n]?|estoy con|he tenido|anota(r)?|apunta(r)?|registra(r)?|guarda(r)?|hoy|ahora|me ha bajado|empezo|se (me )?acabo|fin de|termino)\b/i.test(text);
-  const hasDirectState = /\b(estoy (muy )?(cansa(da|do)|agota(da|do)|fatiga(da|do)|triste|feliz|radiante|irritable|estresa(da|do)|sensible|choff|hinchada|destemplada))\b/i.test(text);
+  const hasPersonalCue = /\b(tengo|siento|me duele[n]?|estoy con|he tenido|anota(r)?|apunta(r)?|registra(r)?|guarda(r)?|hoy|ayer|ahora|me ha bajado|me bajo|empezo|se (me )?acabo|fin de|termino)\b/i.test(text);
+  const hasDirectState = /\b(estoy (muy )?(cansa(da|do)|agota(da|do)|fatiga(da|do)|triste|feliz|radiante|irritable|estresa(da|do)|sensible|choff|hinchada|destemplada|bien)|estuve bien)\b/i.test(text);
   const hasDirectSymptom = /\b(dolor de (cabeza|espalda|ovarios|vientre)|colicos? menstruales?|jaqueca|migra[ñn]a|insomnio|antojos? de dulce|mucha hambre)\b/i.test(text);
   return hasPersonalCue || hasDirectState || hasDirectSymptom;
 }
 
-function buildSymptomLogResponse(symptoms: SymptomItem[], periodAction?: 'start' | 'stop' | 'spotting'): { text: string; suggestions: ChatSuggestion[]; topicId: string } {
+function buildSymptomLogResponse(symptoms: SymptomItem[], periodAction?: 'start' | 'stop' | 'spotting', isAboutYesterday = false): { text: string; suggestions: ChatSuggestion[]; topicId: string } {
   if (periodAction === 'start') {
     return {
       topicId: 'phase',
-      text: '¡Entendido y anotado!\n\nHe registrado el **inicio de tu regla** hoy en tu calendario. Tu ciclo y las próximas fases se han recalculado automáticamente.\n\nRecuerda darte un extra de mimo, descansar lo que necesites y mantenerte bien hidratada en estos primeros días de sangrado.',
+      text: isAboutYesterday
+        ? '¡Entendido y anotado!\n\nHe registrado el **inicio de tu regla con fecha de ayer**. Tu ciclo y las próximas fases se han recalculado automáticamente.\n\nRecuerda darte un extra de mimo, descansar lo que necesites y mantenerte bien hidratada en estos días de sangrado.'
+        : '¡Entendido y anotado!\n\nHe registrado el **inicio de tu regla** hoy en tu calendario. Tu ciclo y las próximas fases se han recalculado automáticamente.\n\nRecuerda darte un extra de mimo, descansar lo que necesites y mantenerte bien hidratada en estos primeros días de sangrado.',
       suggestions: [
         { id: 'phase_advice', label: 'Consejos para mi fase de hoy', action: 'ask', prompt: 'Consejos para mi fase de hoy' },
         { id: 'pain_advice', label: 'Dolor menstrual y cólicos', action: 'ask', prompt: 'Dolor menstrual y cólicos' }
@@ -239,9 +241,22 @@ function buildSymptomLogResponse(symptoms: SymptomItem[], periodAction?: 'start'
     );
   }
 
+  if (symptoms.some(s => s.id === 'calm_day')) {
+    return {
+      topicId: 'phase',
+      text: isAboutYesterday
+        ? '¡Me alegro de que ayer fuera un día tranquilo!\n\nHe guardado en tu diario de ayer que estuviste bien y sin molestias. Así tu historial queda al día y tus previsiones siguen al 100% de precisión.'
+        : '¡Me alegro mucho de que hoy sea un día tranquilo y sin molestias! Disfruta de esa calma y serenidad.',
+      suggestions: [
+        { id: 'phase_advice', label: 'Consejos para mi fase de hoy', action: 'ask', prompt: 'Consejos para mi fase de hoy' }
+      ]
+    };
+  }
+
+  const dayWord = isAboutYesterday ? 'ayer' : 'hoy';
   return {
     topicId: symptoms[0]?.id || 'symptom_log',
-    text: `¡Anotado en tu diario de hoy!\n\n${list}\n\n${advice}\n\n¿Quieres que veamos consejos para aliviarlo o prefieres descansar?`,
+    text: `¡Anotado en tu diario de ${dayWord}!\n\n${list}\n\n${advice}\n\n¿Quieres que veamos consejos para aliviarlo o prefieres descansar?`,
     suggestions
   };
 }
@@ -321,7 +336,8 @@ export async function generateChatResponse(prompt: string, history: ChatMessage[
     const parsed = parseNaturalLanguageInput(prompt);
     const knownSymptoms = parsed.symptoms.filter(s => !s.id.startsWith('custom_'));
     if (knownSymptoms.length > 0 || parsed.periodAction) {
-      const logResult = buildSymptomLogResponse(knownSymptoms, parsed.periodAction);
+      const isAboutYesterday = /\bayer\b/i.test(prompt);
+      const logResult = buildSymptomLogResponse(knownSymptoms, parsed.periodAction, isAboutYesterday);
       return {
         mode: 'local',
         topicId: logResult.topicId,

@@ -56,9 +56,13 @@ html { scroll-padding-top: 16px; }
 .tip-thumbnail strong { font-size: 11px; line-height: 1.4; font-weight: 500; }
 .tip-body { line-height: 1.8; }
 .studio-canvas .confidente-link { background: #fff; margin: 0; border: 1px solid var(--border-subtle); border-radius: 20px; padding: 14px 18px; gap: 12px; }
+.studio-canvas .confidente-link.has-urgent-reminder { background: color-mix(in srgb, #f59e0b 8%, #fff); border-color: rgba(245, 158, 11, 0.45); }
 .studio-canvas .confidente-symbol { background: #edf2ed; color: #526b5d; width: 40px; height: 40px; }
+.studio-canvas .confidente-link.has-urgent-reminder .confidente-symbol { background: #fef3c7; color: #d97706; }
 .studio-canvas .confidente-link strong { font-size: 14px; }
+.studio-canvas .confidente-link.has-urgent-reminder strong { color: #b45309; }
 .studio-canvas .confidente-link small { font-size: 11px; }
+.studio-canvas .confidente-link.has-urgent-reminder small { color: #d97706; font-weight: 500; }
 .profile-invitation { display: flex; margin: 8px auto 0; min-height: 36px; font-size: 11px; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .profile-invitation span { font-size: 10px; color: var(--text-secondary); font-weight: 400; }
 .aura-dialog { animation: sheet-appear .32s cubic-bezier(.22,1,.36,1); }

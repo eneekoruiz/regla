@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { containDialogFocus } from '../../utils/dialogFocus';
-import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Clock, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
 import { DropMascot } from '../Mascot/DropMascot';
 import { useCycle } from '../../hooks/useCycle';
 import { useAuth } from '../../hooks/useAuth';
@@ -79,8 +79,33 @@ function ChatSession({
     todayDate,
     logMultipleSymptoms,
     startPeriodOnDate,
-    setPeriodFlowForDate
+    setPeriodFlowForDate,
+    logs,
+    hasEnoughData
   } = useCycle();
+
+  const yesterdayKey = (() => {
+    const d = new Date(todayDate + 'T12:00:00');
+    d.setDate(d.getDate() - 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  })();
+  const yesterdayLog = logs[yesterdayKey];
+  const yesterdayHasLog = Boolean(
+    yesterdayLog && (
+      yesterdayLog.isPeriod ||
+      yesterdayLog.isIrregularBleeding ||
+      (yesterdayLog.symptoms && yesterdayLog.symptoms.length > 0) ||
+      yesterdayLog.notes ||
+      (yesterdayLog.intimacyLog && yesterdayLog.intimacyLog.activity !== 'none') ||
+      yesterdayLog.medications?.some(m => m.taken) ||
+      yesterdayLog.bbt !== undefined
+    )
+  );
+  const needsYesterdayCatchup = hasEnoughData && !yesterdayHasLog;
+
   const [snapshot, setSnapshot] = useState(() => loadConversation(storageKey));
   const snapshotRef = useRef(snapshot);
   const [isTyping, setIsTyping] = useState(false);
@@ -137,7 +162,8 @@ function ChatSession({
       const response = await generateChatResponse(text, history.messages, { dayInfo: currentDayInfo, stats: cycleStats, settings });
       if (!mounted.current || epoch !== requestEpoch.current) return true;
 
-      const targetDate = selectedDate || todayDate;
+      const isAboutYesterday = /\bayer\b/i.test(rawText);
+      const targetDate = isAboutYesterday ? yesterdayKey : (selectedDate || todayDate);
       if (response.loggedSymptoms && response.loggedSymptoms.length > 0) {
         logMultipleSymptoms(targetDate, response.loggedSymptoms);
       }
@@ -163,7 +189,7 @@ function ChatSession({
       }
     }
     return true;
-  }, [commit, currentDayInfo, cycleStats, settings, startQuiz, selectedDate, todayDate, logMultipleSymptoms, startPeriodOnDate, setPeriodFlowForDate]);
+  }, [commit, currentDayInfo, cycleStats, settings, startQuiz, selectedDate, todayDate, yesterdayKey, logMultipleSymptoms, startPeriodOnDate, setPeriodFlowForDate]);
 
   useEffect(() => {
     if (!initialMessage) { consumedInitial.current = null; return; }
@@ -298,13 +324,28 @@ function ChatSession({
     { id: 'welcome_quiz', label: 'Chequeo de bienestar', action: 'quiz', quizKey: 'stress' }
   ];
 
-  const welcome: ChatMessageWithQuiz = {
-    id: 'welcome',
-    role: 'assistant',
-    timestamp: '',
-    content: 'Hola. Soy tu asistente en el Chat de Aura. Estoy aquí para acompañarte, resolver dudas sobre tus síntomas y darte calma en cualquier momento de tu ciclo.\n\nPuedes escribir lo que sientes o elegir una opción para empezar:',
-    suggestions: WELCOME_SUGGESTIONS
-  };
+  const YESTERDAY_SUGGESTIONS: ChatSuggestion[] = [
+    { id: 'yesterday_period', label: '🩸 Ayer me bajó la regla', action: 'ask', prompt: 'Ayer me bajó la regla' },
+    { id: 'yesterday_well', label: '🌸 Ayer estuve bien, sin molestias', action: 'ask', prompt: 'Ayer estuve bien' },
+    { id: 'yesterday_cramps', label: '⚡ Ayer tuve cólicos', action: 'ask', prompt: 'Ayer tuve cólicos' },
+    { id: 'yesterday_tired', label: '😴 Ayer estuve muy cansada', action: 'ask', prompt: 'Ayer estuve muy cansada' }
+  ];
+
+  const welcome: ChatMessageWithQuiz = needsYesterdayCatchup
+    ? {
+        id: 'welcome-yesterday',
+        role: 'assistant',
+        timestamp: '',
+        content: '¡Hola! He visto que ayer no dejamos nada registrado en tu diario.\n\n¿Cómo fue tu día ayer? Si te bajó la regla o estuviste tranquila, dímelo y lo guardo directamente en tu registro de ayer:',
+        suggestions: YESTERDAY_SUGGESTIONS
+      }
+    : {
+        id: 'welcome',
+        role: 'assistant',
+        timestamp: '',
+        content: 'Hola. Soy tu asistente en el Chat de Aura. Estoy aquí para acompañarte, resolver dudas sobre tus síntomas y darte calma en cualquier momento de tu ciclo.\n\nPuedes escribir lo que sientes o elegir una opción para empezar:',
+        suggestions: WELCOME_SUGGESTIONS
+      };
   const displayedMessages = conversation.messages.length ? conversation.messages : [welcome];
 
   return <dialog ref={dialogRef} aria-labelledby="chat-title" aria-describedby="chat-description" tabIndex={-1} onKeyDown={containDialogFocus}
@@ -322,8 +363,35 @@ function ChatSession({
         </div>
         <p id="chat-description" className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">Orientación local. Disponible sin conexión.</p>
       </header>
+      {/* Alerta proactiva en chat si hay mensajes previos y ayer quedó sin registrar */}
+      {needsYesterdayCatchup && conversation.messages.length > 0 && (
+        <div className="shrink-0 border-b border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs text-amber-900 dark:text-amber-100">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <Clock className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span className="truncate font-medium">Ayer sin registrar</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              disabled={isTyping}
+              onClick={() => void handleSend('Ayer estuve bien')}
+              className="rounded-md bg-amber-500/20 hover:bg-amber-500/30 px-2 py-1 text-[11px] font-semibold text-amber-900 dark:text-amber-100 transition-colors active:scale-95 disabled:opacity-50"
+            >
+              Estuve bien
+            </button>
+            <button
+              type="button"
+              disabled={isTyping}
+              onClick={() => void handleSend('Ayer me bajó la regla')}
+              className="rounded-md bg-amber-500/20 hover:bg-amber-500/30 px-2 py-1 text-[11px] font-semibold text-amber-900 dark:text-amber-100 transition-colors active:scale-95 disabled:opacity-50"
+            >
+              Me bajó la regla
+            </button>
+          </div>
+        </div>
+      )}
       {/* Barra de accesos directos a cuestionarios – solo visible en bienvenida */}
-      {!conversation.messages.length && <div className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2">
+      {!conversation.messages.length && !needsYesterdayCatchup && <div className="shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2">
         <div className="flex items-center justify-between gap-2 mb-1.5">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-1.5">
             <ClipboardList size={13} className="text-[var(--accent)]" /> Cuestionarios en el chat
