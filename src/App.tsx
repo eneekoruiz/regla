@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
@@ -71,11 +71,53 @@ const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals
 type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
+const ModalLoadingFallback = () => (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-none"
+    role="status"
+    aria-label="Cargando"
+  >
+    <div className="flex items-center gap-2.5 rounded-full bg-[var(--bg-card)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] shadow-xl border border-[var(--border-subtle)]">
+      <span className="loading-spinner h-3.5 w-3.5 border-2 border-[var(--border-subtle)] border-t-[var(--accent)] rounded-full animate-spin" />
+      <span>Abriendo…</span>
+    </div>
+  </div>
+);
+
 
 function MainScreen() {
   const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod, hasEnoughData } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('aura_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapse = useCallback(() => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('aura_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    // Prefetch frequent modal chunks to make opening instantaneous
+    const timer = setTimeout(() => {
+      import('./components/Modals/ColorLegendModal').catch(() => {});
+      import('./components/Modals/SymptothermalModal').catch(() => {});
+      import('./components/Modals/MedicationTrackerModal').catch(() => {});
+      import('./components/Modals/CycleAnalyticsModal').catch(() => {});
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const yesterdayKey = (() => {
     const d = parseDateKey(todayDate);
@@ -224,8 +266,17 @@ function MainScreen() {
     { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: (props: LucideProps) => <DropMascot phase={currentDayInfo.phase} {...props} /> },
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
-  return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onOpenProfile={() => openModal('profile')} onInstall={handleInstall} online={online}/>
+  return <MobileContainer className={sidebarCollapsed ? 'sidebar-collapsed' : ''}>
+    <Header
+      view={view}
+      onChangeView={changeView}
+      onOpenChat={() => openChat()}
+      onOpenProfile={() => openModal('profile')}
+      onInstall={handleInstall}
+      online={online}
+      collapsed={sidebarCollapsed}
+      onToggleCollapse={toggleSidebarCollapse}
+    />
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
@@ -596,7 +647,7 @@ function MainScreen() {
         </ErrorBoundary>
       </div>
     </main>
-    <Suspense fallback={<Loading/>}>
+    <Suspense fallback={<ModalLoadingFallback/>}>
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
       {modal === 'recovery' && (recovery
         ? <CycleRecoveryBottomSheet recovery={recovery} today={todayDate} onConfirm={confirmRecovery} onSkip={dismissRecovery}/>

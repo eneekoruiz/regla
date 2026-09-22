@@ -84,13 +84,13 @@
 .app-navigation::-webkit-scrollbar { display: none; }
 .brand-header-area { display: flex; flex-direction: column; width: 100%; margin-bottom: 6px; }
 .brand-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.brand { display: inline-flex; align-items: center; gap: 11px; padding: 0 4px; text-align: left; font: 600 32px var(--font-display); width: fit-content; color: var(--text-primary); }
-.brand-symbol { display: grid; place-items: center; height: 36px; width: 36px; border-radius: 50%; color: var(--accent-on); background: var(--accent); font: italic 30px Georgia, serif; padding: 0 3px 5px 0; }
+.brand { display: inline-flex; align-items: center; gap: 9px; padding: 0; text-align: left; font: 600 25px/1 var(--font-display); width: fit-content; color: var(--text-primary); white-space: nowrap; }
+.brand-symbol { display: grid; place-items: center; height: 32px; width: 32px; border-radius: 50%; color: var(--accent-on); background: var(--accent); font: italic 26px Georgia, serif; padding: 0 2px 4px 0; flex-shrink: 0; }
 .brand-dot { color: var(--rose); }
 .brand-theme-toggle {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -200,9 +200,33 @@
 .aura-button.rose { background: var(--rose-soft); color: var(--rose); border-color: transparent; }
 .aura-button:disabled { opacity: .55; }
 .aura-field { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; color: var(--text-primary); background: var(--bg-card); }
-.workspace { margin-left: 224px; padding: 12px 24px 12px; flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; }
+.workspace { margin-left: 224px; padding: 12px 24px 12px; flex: 1; min-width: 0; overflow-y: auto; overflow-x: clip; display: flex; flex-direction: column; }
 .workspace-inner { width: 100%; max-width: 1280px; margin: 0; display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .workspace:focus { outline: none; }
+.workspace:has(.calendar-workspace) {
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.calendar-workspace {
+  min-height: auto;
+  padding-bottom: 12px;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+.calendar-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background: var(--bg-root);
+  padding-top: 12px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
 .tool-card, .quick-log, .day-pill { scroll-margin-block: 110px; }
 .page-topline { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 4px; }
 .page-title { margin: 0; font: 400 24px/1.2 var(--font-display); letter-spacing: -.5px; }
@@ -1396,7 +1420,6 @@
 .biomarker-list > div { padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
 .biomarker-list dt { font-size: 12px; color: var(--text-secondary); }
 .biomarker-list dd { font-size: 15px; font-weight: 600; margin: 2px 0 0; }
-.calendar-workspace { min-height: auto; padding-bottom: 12px; }
 .app-loading { min-height: 100dvh; display: grid; place-content: center; gap: 16px; justify-items: center; color: var(--text-secondary); }
 .loading-spinner { width: 26px; height: 26px; border: 2px solid var(--border-subtle); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 .view-loading { padding: 44px; text-align: center; color: var(--text-secondary); }
@@ -1410,8 +1433,95 @@
 
 @media (min-width: 1450px) and (min-height: 900px) { .workspace { padding-top: 18px; } .diary-grid { column-gap: 24px; } }
 @media (min-width: 701px) {
+  .app-navigation,
+  .workspace {
+    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), margin-left 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
   .app-navigation { overflow: hidden; scrollbar-width: none; }
   .app-navigation::-webkit-scrollbar { display: none; }
+
+  .sidebar-collapse-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.16s, color 0.16s, border-color 0.16s;
+    flex-shrink: 0;
+  }
+  .sidebar-collapse-toggle:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  /* Barra lateral colapsada: estilo rail compacto de 68px */
+  .aura-app.sidebar-collapsed .app-navigation {
+    width: 68px !important;
+    padding: 18px 8px 14px !important;
+    align-items: center;
+  }
+  .aura-app.sidebar-collapsed .brand-header-area {
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .aura-app.sidebar-collapsed .brand-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+  }
+  .aura-app.sidebar-collapsed .brand {
+    padding: 0;
+    justify-content: center;
+  }
+  .aura-app.sidebar-collapsed .brand span:not(.brand-symbol) {
+    display: none !important;
+  }
+  .aura-app.sidebar-collapsed .brand-caption,
+  .aura-app.sidebar-collapsed .sidebar-install-banner,
+  .aura-app.sidebar-collapsed .navigation-footer {
+    display: none !important;
+  }
+  .aura-app.sidebar-collapsed .desktop-only-nav {
+    width: 100%;
+    align-items: center;
+    gap: 4px;
+  }
+  .aura-app.sidebar-collapsed .navigation-item {
+    width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-inline: auto !important;
+    border-radius: 12px !important;
+  }
+  .aura-app.sidebar-collapsed .navigation-item span {
+    display: none !important;
+  }
+  .aura-app.sidebar-collapsed .navigation-item svg {
+    margin: 0 !important;
+  }
+  .aura-app.sidebar-collapsed .navigation-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  /* Expansión del espacio de trabajo al colapsar el sidebar */
+  .aura-app.sidebar-collapsed .workspace {
+    margin-left: 68px !important;
+  }
 }
 @media (min-width: 701px) and (max-height: 850px) {
   .workspace { padding: 8px 20px 8px; }
@@ -1517,6 +1627,14 @@
 @media (max-width: 1100px) {
   .app-navigation { width: 192px; padding-inline: 14px; }
   .workspace { margin-left: 192px; padding-inline: 18px; }
+  .calendar-workspace {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .calendar-sticky-header {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
   .diary-grid { grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr); column-gap: 16px; }
   .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -1555,6 +1673,16 @@
   .navigation-item:hover { background: transparent; border: none; box-shadow: none; transform: none; }
   .navigation-item:active { transform: scale(0.92); }
   .workspace { margin-left: 0; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(120px + env(safe-area-inset-bottom, 0px)); }
+  .calendar-workspace {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .calendar-sticky-header {
+    padding-top: max(12px, env(safe-area-inset-top, 0px));
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 4px;
+  }
   .page-topline { display: none; }
   .page-title { font-size: 30px; }
   .page-subtitle { font-size: 13px; }
@@ -2446,3 +2574,374 @@
   background: linear-gradient(135deg, #f0b9b9, var(--accent)) !important;
 }
 .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; }
+
+/* ==========================================================================
+   MOBILE LANDSCAPE EXPERIENCE (Smartphones rotated horizontally: max-height: 520px)
+   ========================================================================== */
+@media (orientation: landscape) and (max-height: 520px), (max-height: 520px) and (max-width: 950px) {
+  /* Navigation: Slim 56px icon rail */
+  .app-navigation {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 56px !important;
+    padding: 8px 4px 6px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    z-index: 50 !important;
+    border-right: 1px solid var(--border-subtle) !important;
+    background: var(--bg-card) !important;
+  }
+  .brand-header-area {
+    margin-bottom: 6px !important;
+  }
+  .brand-row {
+    justify-content: center !important;
+  }
+  .brand {
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+  .brand span:not(.brand-symbol) {
+    display: none !important;
+  }
+  .brand-caption,
+  .sidebar-install-banner,
+  .navigation-footer,
+  .brand-theme-toggle {
+    display: none !important;
+  }
+  .desktop-only-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+  .navigation-item {
+    padding: 6px 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: 10px !important;
+    gap: 0 !important;
+  }
+  .navigation-item span {
+    display: none !important;
+  }
+  .navigation-item svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  .primary-navigation {
+    display: none !important;
+  }
+
+  /* Workspace: Takes the remaining 93% width, nicely padded with notch safety */
+  .workspace {
+    margin-left: 56px !important;
+    padding: 4px max(14px, env(safe-area-inset-right, 0px)) 8px max(10px, env(safe-area-inset-left, 0px)) !important;
+    overflow-y: auto !important;
+    overflow-x: clip !important;
+  }
+  .workspace-inner {
+    max-width: 100% !important;
+  }
+
+  /* Page topline: ultra-compact */
+  .page-topline {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 2px !important;
+    gap: 8px !important;
+  }
+  .page-title {
+    font-size: 15px !important;
+    line-height: 1.2 !important;
+  }
+  .page-subtitle {
+    display: none !important;
+  }
+  .connection-status {
+    font-size: 10.5px !important;
+  }
+
+  /* Date toolbar & timeline in landscape */
+  .date-toolbar {
+    min-height: 26px !important;
+    margin-bottom: 2px !important;
+    gap: 8px !important;
+  }
+  .date-heading {
+    font-size: 12px !important;
+  }
+  .today-pill-button {
+    min-height: 24px !important;
+    padding: 2px 7px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+  }
+  .date-picker {
+    min-height: 24px !important;
+    padding: 2px 6px !important;
+    font-size: 11px !important;
+    max-width: 130px !important;
+  }
+  .timeline-strip {
+    padding: 1px 2px 3px !important;
+    gap: 4px !important;
+  }
+  .day-pill {
+    width: 34px !important;
+    height: 38px !important;
+    border-radius: 8px !important;
+  }
+  .day-pill .day-label {
+    font-size: 7.5px !important;
+  }
+  .day-pill .day-number {
+    font-size: 12px !important;
+  }
+
+  /* Diary Grid: 2 columns, beautifully balanced */
+  .diary-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 1fr) !important;
+    column-gap: 14px !important;
+    row-gap: 8px !important;
+    margin-top: 2px !important;
+    align-items: start !important;
+  }
+
+  /* Hero card in landscape: compact drop dial without excessive vertical usage */
+  .cycle-summary {
+    min-height: 0 !important;
+    padding: 8px 12px !important;
+    border-radius: 14px !important;
+    height: auto !important;
+  }
+  .cycle-summary-motion {
+    gap: 2px !important;
+  }
+  .cycle-summary-top.has-ring .cycle-summary-header {
+    margin: 0 0 2px 0 !important;
+  }
+  .cycle-summary-top.has-ring .phase-chip {
+    min-height: 20px !important;
+    padding: 1px 7px !important;
+    font-size: 10px !important;
+    margin: 0 !important;
+  }
+  .cycle-summary-top.has-ring .cycle-headline {
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+  .cycle-summary-top.has-ring .cycle-copy {
+    font-size: 10.5px !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+  .cycle-summary-visuals {
+    min-height: 95px !important;
+    height: auto !important;
+    margin: 2px 0 !important;
+    padding: 0 !important;
+  }
+  .cycle-summary-visuals .wheel-wrap {
+    display: none !important;
+  }
+  .cycle-summary-visuals .drop-wrap {
+    width: clamp(90px, 20vh, 115px) !important;
+    height: calc(clamp(90px, 20vh, 115px) * 170 / 160) !important;
+    margin: 0 auto !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
+    font-size: clamp(22px, 5vh, 28px) !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring-label span {
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+  }
+  .cycle-summary-visuals .drop-wrap .cycle-ring-label .cycle-ring-context {
+    font-size: 7.5px !important;
+  }
+
+  /* Quick Log 4-button grid inside Hero */
+  .quick-log-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+    margin-top: 3px !important;
+  }
+  .quick-log {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 2px 6px !important;
+    font-size: 10.5px !important;
+    border-radius: 7px !important;
+    gap: 4px !important;
+  }
+  .quick-log svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* Past catch-up banner in landscape */
+  .past-catchup-banner {
+    padding: 4px 8px !important;
+    margin: 4px 0 0 !important;
+    border-radius: 8px !important;
+    gap: 4px 6px !important;
+  }
+  .past-catchup-badge {
+    font-size: 9px !important;
+  }
+  .past-catchup-title {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+  .past-catchup-sub {
+    display: none !important;
+  }
+  .past-catchup-actions {
+    gap: 4px !important;
+  }
+  .past-catchup-actions .aura-button {
+    min-height: 24px !important;
+    height: 24px !important;
+    padding: 1px 6px !important;
+    font-size: 10px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Secondary Column in landscape */
+  .diary-secondary {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding-top: 0 !important;
+  }
+  .advice-card {
+    padding: 8px 12px !important;
+    min-height: 0 !important;
+    border-radius: 12px !important;
+  }
+  .advice-card-header {
+    margin-bottom: 2px !important;
+  }
+  .advice-card h3 {
+    font-size: 12.5px !important;
+    line-height: 1.2 !important;
+    margin: 0 0 2px !important;
+  }
+  .advice-card p {
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+  .confidente-link {
+    padding: 6px 10px !important;
+    min-height: 34px !important;
+    border-radius: 10px !important;
+  }
+  .confidente-link strong {
+    font-size: 11.5px !important;
+  }
+  .confidente-link small {
+    font-size: 10px !important;
+  }
+  .confidente-symbol {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  /* Calendar in landscape: beautiful compact grid with sticky edge coverage */
+  .calendar-sticky-header {
+    padding-top: max(4px, env(safe-area-inset-top, 0px)) !important;
+    padding-left: max(10px, env(safe-area-inset-left, 0px)) !important;
+    padding-right: max(14px, env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: 4px !important;
+  }
+  .calendar-workspace h2 {
+    font-size: 12px !important;
+    padding: 2px 0 !important;
+  }
+  .calendar-workspace button[id^="calendar-day-"] {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+  }
+
+  /* Tools in landscape: 2 columns */
+  .tools-workspace {
+    padding-top: 0 !important;
+  }
+  .tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+  .tool-card {
+    min-height: 48px !important;
+    padding: 6px 10px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
+  }
+  .tool-card-icon {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+  }
+  .tool-card-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .tool-card strong {
+    font-size: 12px !important;
+  }
+  .tool-card span {
+    font-size: 10px !important;
+  }
+  .tool-group {
+    margin-bottom: 8px !important;
+    border-radius: 12px !important;
+  }
+  .tool-group-heading {
+    padding: 8px 12px !important;
+  }
+  .tool-group-heading h2 {
+    font-size: 13px !important;
+  }
+  .tool-group-heading p {
+    font-size: 10.5px !important;
+  }
+  .tool-group-content {
+    padding: 0 10px 10px !important;
+  }
+
+  /* Modals and bottom sheets in landscape */
+  .aura-dialog {
+    max-height: calc(100dvh - 16px) !important;
+    max-width: min(600px, 94vw) !important;
+    margin: auto !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    animation: none !important;
+  }
+  .modal-heading {
+    padding: 8px 16px !important;
+  }
+  .modal-heading h2 {
+    font-size: 15px !important;
+  }
+  .modal-footer {
+    padding: 6px 16px max(6px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
