@@ -32,7 +32,7 @@ const CALENDAR_ITEMS = [
   },
   {
     title: 'Fecha seleccionada y Hoy',
-    description: 'El fondo sólido verde oscuro marca el día seleccionado en consulta; la fecha de hoy se distingue subrayada.',
+    description: 'El fondo sólido rosa marca el día seleccionado en consulta; la fecha de hoy se distingue subrayada.',
     preview: <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent)] text-white text-xs font-bold underline decoration-2">Hoy</span>
   }
 ];
@@ -89,9 +89,9 @@ export function ColorLegendModal({
           <div className="space-y-3.5">
             {/* Tarjeta de estado actual */}
             {hasEnoughData && (
-              <div className="rounded-2xl p-3.5 border border-emerald-300/40 bg-emerald-50/70 dark:bg-emerald-950/25 text-emerald-900 dark:text-emerald-200">
+              <div className="rounded-2xl p-3.5 border border-rose-300/40 bg-rose-50/70 dark:bg-rose-950/25 text-rose-900 dark:text-rose-200">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="flex h-2 w-2 rounded-full bg-[var(--accent)]" />
                   <strong className="text-xs font-bold uppercase tracking-wider">
                     {day.isPeriod ? 'Tu regla activa' : day.isOvulationDay ? 'Ovulación estimada hoy' : day.isFertileWindow ? 'Estás en tu ventana fértil' : `En ${day.phaseName}`}
                   </strong>
@@ -112,7 +112,7 @@ export function ColorLegendModal({
                 {onOpenPhaseGuide && (
                   <button 
                     onClick={() => onOpenPhaseGuide(day.phase || 'menstrual')}
-                    className="mt-2 text-xs font-bold underline hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors"
+                    className="mt-2 text-xs font-bold underline hover:text-rose-700 dark:hover:text-rose-400 transition-colors"
                   >
                     Abrir consejos para hoy &rarr;
                   </button>
@@ -137,14 +137,14 @@ export function ColorLegendModal({
 
               <button type="button" onClick={() => onOpenPhaseGuide?.('follicular')} className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 hover:border-[var(--accent)] hover:shadow-sm transition-all group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-xs">
-                    <Leaf size={15} />
+                  <div className="flex items-center gap-2 text-[#d8727d] dark:text-[#e89da5] font-bold text-xs">
+                    <Sparkles size={15} />
                     <span>2. Fase Folicular (Días 6 a 13 aprox.)</span>
                   </div>
                   <span className="text-[10px] uppercase font-bold text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
-                  La FSH estimula la maduración de folículos ováricos. Subida continua de estrógenos que eleva la energía física, el ánimo y la claridad mental.
+                  La FSH estimula la maduración de folículos ováricos. Subida continua de estrógenos que renueva tu energía física, el ánimo y la claridad mental.
                 </p>
               </button>
 

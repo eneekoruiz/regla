@@ -8,6 +8,7 @@ import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalPrimaryButton, modalSecondaryButton, modalUnselected } from './modalStyles';
 import type { FlowIntensity } from '../../types/cycle';
 import { computeDefaultCycleStart } from '../../utils/dailyLog';
+import { hapticSelect, hapticSuccess } from '../../utils/haptics';
 
 export function DailyLogBottomSheet({
   isOpen,
@@ -108,6 +109,7 @@ export function DailyLogBottomSheet({
         }
         toast.success('Día guardado sin sangrado');
       }
+      hapticSuccess();
       onClose();
     } catch {
       toast.error('No se pudo guardar el registro');
@@ -158,7 +160,10 @@ export function DailyLogBottomSheet({
               <button
                 type="button"
                 aria-pressed={bleedingChoice === 'none'}
-                onClick={() => setBleedingChoice('none')}
+                onClick={() => {
+                  setBleedingChoice('none');
+                  hapticSelect();
+                }}
                 className={`${modalChoice} flex flex-col items-center justify-center text-center gap-1 py-2.5 ${
                   bleedingChoice === 'none'
                     ? 'border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)] font-semibold shadow-xs'
@@ -177,6 +182,7 @@ export function DailyLogBottomSheet({
                 onClick={() => {
                   setBleedingChoice('period');
                   if (isCalmDay) removeSymptom(selectedDate, 'calm_day');
+                  hapticSelect();
                 }}
                 className={`${modalChoice} flex flex-col items-center justify-center text-center gap-1 py-2.5 ${
                   bleedingChoice === 'period'
@@ -198,10 +204,11 @@ export function DailyLogBottomSheet({
                 onClick={() => {
                   setBleedingChoice('irregular');
                   if (isCalmDay) removeSymptom(selectedDate, 'calm_day');
+                  hapticSelect();
                 }}
                 className={`${modalChoice} flex flex-col items-center justify-center text-center gap-1 py-2.5 ${
                   bleedingChoice === 'irregular'
-                    ? 'border-[#d97706] bg-[#fef3c7] text-[#b45309] dark:bg-[#78350f]/30 dark:text-[#fcd34d] font-semibold shadow-xs'
+                    ? 'border-[var(--gold)] bg-[var(--gold-soft)] text-[var(--gold)] font-semibold shadow-xs'
                     : modalUnselected
                 }`}
               >
@@ -219,7 +226,10 @@ export function DailyLogBottomSheet({
                 <input
                   type="checkbox"
                   checked={isCycleStart}
-                  onChange={e => setIsCycleStart(e.target.checked)}
+                  onChange={e => {
+                    setIsCycleStart(e.target.checked);
+                    hapticSelect();
+                  }}
                   className="h-4 w-4 rounded accent-[var(--rose)] cursor-pointer"
                 />
                 <span>Es el primer día de un nuevo ciclo (inicio de regla)</span>
@@ -232,7 +242,10 @@ export function DailyLogBottomSheet({
                       key={lvl}
                       type="button"
                       aria-pressed={flow === lvl}
-                      onClick={() => setFlow(lvl)}
+                      onClick={() => {
+                        setFlow(lvl);
+                        hapticSelect();
+                      }}
                       className={`${modalChoice} py-1.5 text-center text-xs ${
                         flow === lvl
                           ? 'border-[var(--rose)] bg-[var(--rose-soft)] text-[var(--rose)] font-semibold'
@@ -260,10 +273,13 @@ export function DailyLogBottomSheet({
                       key={lvl}
                       type="button"
                       aria-pressed={flow === lvl}
-                      onClick={() => setFlow(lvl)}
+                      onClick={() => {
+                        setFlow(lvl);
+                        hapticSelect();
+                      }}
                       className={`${modalChoice} py-1.5 text-center text-xs ${
                         flow === lvl
-                          ? 'border-[#d97706] bg-[#fef3c7] text-[#b45309] dark:bg-[#78350f]/30 dark:text-[#fcd34d] font-semibold'
+                          ? 'border-[var(--gold)] bg-[var(--gold-soft)] text-[var(--gold)] font-semibold'
                           : modalUnselected
                       }`}
                     >

@@ -136,7 +136,6 @@ export function WellnessTipCard({ onOpenChat }: { onOpenChat?: (message?: string
         >
           <div className="advice-category"><Leaf size={18}/>{card.categoryTitle || card.category}</div>
           <h3>{card.headline}</h3><p>{card.advice}</p>
-          {card.focusTip && <p className="advice-tip">{card.focusTip}</p>}
           {onOpenChat && <button type="button" className="text-action" onClick={() => onOpenChat(`Cuéntame más sobre ${card.categoryTitle?.toLowerCase() || 'este consejo'}: ${card.headline}`)}><MessageCircle size={16}/>Consultar con Confidente</button>}
         </motion.article>
       </AnimatePresence>

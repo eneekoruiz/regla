@@ -169,9 +169,21 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
   );
 
   return <section ref={sectionRef} className="w-full min-w-0 text-[var(--text-primary)]" aria-label="Vista mensual del ciclo">
+    {/* Barra superior de navegación y controles: fija en la parte superior, no desaparece al scroll */}
+    <div
+      ref={stickyHeaderRef}
+      className="calendar-sticky-header shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] border-b border-[var(--border-subtle)]/50"
+    >
+      {controls}
+      {mode === 'month' && (
+        <div className="flex items-center border-t border-[var(--border-subtle)]/50 pt-1" style={{ height: 28 }}>
+          {WEEKDAYS.map(day => <span key={day} className="flex-1 text-center text-[11px] sm:text-[12px] font-medium text-[var(--text-secondary)]">{day}</span>)}
+        </div>
+      )}
+    </div>
+
     {mode === 'year' ? (
-      <div className="space-y-2.5 sm:space-y-3">
-        {controls}
+      <div className="pt-2">
         <YearViewCalendar
           initialYear={initialYear}
           onSelectMonth={key => { setRange(prev => (key < prev.start || key > prev.end) ? { start: key < prev.start ? key : prev.start, end: key > prev.end ? key : prev.end } : prev); setMode('month'); requestAnimationFrame(() => monthRefs.current[key]?.scrollIntoView({ behavior: 'auto', block: 'start' })); }}
@@ -180,13 +192,7 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
           onOpenCycleSyncing={onOpenCycleSyncing}
         />
       </div>
-    ) : <>
-      <div ref={stickyHeaderRef} className="sticky top-0 z-20 space-y-2 bg-[var(--bg-root)] pb-2">
-        {controls}
-        <div className="flex items-center border-b border-[var(--border-subtle)]" style={{ height: 32 }}>
-          {WEEKDAYS.map(day => <span key={day} className="flex-1 text-center text-[11px] sm:text-[12px] font-medium text-[var(--text-secondary)]">{day}</span>)}
-        </div>
-      </div>
+    ) : (
       <div className="pt-1">
         <div ref={topSentinelRef} aria-hidden="true" style={{ height: 1 }} />
         {monthKeys.map(key => {
@@ -196,7 +202,7 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
           const offset = (monthDate.getDay() + 6) % 7;
           const length = new Date(year, month + 1, 0).getDate();
           return <div key={key} ref={el => { monthRefs.current[key] = el; }} style={{ scrollMarginTop: stickyOffset }}>
-            <h2 className="sticky z-10 border-b border-[var(--border-subtle)]/60 bg-[var(--bg-root)] px-0.5 py-1.5 text-sm sm:text-base font-semibold capitalize" style={{ top: stickyOffset }} aria-live="off">{SPANISH_MONTHS_FULL[month]} {year}</h2>
+            <h2 className="border-b border-[var(--border-subtle)]/60 bg-[var(--bg-root)] px-0.5 py-1.5 text-sm sm:text-base font-semibold capitalize" aria-live="off">{SPANISH_MONTHS_FULL[month]} {year}</h2>
             <div className="grid grid-cols-7 gap-y-0.5 sm:gap-y-1 pt-1.5 pb-3">
               {Array.from({ length: offset }, (_, index) => <span key={'empty-' + index} aria-hidden="true" />)}
               {Array.from({ length }, (_, index) => {
@@ -234,6 +240,6 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
         })}
         <div ref={bottomSentinelRef} aria-hidden="true" style={{ height: 1 }} />
       </div>
-    </>}
+    )}
   </section>;
 };

@@ -2,6 +2,20 @@
 
 Fecha: 2026-09-23/24. Generado a partir de `tests/e2e/audit-cycle-states.spec.ts`, ejecutado contra un build de producción **recién compilado** (`npm run build` + `vite preview`), proyectos `mobile` (390×844) y `desktop` (1440×1000). Ver §7 para una segunda ronda de arreglos (24 de septiembre) tras pedir explícitamente "arregla todo".
 
+## 8. Merge con origin/main (9 commits en paralelo, mismo área de código)
+
+Al ir a subir esta rama a GitHub, el remoto tenía 9 commits nuevos (no vistos por esta sesión) que tocaban exactamente los mismos archivos: otra sesión/dispositivo había estado rediseñando la misma zona (HeroStatus, modales, banners) en paralelo. Antes de fusionar se verificó explícitamente que el bug de 3.1 (contradicción de fertilidad) **seguía presente** en el código del remoto — no era trabajo duplicado.
+
+Resueltos 16 bloques de conflicto a mano en 7 archivos, priorizando el trabajo más reciente y deliberado de origin/main en las decisiones de diseño puramente estéticas (por ejemplo: origin sustituyó el sistema de dos anillos diagonales en mobile por un único anillo maximizado — se adoptó su versión en vez de resucitar la mía) y conservando ambos lados cuando eran aditivos y no conflictivos (ej. mi banner flotante de recordatorio + su variante "urgente" del banner; mi `computeDefaultCycleStart` + su feedback háptico).
+
+Un hallazgo importante del merge: origin/main **eliminó por completo** el mecanismo del aviso flotante `today-checkin-overlay`/`useDailyGreeting` (sustituido por botones de acción permanentes en la propia tarjeta) — se quitaron los restos huérfanos (imports, estado, el hook `useDailyGreeting.ts` completo, ya sin ningún uso) para que no quedara código muerto ni duplicidad de avisos.
+
+El merge introdujo 3 violaciones de contraste **nuevas** (no relacionadas con mis cambios anteriores, surgidas del código añadido por origin): `SymptomChips.tsx` usaba `--text-muted`/`--text-tertiary`, dos tokens que ya venían con contraste insuficiente (2.98–4.35:1) independientemente del merge; y el badge del banner "urgente" (`.past-catchup-banner.is-urgent .past-catchup-badge`) no pasaba contraste una vez compuesto su propio fondo semitransparente sobre el fondo ya teñido del banner. Los tres, corregidos y verificados.
+
+También se aprovechó para revisar la coherencia de paleta: el color de "ovulación" en las píldoras de calendario era un azul corporativo (`#3b82f6`) que desentonaba con el resto de la paleta rosa/dorado/lavanda de toda la app — cambiado a un terracota cálido de la misma familia que el dorado ya usado para esa fase en el anillo principal.
+
+**Verificación final** (mobile, excluyendo el test de catálogo — ver §7.3): 22 de 23 pasan; el único fallo es el de `golden-master.spec.ts` ya documentado en §6/§7 (desbordamiento residual, decisión de producto pendiente).
+
 ## 0. Antes de leer los hallazgos: dos problemas de infraestructura que casi invalidan esta auditoría
 
 1. **`npx playwright test` estaba roto en este proyecto.** `playwright` y `@playwright/test` declaran el mismo binario `playwright`; `npx` resolvía al paquete equivocado y **ningún test, de ningún archivo, podía ni siquiera cargarse** (error `did not expect test.describe() to be called here`). Esto no lo causó esta sesión — ya bloqueaba al primer intento de auditoría. Arreglado alineando la versión de `@playwright/test` con `playwright` en `package.json` (`npm install` limpio) y usando `node node_modules/@playwright/test/cli.js test ...` en vez de `npx playwright test ...` mientras el bin-collision no se resuelva de raíz. **Recomendación: reportarlo/eliminar la dependencia duplicada, o documentar el comando alternativo**, porque tal como está, `npm run test:e2e` (que sí usa el bin correcto vía `npx`) probablemente también le pega al binario equivocado en esta máquina — revisarlo antes de confiar en CI.

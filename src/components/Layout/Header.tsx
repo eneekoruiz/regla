@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, Download, CheckCircle2, WifiOff, UserRound } from 'lucide-react';
+import { BookOpen, CalendarDays, Grid2X2, Settings, Moon, Sun, MessageCircle, Download, CheckCircle2, WifiOff, UserRound, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { usePwaInstall } from '../../hooks/usePwaInstall';
 import { useSyncExternalStore } from 'react';
 import { useCycle } from '../../hooks/useCycle';
@@ -21,13 +21,15 @@ const subscribeTheme = (onChange: () => void) => {
 };
 
 
-export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstall, online = true }: {
+export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstall, online = true, collapsed = false, onToggleCollapse }: {
   view: AppView;
   onChangeView: (view: AppView) => void;
   onOpenChat: () => void;
   onOpenProfile: () => void;
   onInstall: () => void;
   online?: boolean;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
   const { installed } = usePwaInstall();
   const { settings, updateSettings } = useCycle();
@@ -36,26 +38,42 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
 
   return (
     <>
-      <header className="app-navigation">
+      <header className={`app-navigation ${collapsed ? 'is-collapsed' : ''}`}>
         <a href="#main-content" className="skip-link">Ir al contenido</a>
 
         <div className="brand-header-area">
           <div className="brand-row">
             <button className="brand" type="button" onClick={() => onChangeView('diary')} aria-label="Aura, ir a mi diario">
               <span className="brand-symbol" aria-hidden="true">a</span>
-              <span>Aura<span className="brand-dot">.</span></span>
+              {!collapsed && <span>Aura<span className="brand-dot">.</span></span>}
             </button>
-            <button
-              type="button"
-              className="brand-theme-toggle"
-              title={dark ? 'Tema claro' : 'Tema oscuro'}
-              aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'}
-              onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
-            >
-              {dark ? <Sun size={18} aria-hidden="true"/> : <Moon size={18} aria-hidden="true"/>}
-            </button>
+            <div className="brand-actions" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {!collapsed && (
+                <button
+                  type="button"
+                  className="brand-theme-toggle"
+                  title={dark ? 'Tema claro' : 'Tema oscuro'}
+                  aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'}
+                  onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+                >
+                  {dark ? <Sun size={18} aria-hidden="true"/> : <Moon size={18} aria-hidden="true"/>}
+                </button>
+              )}
+              {onToggleCollapse && (
+                <button
+                  type="button"
+                  className="sidebar-collapse-toggle"
+                  title={collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
+                  aria-label={collapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
+                  aria-expanded={!collapsed}
+                  onClick={onToggleCollapse}
+                >
+                  {collapsed ? <PanelLeftOpen size={18} aria-hidden="true"/> : <PanelLeftClose size={18} aria-hidden="true"/>}
+                </button>
+              )}
+            </div>
           </div>
-          <span className="brand-caption">Tu espacio de salud</span>
+          {!collapsed && <span className="brand-caption">Tu espacio de salud</span>}
         </div>
 
         {!installed && (
@@ -81,6 +99,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             onClick={() => onChangeView('diary')}
             className={`navigation-item ${view === 'diary' ? 'is-active' : ''}`}
             aria-current={view === 'diary' ? 'page' : undefined}
+            title="Mi diario"
           >
             <BookOpen size={20} aria-hidden="true"/>
             <span>Mi diario</span>
@@ -91,6 +110,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             onClick={() => onChangeView('calendar')}
             className={`navigation-item ${view === 'calendar' ? 'is-active' : ''}`}
             aria-current={view === 'calendar' ? 'page' : undefined}
+            title="Calendario"
           >
             <CalendarDays size={20} aria-hidden="true"/>
             <span>Calendario</span>
@@ -101,6 +121,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             onClick={() => onChangeView('tools')}
             className={`navigation-item ${view === 'tools' ? 'is-active' : ''}`}
             aria-current={view === 'tools' ? 'page' : undefined}
+            title="Herramientas"
           >
             <Grid2X2 size={20} aria-hidden="true"/>
             <span>Herramientas</span>
@@ -111,6 +132,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             className="navigation-item"
             onClick={onOpenChat}
             aria-label="Abrir Chat"
+            title="Chat con Confidente"
           >
             <MessageCircle size={20} aria-hidden="true"/>
             <span>Chat</span>
@@ -121,6 +143,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             className="navigation-item"
             onClick={onOpenProfile}
             aria-label="Ajustes de mi perfil"
+            title="Mi perfil"
           >
             <UserRound size={20} aria-hidden="true"/>
             <span>Mi perfil</span>
@@ -132,6 +155,7 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
             className={`navigation-item ${view === 'settings' ? 'is-active' : ''}`}
             aria-current={view === 'settings' ? 'page' : undefined}
             aria-label="Configuración de la cuenta"
+            title="Configuración"
           >
             <Settings size={20} aria-hidden="true"/>
             <span>Configuración</span>
@@ -164,10 +188,21 @@ export function Header({ view, onChangeView, onOpenChat, onOpenProfile, onInstal
         </div>
 
         <div className="navigation-bottom">
+          {collapsed && (
+            <button
+              type="button"
+              className="brand-theme-toggle"
+              title={dark ? 'Tema claro' : 'Tema oscuro'}
+              aria-label={dark ? 'Activar tema claro' : 'Activar tema oscuro'}
+              onClick={() => updateSettings({ theme: dark ? 'light' : 'dark' })}
+            >
+              {dark ? <Sun size={18} aria-hidden="true"/> : <Moon size={18} aria-hidden="true"/>}
+            </button>
+          )}
           <div className="navigation-footer">
-            <span className="sidebar-connection-status" role="status">
+            <span className="sidebar-connection-status" role="status" title={online ? 'Conectado · Privado' : 'Sin conexión'}>
               {online ? <CheckCircle2 size={13} aria-hidden="true" style={{ color: 'var(--accent)' }}/> : <WifiOff size={13} aria-hidden="true" style={{ color: 'var(--rose)' }}/>}
-              <span>{online ? 'Conectado · Privado' : 'Sin conexión'}</span>
+              {!collapsed && <span>{online ? 'Conectado · Privado' : 'Sin conexión'}</span>}
             </span>
           </div>
         </div>

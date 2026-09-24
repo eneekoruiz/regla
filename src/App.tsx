@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
@@ -22,7 +22,7 @@ import { WellnessTipCard } from './components/Cards/WellnessTipCard';
 import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
-import { parseDateKey } from './utils/cycleCalculator';
+import { formatDateKey, parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, getDataStorageKey, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
 import type { ChatQuizKey } from './services/aiAgent';
@@ -71,11 +71,74 @@ const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals
 type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
+const ModalLoadingFallback = () => (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] pointer-events-none"
+    role="status"
+    aria-label="Cargando"
+  >
+    <div className="flex items-center gap-2.5 rounded-full bg-[var(--bg-card)] px-4 py-2 text-xs font-semibold text-[var(--text-primary)] shadow-xl border border-[var(--border-subtle)]">
+      <span className="loading-spinner h-3.5 w-3.5 border-2 border-[var(--border-subtle)] border-t-[var(--accent)] rounded-full animate-spin" />
+      <span>Abriendo…</span>
+    </div>
+  </div>
+);
+
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod, hasEnoughData } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('aura_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapse = useCallback(() => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('aura_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    // Prefetch frequent modal chunks to make opening instantaneous
+    const timer = setTimeout(() => {
+      import('./components/Modals/ColorLegendModal').catch(() => {});
+      import('./components/Modals/SymptothermalModal').catch(() => {});
+      import('./components/Modals/MedicationTrackerModal').catch(() => {});
+      import('./components/Modals/CycleAnalyticsModal').catch(() => {});
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const yesterdayKey = (() => {
+    const d = parseDateKey(todayDate);
+    d.setDate(d.getDate() - 1);
+    return formatDateKey(d);
+  })();
+  const yesterdayLog = logs[yesterdayKey];
+  const yesterdayHasLog = Boolean(
+    yesterdayLog && (
+      yesterdayLog.isPeriod ||
+      yesterdayLog.isIrregularBleeding ||
+      (yesterdayLog.symptoms && yesterdayLog.symptoms.length > 0) ||
+      yesterdayLog.notes ||
+      (yesterdayLog.intimacyLog && yesterdayLog.intimacyLog.activity !== 'none') ||
+      yesterdayLog.medications?.some(m => m.taken) ||
+      yesterdayLog.bbt !== undefined
+    )
+  );
+  const isToday = selectedDate === todayDate;
+  const needsYesterdayCatchup = isToday && hasEnoughData && currentDayInfo.dayOfCycle > 0 && !yesterdayHasLog;
+
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
       return !sessionStorage.getItem('aura_dismiss_install_banner');
@@ -195,7 +258,6 @@ function MainScreen() {
   }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const isFuture = selectedDate > todayDate;
-  const isToday = selectedDate === todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
   const periodLength = Math.max(1, Math.round(cycleStats.estimatedPeriodLength || settings.averagePeriodLength || 5));
   const cycleDay = currentDayInfo.dayOfCycle;
@@ -214,8 +276,17 @@ function MainScreen() {
     { id: 'chat' as const, name: 'Confidente', description: 'Preguntas y orientación general', icon: (props: LucideProps) => <DropMascot phase={currentDayInfo.phase} {...props} /> },
     { id: 'legend' as const, name: 'Fases del ciclo', description: 'Comprender tu calendario', icon: CalendarDays },
   ];
-  return <MobileContainer>
-    <Header view={view} onChangeView={changeView} onOpenChat={() => openChat()} onOpenProfile={() => openModal('profile')} onInstall={handleInstall} online={online}/>
+  return <MobileContainer className={sidebarCollapsed ? 'sidebar-collapsed' : ''}>
+    <Header
+      view={view}
+      onChangeView={changeView}
+      onOpenChat={() => openChat()}
+      onOpenProfile={() => openModal('profile')}
+      onInstall={handleInstall}
+      online={online}
+      collapsed={sidebarCollapsed}
+      onToggleCollapse={toggleSidebarCollapse}
+    />
     <main className="workspace" id="main-content" tabIndex={-1}>
       <div className="workspace-inner">
         {storageFailed && <div className="storage-alert" role="alert"><CircleAlert size={20}/><p>No se han podido guardar o recuperar algunos datos. Comprueba el espacio y los permisos de almacenamiento del navegador antes de continuar.</p><button type="button" className="aura-icon-button" aria-label="Cerrar aviso de almacenamiento" onClick={() => { clearReportedStorageError(); setStorageFailed(false); }}><X size={18}/></button></div>}
@@ -430,12 +501,24 @@ function MainScreen() {
               </HeroStatus>
               <BiomarkersCard/>
             </div>
-            {isToday && (
-              <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
-                <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-                <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
-              </aside>
-            )}
+            <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
+              <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
+              <button
+                type="button"
+                className={`confidente-link${needsYesterdayCatchup ? ' has-urgent-reminder' : ''}`}
+                onClick={() => openChat()}
+                aria-label="Abrir chat confidente"
+              >
+                <span className="confidente-symbol">
+                  <DropMascot phase={currentDayInfo.phase} size={22}/>
+                </span>
+                <span>
+                  <strong>{needsYesterdayCatchup ? 'Ayer sin registrar · Hablemos' : 'Hablemos de cómo estás'}</strong>
+                  <small>{needsYesterdayCatchup ? 'Ponte al día con tu Confidente' : 'Tu Confidente, también sin conexión'}</small>
+                </span>
+                <ArrowRight size={18}/>
+              </button>
+            </aside>
           </div>
         </>}
 
@@ -574,7 +657,7 @@ function MainScreen() {
         </ErrorBoundary>
       </div>
     </main>
-    <Suspense fallback={<Loading/>}>
+    <Suspense fallback={<ModalLoadingFallback/>}>
       {modal === 'install' && <PwaInstallModal onClose={closeModal}/>}
       {modal === 'recovery' && (recovery
         ? <CycleRecoveryBottomSheet recovery={recovery} today={todayDate} onConfirm={confirmRecovery} onSkip={dismissRecovery}/>

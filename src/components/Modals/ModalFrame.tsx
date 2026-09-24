@@ -62,7 +62,7 @@ export function DialogSurface({ isOpen, onClose, label, children, className = ''
       backdropPress.current = false;
       if (!closeDisabled) onClose();
     }}
-    className={`aura-dialog m-auto box-border w-[calc(100%_-_24px)] min-w-0 max-w-xl max-h-[calc(100dvh_-_24px)] overflow-y-auto overscroll-contain rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-card)] p-0 text-[var(--text-primary)] shadow-xl backdrop:bg-black/50 [overflow-wrap:anywhere] [&_fieldset]:min-w-0 [&_input]:max-w-full [&_select]:max-w-full [&_textarea]:max-w-full ${className}`}>
+    className={`aura-dialog m-auto box-border w-[calc(100%_-_24px)] min-w-0 max-w-xl max-h-[calc(100dvh_-_24px)] overflow-y-auto overscroll-contain rounded-2xl border border-[color-mix(in_srgb,var(--rose)_18%,var(--border-subtle))] bg-[var(--bg-card)] p-0 text-[var(--text-primary)] shadow-[0_20px_60px_-12px_rgba(0,0,0,.22),0_0_0_1px_color-mix(in_srgb,var(--rose)_8%,transparent)] backdrop:bg-black/40 [overflow-wrap:anywhere] [&_fieldset]:min-w-0 [&_input]:max-w-full [&_select]:max-w-full [&_textarea]:max-w-full ${className}`}>
     {children}
   </dialog>;
 }
@@ -75,18 +75,26 @@ interface ModalFrameProps extends Omit<DialogSurfaceProps, 'label'> {
 
 export function ModalFrame({ title, description, footer, children, errorMessage, onClearError, ...props }: ModalFrameProps) {
   return <DialogSurface {...props} errorMessage={errorMessage} onClearError={onClearError} label={title}>
-    <header className="modal-heading flex items-start justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-3 sm:px-5">
+    <header className="modal-heading flex items-start justify-between gap-3 border-b border-[color-mix(in_srgb,var(--rose)_12%,var(--border-subtle))] px-5 py-4">
       <div className="min-w-0 self-center">
-        <h2 className="text-base font-semibold leading-snug">{title}</h2>
-        {description && <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>}
+        <h2 className="text-[15px] font-semibold leading-snug tracking-[-0.2px]">{title}</h2>
+        {description && <p className="mt-0.5 text-[12.5px] leading-relaxed text-[var(--text-secondary)]">{description}</p>}
       </div>
-      <button type="button" onClick={props.onClose} disabled={props.closeDisabled} aria-label={`Cerrar ${title}`} className="aura-icon-button disabled:cursor-wait disabled:opacity-50"><X size={20} aria-hidden="true" /></button>
+      <button
+        type="button"
+        onClick={props.onClose}
+        disabled={props.closeDisabled}
+        aria-label={`Cerrar ${title}`}
+        className="mt-0.5 shrink-0 rounded-full p-1.5 text-[var(--text-secondary)] border border-transparent hover:border-[var(--border-subtle)] hover:bg-[var(--bg-card-inner)] hover:text-[var(--text-primary)] active:scale-90 disabled:cursor-wait disabled:opacity-50 transition-all duration-150"
+      >
+        <X size={18} aria-hidden="true" />
+      </button>
     </header>
     {errorMessage && (
       <div
         role="alert"
         aria-live="assertive"
-        className="modal-error-banner sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--rose)]/30 bg-[var(--rose-soft)] px-4 py-2.5 text-xs sm:text-sm font-semibold text-[var(--rose)] shadow-sm animate-modal-shake"
+        className="modal-error-banner sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[var(--rose)]/30 bg-[var(--rose-soft)] px-5 py-2.5 text-xs sm:text-sm font-semibold text-[var(--rose)] shadow-sm animate-modal-shake"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           <AlertCircle size={18} className="shrink-0 text-[var(--rose)]" aria-hidden="true" />
@@ -104,7 +112,7 @@ export function ModalFrame({ title, description, footer, children, errorMessage,
         )}
       </div>
     )}
-    <div className="min-w-0 space-y-5 px-4 py-4 sm:px-5">{children}</div>
-    {footer && <footer className="modal-footer flex min-w-0 flex-wrap items-center justify-end gap-2 border-t border-[var(--border-subtle)] bg-[var(--bg-card)] px-4 py-3 sm:px-5 [&>button]:max-w-full">{footer}</footer>}
+    <div className="min-w-0 space-y-5 px-5 py-5">{children}</div>
+    {footer && <footer className="modal-footer flex min-w-0 flex-wrap items-center justify-end gap-2.5 border-t border-[color-mix(in_srgb,var(--rose)_10%,var(--border-subtle))] bg-[var(--bg-card)] px-5 py-3.5 [&>button]:max-w-full">{footer}</footer>}
   </DialogSurface>;
 }
