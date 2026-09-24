@@ -75,9 +75,11 @@ test.describe('Hero dials dynamic hierarchy and space usage', () => {
     // Position check: Wheel must be to the left of Gota
     expect(wheelBox!.x).toBeLessThan(gotaBox!.x);
 
-    // Verify wheel text contains VENTANA FÉRTIL and ovulación estimada
-    await expect(wheel.locator('.cycle-ring-label')).toContainText('VENTANA FÉRTIL');
-    await expect(wheel.locator('.cycle-ring-label')).toContainText('ovulación estimada');
+    // Verify wheel text names the fertile window and mentions ovulation. Case-insensitive:
+    // the CSS renders this uppercase (text-transform), but the DOM text itself is sentence
+    // case, and toContainText compares text content, not the visually rendered case.
+    await expect(wheel.locator('.cycle-ring-label')).toContainText(/ventana fértil/i);
+    await expect(wheel.locator('.cycle-ring-label')).toContainText(/ovulación/i);
 
     // Overflow check on viewport
     const overflow = await page.evaluate(() => ({

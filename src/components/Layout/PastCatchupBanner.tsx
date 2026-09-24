@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 
 export interface PastCatchupAction {
   label: string;
@@ -10,19 +10,26 @@ export interface PastCatchupAction {
 /**
  * Shared "you might have missed something" banner used on the diary hero for three
  * cases: a likely-missed period a month ago, yesterday left unlogged, and any other
- * past day left unlogged. Kept as one component so the markup, accessibility
+ * past day left unlogged. Also reused (with `onDismiss`) as the floating check-in
+ * pop-up shown once per day on today's view, so the markup, accessibility
  * attributes and styling only need to be correct in one place.
  */
-export function PastCatchupBanner({ tone, badge, title, sub, actions }: {
+export function PastCatchupBanner({ tone, badge, title, sub, actions, onDismiss }: {
   tone?: 'gold';
   badge: ReactNode;
   title: string;
   sub: string;
   actions: PastCatchupAction[];
+  onDismiss?: () => void;
 }) {
   const goldStyle = tone === 'gold' ? { background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' } : undefined;
   return (
     <div className="past-catchup-banner" style={goldStyle} role="region" aria-label="Aviso de registro pasado">
+      {onDismiss && (
+        <button type="button" className="past-catchup-dismiss" onClick={onDismiss} aria-label="Cerrar aviso">
+          <X size={15} aria-hidden="true" />
+        </button>
+      )}
       <div className="past-catchup-body">
         <div className="past-catchup-badge" style={tone === 'gold' ? { color: 'var(--gold)' } : undefined}>
           <Clock size={13} aria-hidden="true" />

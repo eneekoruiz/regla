@@ -89,7 +89,12 @@ export async function capture(page: Page, testInfo: TestInfo, name: string) {
 }
 
 export async function openSettings(page: Page, tab?: 'Mi ciclo' | 'Cuenta' | 'Privacidad' | 'Alertas') {
-  await page.getByRole('button', { name: /Ajustes de la aplicación|Ajustes/ }).click();
+  // The settings button's own aria-label is "Configuración de la cuenta" — the old
+  // /Ajustes/ pattern here was stale (nothing in the nav is labeled "Ajustes" alone
+  // anymore) and, worse, matched the UNRELATED "Mi perfil" button by accident,
+  // because ITS aria-label happens to be "Ajustes de mi perfil". That silently
+  // opened the wrong modal in every test that calls this helper.
+  await page.getByRole('button', { name: 'Configuración de la cuenta' }).click();
   await expect(page.getByRole('region', { name: 'Ajustes de la aplicación' })).toBeVisible();
   if (tab) {
     await page.getByRole('button', { name: tab, exact: true }).click();
@@ -138,7 +143,8 @@ export async function openTool(page: Page, name: RegExp) {
     if (await trigger.count()) {
       if (title === 'Cuestionarios de bienestar') {
         await trigger.click();
-        await expect(page.getByRole('dialog', { name: 'Chat' })).toBeVisible();
+        // ChatDrawer.tsx's dialog heading (id="chat-title") reads "Confidente", not "Chat".
+        await expect(page.getByRole('dialog', { name: 'Confidente' })).toBeVisible();
         await page.getByRole('button', { name: 'Abrir chequeo nuevo', exact: true }).click();
       } else {
         await trigger.click();

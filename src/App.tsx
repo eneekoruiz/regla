@@ -93,35 +93,21 @@ function MainScreen() {
   const [quizId, setQuizId] = useState(HEALTH_QUIZZES.stress.id);
   const [openToolGroup, setOpenToolGroup] = useState<string>('Conoce tu ciclo');
   const [carePhase, setCarePhase] = useState<CyclePhase>('menstrual');
-  const [hasAutoOpenedDaily, setHasAutoOpenedDaily] = useState(false);
   const [recoveryDismissed, setRecoveryDismissed] = useState(false);
   const recoveryKey = getDataStorageKey(`regla_catchup_${todayDate}`);
   const recovery = recoveryDismissed || (typeof localStorage !== 'undefined' && localStorage.getItem(recoveryKey) === 'true')
     ? null
     : detectCycleRecovery(cycleStats, todayDate);
 
-  useEffect(() => {
-    if (!hasAutoOpenedDaily && !recovery && view === 'diary' && todayDate) {
-      const todayLog = logs[todayDate];
-      const hasLoggedToday = Boolean(
-        todayLog?.isPeriod ||
-        todayLog?.isIrregularBleeding ||
-        (todayLog?.symptoms && todayLog.symptoms.length > 0) ||
-        todayLog?.notes ||
-        todayLog?.bbt ||
-        (todayLog?.intimacyLog && todayLog.intimacyLog.activity !== 'none')
-      );
-      if (!hasLoggedToday) {
-        const timer = setTimeout(() => {
-          setModal('daily');
-          setHasAutoOpenedDaily(true);
-        }, 350);
-        return () => clearTimeout(timer);
-      }
-      const timer = setTimeout(() => setHasAutoOpenedDaily(true), 0);
-      return () => clearTimeout(timer);
-    }
-  }, [hasAutoOpenedDaily, recovery, view, logs, todayDate]);
+  // Antes había aquí un efecto que, si hoy no tenía nada registrado, abría a la
+  // fuerza el modal de registro diario 350ms después de entrar en la app. Se ha
+  // quitado: además de ser intrusivo (un modal a pantalla completa cada vez que
+  // abrías la app), si la persona lo cerraba sin tocar nada se guardaba en
+  // silencio "Día normal sin molestias" para hoy, dando un dato incorrecto y
+  // haciendo que el aviso de "todavía no has registrado tu regla" desapareciera
+  // aunque no se hubiera registrado nada de verdad. El aviso flotante y
+  // descartable de HeroStatus (today-checkin-overlay) cubre ahora este mismo
+  // caso sin ninguno de esos dos problemas.
   useEffect(() => {
     if (!recovery || view !== 'diary' || modal !== null) return;
     const timer = window.setTimeout(() => setModal('recovery'), 0);
@@ -209,6 +195,7 @@ function MainScreen() {
   }, [logs]);
   const dateLabel = parseDateKey(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
   const isFuture = selectedDate > todayDate;
+  const isToday = selectedDate === todayDate;
   const cycleLength = Math.max(1, Math.round(cycleStats.estimatedCycleLength || settings.averageCycleLength || 28));
   const periodLength = Math.max(1, Math.round(cycleStats.estimatedPeriodLength || settings.averagePeriodLength || 5));
   const cycleDay = currentDayInfo.dayOfCycle;
@@ -310,7 +297,7 @@ function MainScreen() {
         {view === 'diary' && <HorizontalTimeline/>}
         {view === 'diary' && <>
           {healthAdvice && <div className="health-notice" role="note" aria-label="Orientación sobre sangrado muy abundante"><CircleAlert size={22}/><div><h3>{healthAdvice.headline}</h3><p>{healthAdvice.advice}</p></div></div>}
-          <div className="diary-grid">
+          <div className={`diary-grid${isToday ? '' : ' single-column'}`}>
             <div className="diary-primary">
               <HeroStatus
                 onRecordPeriod={() => openBleedingModal('period')}
@@ -395,7 +382,7 @@ function MainScreen() {
                     <p className="future-day-note">
                       Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
                     </p>
-                  ) : (
+                  ) : !isToday ? null : (
                     <div className="quick-log-grid">
                       <button
                         type="button"
@@ -443,10 +430,12 @@ function MainScreen() {
               </HeroStatus>
               <BiomarkersCard/>
             </div>
-            <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
-              <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
-              <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
-            </aside>
+            {isToday && (
+              <aside className="diary-secondary" aria-label="Cuidados y acompañamiento">
+                <WellnessTipCard key={selectedDate} onOpenChat={openChat}/>
+                <button type="button" className="confidente-link" onClick={() => openChat()} aria-label="Abrir chat confidente"><span className="confidente-symbol"><DropMascot phase={currentDayInfo.phase} size={22}/></span><span><strong>Hablemos de cómo estás</strong><small>Tu Confidente, también sin conexión</small></span><ArrowRight size={18}/></button>
+              </aside>
+            )}
           </div>
         </>}
 

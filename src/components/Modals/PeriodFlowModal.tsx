@@ -5,6 +5,7 @@ import { useToast } from '../../context/toast';
 import type { FlowIntensity } from '../../types/cycle';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalSecondaryButton, modalUnselected } from './modalStyles';
+import { computeDefaultCycleStart } from '../../utils/dailyLog';
 
 const FLOW_LEVELS: { id: FlowIntensity; label: string; count: number }[] = [
   { id: 'spotting', label: 'Manchado', count: 1 },
@@ -31,7 +32,7 @@ export function PeriodFlowModal({
     log?.isIrregularBleeding ? 'irregular' : log?.isPeriod ? 'period' : initialType
   );
   const [flow, setFlow] = useState<FlowIntensity>(log?.flow || settings.typicalFlowIntensity || 'medium');
-  const [isCycleStart, setIsCycleStart] = useState(Boolean(log?.isCycleStart || settings.lastPeriodStartDate === selectedDate));
+  const [isCycleStart, setIsCycleStart] = useState(computeDefaultCycleStart(selectedDate, logs));
   const [error, setError] = useState('');
   const selected = 'border-[var(--rose)] bg-[var(--rose-soft)] text-[var(--rose)]';
   const save = (remove = false) => {

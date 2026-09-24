@@ -1,4 +1,29 @@
 import type { CervicalMucusType, DailyLog, FlowIntensity, SymptomItem } from '../types/cycle';
+import { formatDateKey, parseDateKey } from './dateKey';
+
+/**
+ * ¿Debe marcarse "primer día de un nuevo ciclo" por defecto al registrar
+ * sangrado en `selectedDate`? Antes se comparaba con
+ * `settings.lastPeriodStartDate`, que casi nunca coincide con un sangrado
+ * nuevo todavía sin registrar — así que un día claramente atrasado (que
+ * llevaba mucho sin período confirmado) se guardaba como continuación en
+ * vez de como inicio, y avisos como "posible regla olvidada" seguían
+ * apareciendo aunque la usuaria ya hubiera dicho que sí tuvo la regla.
+ *
+ * La señal fiable es mucho más simple: si el día anterior NO estaba
+ * registrado como período, este es, por definición, el primer día de
+ * sangrado — así que debe ser el inicio de ciclo por defecto. Si ya existe
+ * un registro guardado para esta fecha, se respeta su elección anterior.
+ */
+export function computeDefaultCycleStart(selectedDate: string, logs: Record<string, DailyLog>): boolean {
+  const existing = logs[selectedDate];
+  if (existing?.isPeriod) return Boolean(existing.isCycleStart);
+  const prevDate = parseDateKey(selectedDate);
+  prevDate.setDate(prevDate.getDate() - 1);
+  const prevKey = formatDateKey(prevDate);
+  const previousDayIsPeriod = Boolean(prevKey && logs[prevKey]?.isPeriod);
+  return !previousDayIsPeriod;
+}
 
 /** A correction clears obsolete flags and tags while preserving unrelated observations. */
 export function updateBleedingLog(log: DailyLog, observation?: { flow: FlowIntensity; isCycleStart: boolean; isIrregular: boolean }): DailyLog {

@@ -105,7 +105,9 @@ export function ColorLegendModal({
                         ? 'Día fértil: los espermatozoides pueden sobrevivir varios días en moco fértil a la espera de la ovulación.'
                         : day.phase === 'follicular'
                           ? `Día ${day.dayOfCycle} de tu ciclo. Crecimiento folicular y aumento de estrógenos antes de la ventana fértil.`
-                          : `Día ${day.dayOfCycle} de tu ciclo. Fase lútea post-ovulatoria dominada por la progesterona.`}
+                          : day.phase === 'unknown'
+                            ? 'Con retraso sobre tu ciclo habitual (o con un perfil de ciclo irregular) no podemos estimar con confianza en qué fase estás.'
+                            : `Día ${day.dayOfCycle} de tu ciclo. Fase lútea post-ovulatoria dominada por la progesterona.`}
                 </p>
                 {onOpenPhaseGuide && (
                   <button 

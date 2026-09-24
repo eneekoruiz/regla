@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus, X, AlertTriangle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, Check, ChevronDown, ClipboardList, Clock, Droplets, NotebookPen, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
+import { useDailyGreeting } from '../../hooks/useDailyGreeting';
 import { diffDays, formatDateKey, isDateKey, parseDateKey } from '../../utils/dateKey';
 import { calculateUpcomingMilestones } from '../../services/predictiveEngine';
+import { BIOLOGICAL_LABELS } from '../../services/biologicalMachine';
 import { PastCatchupBanner, type PastCatchupAction } from './PastCatchupBanner';
 import { moodForPhase } from '../../utils/mascotFace';
 import { MascotFaceGroup } from '../Mascot/MascotFaceGroup';
@@ -28,10 +31,6 @@ export function HeroStatus({
   const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData, denyPeriodOnDate, logBleedingForDate, setSelectedDate } = useCycle();
   const toast = useToast();
   const [confirmedEndFeedback, setConfirmedEndFeedback] = useState<string | null>(null);
-  // Mejora 6: estado para doble confirmación antes de borrar registro de regla
-  const [confirmDeletePending, setConfirmDeletePending] = useState(false);
-  // Reset automático al cambiar de fecha para evitar que quede activo el botón de "¿Segura?"
-  // cuando se navega a otro día
 
 
   const hasCycle = hasEnoughData && day.dayOfCycle > 0;
@@ -161,6 +160,86 @@ export function HeroStatus({
     }
   };
 
+  // Aviso flotante de "registra tu día" al entrar en la app: solo si hoy (que es
+  // siempre selectedDate en este punto, porque isToday más abajo lo exige) todavía
+  // no tiene nada anotado y el ciclo tiene algo relevante que sugerir. Se muestra
+  // una vez al día (persistido en localStorage por useDailyGreeting) y se puede
+  // cerrar sin más.
+  const dailyCheckin = useDailyGreeting(todayDate, hasAnyLog, false);
+  // Este aviso flotante y las notificaciones (toasts) globales viven en dos
+  // sitios distintos del árbol (aquí, vía portal; el toast en su propio
+  // ToastContainer) pero ambos se anclan arriba del todo en position:fixed.
+  // Si un toast salta mientras este aviso sigue abierto (p.ej. guardas una
+  // nota desde la barra inferior sin haber cerrado el aviso), sin esto se
+  // dibujarían justo uno encima del otro. Publicamos la altura real del
+  // aviso como variable CSS para que .toast-stack se desplace exactamente
+  // lo necesario, en vez de un margen fijo adivinado que se quedaría corto
+  // o sobraría según cuánto texto tenga el aviso ese día.
+  const checkinResizeObserverRef = useRef<ResizeObserver | null>(null);
+  const checkinNodeRef = (node: HTMLDivElement | null) => {
+    checkinResizeObserverRef.current?.disconnect();
+    checkinResizeObserverRef.current = null;
+    if (!node) {
+      document.documentElement.style.setProperty('--checkin-banner-offset', '0px');
+      return;
+    }
+    const publishOffset = () => {
+      document.documentElement.style.setProperty('--checkin-banner-offset', `${Math.ceil(node.getBoundingClientRect().height) + 8}px`);
+    };
+    publishOffset();
+    const observer = new ResizeObserver(publishOffset);
+    observer.observe(node);
+    checkinResizeObserverRef.current = observer;
+  };
+  useEffect(() => () => {
+    checkinResizeObserverRef.current?.disconnect();
+    document.documentElement.style.setProperty('--checkin-banner-offset', '0px');
+  }, []);
+  // Si además hace tanto que no se registra nada que huele a un periodo entero
+  // olvidado (misma condición que isLikelyMissedOnePeriod, calculada más abajo:
+  // repetida aquí en vez de reordenar todo el archivo), no mostramos este aviso
+  // encima del banner dorado de "posible regla olvidada" — ese ya cubre el
+  // mismo caso con una acción más completa (recuperar el mes), así que mostrar
+  // los dos a la vez sería justo la duplicidad que queremos evitar.
+  const likelyMissedWholePeriod = hasCycle && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
+  const showTodayCheckin = isToday && hasCycle && !isRecorded && !likelyMissedWholePeriod && (awaitingPeriod || day.isPeriod || daysToNext <= 4) && dailyCheckin.isOpen;
+  const todayCheckinContent: { badge: string; title: string; sub: string; actions: PastCatchupAction[] } | null = !showTodayCheckin
+    ? null
+    : awaitingPeriod
+    ? {
+        badge: 'REGISTRO DE HOY',
+        title: '¿Te ha bajado la regla hoy?',
+        sub: 'Regístralo cuanto antes para que tus previsiones no pierdan precisión.',
+        actions: [
+          { label: 'Me ha bajado hoy la regla', icon: <Droplets size={14} />, onClick: () => { dailyCheckin.dismiss(); onRecordPeriod(); } },
+          { label: 'Se me está retrasando la regla', icon: <Clock size={14} />, onClick: () => { dailyCheckin.dismiss(); setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.'); } }
+        ]
+      }
+    : day.isPeriod
+    ? {
+        badge: 'REGISTRO DE HOY',
+        title: cycleDay > 1 ? '¿Sigues con la regla?' : '¿Te ha bajado la regla?',
+        sub: 'Confírmalo para mantener tu calendario al día.',
+        actions: [
+          { label: cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla', icon: <Droplets size={14} />, onClick: () => { dailyCheckin.dismiss(); onRecordPeriod(); } },
+          cycleDay > 1
+            ? { label: 'Ya se me ha terminado', icon: <Check size={14} />, onClick: () => { dailyCheckin.dismiss(); handleConfirmPeriodEndToday(); } }
+            : { label: 'Se me está retrasando la regla', icon: <Clock size={14} />, onClick: () => {
+                dailyCheckin.dismiss();
+                denyPeriodOnDate(todayDate);
+                setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
+              } }
+        ]
+      }
+    : {
+        badge: 'REGISTRO DE HOY',
+        title: '¿Se te ha adelantado la regla?',
+        sub: 'Faltan pocos días para tu próxima regla prevista.',
+        actions: [
+          { label: 'Se me ha adelantado la regla', icon: <Droplets size={14} />, onClick: () => { dailyCheckin.dismiss(); onRecordPeriod(); } }
+        ]
+      };
+
   let title = hasCycle ? (daysToNext > 0 ? `Quedan ${daysToNext} días para la regla` : 'Tu ciclo actual') : 'Tu primer registro';
   let copy = hasCycle ? '' : 'Anota cuándo empezó tu regla. No necesitas conocer todavía la duración de tu ciclo.';
 
@@ -179,7 +258,12 @@ export function HeroStatus({
         title = 'Previsión de regla no confirmada';
         copy = 'Había previsión para esta fecha. Confirma si te bajó.';
       } else {
-        title = hasAnyAnnotation ? 'Anotaciones de este día' : 'Día registrado';
+        // OJO: si hasAnyAnnotation es false aquí es que este día no tiene NADA
+        // anotado (ni regla ni síntomas ni notas): decir "Día registrado" sería
+        // falso y contradice justo al aviso de "sin registrar" que aparece debajo
+        // (catchupBanner). Antes lo decía igualmente; ahora coincide con el resto
+        // de la pantalla.
+        title = hasAnyAnnotation ? 'Anotaciones de este día' : 'Sin nada registrado';
         copy = '';
       }
     } else if (isFuture) {
@@ -281,7 +365,7 @@ export function HeroStatus({
     }
   }
 
-  const isLikelyMissedOnePeriod = hasCycle && isToday && elapsedDays > cycleLength + 10 && elapsedDays < cycleLength * 2.5;
+  const isLikelyMissedOnePeriod = isToday && likelyMissedWholePeriod;
   const isAnnotated = Boolean(hasAnyLog);
   const hasFreeHeroSpace = isAnnotated || isFuture || !isToday;
 
@@ -388,6 +472,24 @@ export function HeroStatus({
         context: 'próxima ovulación'
       };
     }
+    if (day.phase === 'unknown') {
+      // biologicalReducer returns 'unknown' (never a phase guess) whenever the
+      // evidence is uncertain — overdue past a full cycle, or an irregular/PCOS
+      // profile. calculateUpcomingMilestones() separately zeroes out
+      // daysUntilNextOvulation once a cycle is overdue, and that same 0 doubles as
+      // "ovulating today" below — so without this branch, an overdue or irregular
+      // cycle rendered a confident "Ventana fértil · Hoy · pico fértil" right next
+      // to the drop's own "esperando/de retraso" message: two contradictory
+      // fertility signals shown at once.
+      return {
+        kicker: BIOLOGICAL_LABELS.unknown,
+        kickerColor: '#9d8189',
+        number: '—',
+        isText: true,
+        unit: 'a la espera',
+        context: 'de tu próximo registro'
+      };
+    }
     if (day.isOvulationDay || daysToOvu === 0) {
       return {
         kicker: 'Ventana fértil',
@@ -449,7 +551,32 @@ export function HeroStatus({
             : 'var(--phase-ink)';
   const dropMood = moodForPhase(hasCycle ? day.phase : 'follicular');
 
-  return <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
+  return <>
+    {createPortal(
+      <AnimatePresence>
+        {todayCheckinContent && (
+          <motion.div
+            key="today-checkin"
+            ref={checkinNodeRef}
+            className="today-checkin-overlay"
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            <PastCatchupBanner
+              badge={todayCheckinContent.badge}
+              title={todayCheckinContent.title}
+              sub={todayCheckinContent.sub}
+              actions={todayCheckinContent.actions}
+              onDismiss={dailyCheckin.dismiss}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+    <section className={`cycle-summary${hasCycle ? '' : ' is-first-record'}${hasFreeHeroSpace ? ' is-annotated' : ''}`} data-phase={hasCycle && !awaitingPeriod ? day.phase : 'unknown'} aria-labelledby="cycle-title">
     <motion.div
       key={selectedDate}
       initial={{ opacity: 0, y: 5 }}
@@ -483,7 +610,9 @@ export function HeroStatus({
                         ? 'Ventana Fértil'
                         : day.phase === 'follicular'
                           ? 'Fase Folicular'
-                          : 'Fase Lútea'}
+                          : day.phase === 'unknown'
+                            ? BIOLOGICAL_LABELS.unknown
+                            : 'Fase Lútea'}
                 <ChevronDown size={13} aria-hidden="true" style={{ opacity: 0.7 }}/>
               </button>
             ) : null}
@@ -496,7 +625,7 @@ export function HeroStatus({
         {/* Cuando hay topContent (días futuros con nota de fase), ocultamos el círculo de fases
             en luteal y periodo porque la información ya está arriba — solo mostramos la gota */}
         {showRing && (
-          <div className={`cycle-summary-visuals ${(!isFertilePriority || (topContent && (day.phase === 'luteal' || day.isPeriod))) ? 'single-ring' : ''}`}>
+          <div className={`cycle-summary-visuals ${(topContent && (day.phase === 'luteal' || day.isPeriod)) ? 'single-ring' : ''}`}>
             {/* Elemento 1: Gota de regla / cuenta atrás de regla */}
             <div className={`cycle-ring-wrap drop-wrap ${isPeriodPriority ? 'is-primary' : 'is-secondary'}`}>
               <div
@@ -735,104 +864,37 @@ export function HeroStatus({
           </div>
         )}
 
-        {/* Acciones contextuales o cápsulas de resumen del ciclo debajo de los diales */}
+        {/* Acciones contextuales o cápsulas de resumen del ciclo debajo de los diales.
+            Solo se queda aquí, fija en la tarjeta principal, la edición de un día que
+            YA está registrado (isRecorded): es corregir algo existente, tiene sentido
+            que esté siempre a mano. El resto de sugerencias ("¿te ha bajado hoy?",
+            "¿se te ha adelantado?"...) son para un día TODAVÍA sin anotar, así que se
+            han movido al aviso flotante de más abajo (today-checkin-overlay), que
+            aparece solo una vez al entrar y se puede cerrar, para que esta pantalla
+            no esté siempre cargada de botones. */}
         {showRing && hasCycle && (
           <div className="cycle-summary-bottom-actions">
-            {isToday && (isRecorded || awaitingPeriod || day.isPeriod || daysToNext <= 4) ? (
+            {isToday && isRecorded ? (
               <div className="hero-quick-actions">
-                {isRecorded ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                      Editar flujo
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={handleConfirmPeriodEndToday}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                      title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
-                    >
-                      <Check size={14} style={{ color: 'var(--accent)' }} />
-                      Hoy ha terminado mi regla
-                    </button>
-                  </>
-                ) : awaitingPeriod ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm primary"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} />
-                      Me ha bajado hoy la regla
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={() => {
-                        setConfirmedEndFeedback('Anotado retraso: el ciclo se recalcula sin prisas.');
-                      }}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Clock size={14} />
-                      Se me está retrasando la regla
-                    </button>
-                  </>
-                ) : day.isPeriod ? (
-                  <>
-                    <button
-                      type="button"
-                      className="aura-button sm primary"
-                      onClick={onRecordPeriod}
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      <Droplets size={14} />
-                      {cycleDay > 1 ? 'Sigo con la regla' : 'Me ha bajado la regla'}
-                    </button>
-                    <button
-                      type="button"
-                      className="aura-button sm"
-                      onClick={
-                        cycleDay > 1
-                          ? handleConfirmPeriodEndToday
-                          : () => {
-                              denyPeriodOnDate(todayDate);
-                              setConfirmedEndFeedback('Entendido: previsión retirada. Se ajustará si se está retrasando.');
-                            }
-                      }
-                      style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    >
-                      {cycleDay > 1 ? (
-                        <>
-                          <Check size={14} style={{ color: 'var(--accent)' }} />
-                          Ya se me ha terminado
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={14} />
-                          Se me está retrasando la regla
-                        </>
-                      )}
-                    </button>
-                  </>
-                ) : daysToNext <= 4 ? (
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={onRecordPeriod}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                    Se me ha adelantado la regla
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={onRecordPeriod}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Droplets size={14} style={{ color: 'var(--rose)' }} />
+                  Editar flujo
+                </button>
+                <button
+                  type="button"
+                  className="aura-button sm"
+                  onClick={handleConfirmPeriodEndToday}
+                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  title="Indicar que hoy ya no tienes regla y recalcular tu ciclo"
+                >
+                  <Check size={14} style={{ color: 'var(--accent)' }} />
+                  Hoy ha terminado mi regla
+                </button>
               </div>
             ) : (
               <div className="hero-cycle-highlights" aria-label="Resumen del ciclo">
@@ -858,17 +920,16 @@ export function HeroStatus({
                           ? 'Ventana fértil'
                           : day.phase === 'follicular'
                             ? 'Fase folicular'
-                            : 'Fase lútea'}
+                            : day.phase === 'unknown'
+                              ? BIOLOGICAL_LABELS.unknown
+                              : 'Fase lútea'}
                   </span>
                 </div>
                 <div className="hero-highlight-chip">
                   <span className="hero-chip-text">
-                    {cycleDay > 0 ? `Día ${cycleDay} de ${cycleLength}` : `Ciclo de ${cycleLength} días`}
-                  </span>
-                </div>
-                <div className="hero-highlight-chip">
-                  <span className="hero-chip-text">
-                    {daysToNext === 1 ? '1 día para la regla' : `${daysToNext} días para la regla`}
+                    {awaitingPeriod
+                      ? `${Math.max(1, elapsedDays - cycleLength)} ${elapsedDays - cycleLength === 1 ? 'día de retraso' : 'días de retraso'}`
+                      : cycleDay > 0 ? `Día ${cycleDay} de ${cycleLength}` : `Ciclo de ${cycleLength} días`}
                   </span>
                 </div>
               </div>
@@ -882,127 +943,25 @@ export function HeroStatus({
           </p>
         )}
 
-        {/* Acciones para DÍA PASADO */}
-        {isPast && (
-          <div className="hero-quick-actions" style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            {isRecorded || isIrregular ? (
-              <>
-                <button
-                  type="button"
-                  className="aura-button sm"
-                  onClick={onRecordPeriod}
-                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                  Editar flujo
-                </button>
-                {/* Mejora 6: doble confirmación antes de borrar */}
-                {confirmDeletePending ? (
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => {
-                      const start = cycleStats.lastVerifiedPeriodStart;
-                      const yesterday = parseDateKey(selectedDate);
-                      yesterday.setDate(yesterday.getDate() - 1);
-                      const yesterdayStr = formatDateKey(yesterday);
-                      if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
-                        logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
-                        toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
-                      } else {
-                        toast.success('Registro eliminado');
-                      }
-                      denyPeriodOnDate(selectedDate);
-                      setConfirmDeletePending(false);
-                      try { navigator.vibrate?.([20, 40, 20]); } catch {}
-                    }}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
-                    title="Toca de nuevo para confirmar el borrado"
-                  >
-                    <AlertTriangle size={14} />
-                    ¿Segura? Confirmar
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => setConfirmDeletePending(true)}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                    title="Quitar registro de regla para esta fecha"
-                  >
-                    <X size={14} />
-                    No tuve regla este día
-                  </button>
-                )}
-              </>
-            ) : day.isPeriod ? (
-              <>
-                <button
-                  type="button"
-                  className="aura-button sm primary"
-                  onClick={onRecordPeriod}
-                  style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  <Droplets size={14} />
-                  Tuve regla este día
-                </button>
-                {confirmDeletePending ? (
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => {
-                      const start = cycleStats.lastVerifiedPeriodStart;
-                      const yesterday = parseDateKey(selectedDate);
-                      yesterday.setDate(yesterday.getDate() - 1);
-                      const yesterdayStr = formatDateKey(yesterday);
-                      if (start === yesterdayStr && logs[yesterdayStr]?.isPeriod) {
-                        logBleedingForDate(yesterdayStr, { flow: 'spotting', isCycleStart: false, isIrregular: true });
-                        toast.success('El sangrado de ayer se ha cambiado a manchado irregular al durar solo 1 día.');
-                      }
-                      denyPeriodOnDate(selectedDate);
-                      setConfirmDeletePending(false);
-                      try { navigator.vibrate?.([20, 40, 20]); } catch {}
-                    }}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--gold-soft)', color: 'var(--gold)', borderColor: 'var(--gold)' }}
-                  >
-                    <AlertTriangle size={14} />
-                    ¿Segura? Confirmar
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="aura-button sm"
-                    onClick={() => setConfirmDeletePending(true)}
-                    style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    <Check size={14} />
-                    No tuve regla
-                  </button>
-                )}
-              </>
-            ) : (
-              <button
-                type="button"
-                className="aura-button sm"
-                onClick={onRecordPeriod}
-                style={{ fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <Droplets size={14} style={{ color: 'var(--rose)' }} />
-                ¿Tuviste regla este día?
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* En días pasados sin anillo: panel compacto de anotaciones y síntomas */}
-        {!showRing && isPast && (
+        {/* DÍA PASADO: una única tarjeta, sin duplicar controles.
+            Si hay algo registrado -> resumen + un solo botón "Editar este día"
+            (el editor ya permite cambiar flujo, quitar la regla con "Sin sangrado",
+            añadir síntomas, notas y medicación). Si no hay nada -> lo cubre
+            únicamente el catchupBanner de más abajo, con su propio Sí/No. */}
+        {isPast && hasAnyLog && (
           <div className="hero-side-panel is-past">
             <div className="hero-panel-header">
               <ClipboardList size={15} />
-              <span>Anotaciones</span>
+              <span>{daysAgoLabel}</span>
             </div>
-            {hasAnyAnnotation ? (
-              <div className="hero-panel-body">
+            <div className="hero-panel-body">
+              {(isRecorded || isIrregular) && (
+                <p className="hero-panel-period-summary">
+                  <Droplets size={13} style={{ color: 'var(--rose)' }} />
+                  {isIrregular ? 'Sangrado irregular registrado' : `Regla registrada · flujo ${flowName}`}
+                </p>
+              )}
+              {hasAnyAnnotation && (
                 <ul className="hero-symptom-chips">
                   {symptoms.map(s => <li key={s.id}>{s.name}</li>)}
                   {hasIntimacy && <li>Intimidad</li>}
@@ -1010,49 +969,49 @@ export function HeroStatus({
                   {hasBbt && <li>{log?.bbt} °C</li>}
                   {hasQuizResults && <li>{log?.quizResults?.length} test{log!.quizResults!.length > 1 ? 's' : ''}</li>}
                 </ul>
-                {notes && <p className="hero-notes-preview">"{notes}"</p>}
-                <button
-                  type="button"
-                  className="hero-panel-action-btn"
-                  onClick={onOpenDailyModal}
-                >
-                  <NotebookPen size={13} />
-                  Ver o editar síntomas
-                  <ArrowRight size={12} />
-                </button>
-              </div>
-            ) : (
-              <div className="hero-panel-empty past-empty">
-                <p className="hero-empty-text">
-                  {daysAgo <= 3
-                    ? `${daysAgoLabel}: sin notas ni síntomas.`
-                    : 'Sin notas ni síntomas en esta fecha.'}
-                </p>
-                <div className="hero-past-actions">
-                  {/* Solo mostrar el botón de Regla si no hay regla ya registrada */}
-                  {!isRecorded && !isIrregular && (
-                    <button
-                      type="button"
-                      className="aura-button sm hero-add-symptom-btn"
-                      onClick={onRecordPeriod}
-                      title="Anotar regla en este día"
-                    >
-                      <Droplets size={12} style={{ color: 'var(--rose)' }} />
-                      Regla
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="aura-button sm hero-add-symptom-btn"
-                    onClick={onOpenDailyModal}
-                    title="Anotar síntomas o notas"
-                  >
-                    <Plus size={12} />
-                    Síntomas
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+              {notes && <p className="hero-notes-preview">"{notes}"</p>}
+              <button
+                type="button"
+                className="hero-panel-action-btn"
+                onClick={onOpenDailyModal}
+              >
+                <NotebookPen size={13} />
+                Editar este día
+                <ArrowRight size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+        {isPast && !hasAnyLog && hasCycle && (
+          // Antes, un día pasado sin nada registrado se quedaba con el aviso de
+          // "¿se te olvidó apuntar?" y el resto de la tarjeta completamente vacío
+          // hasta la barra de navegación — la sensación de "no hay ninguna
+          // información" del brief original era más literal aquí que en ningún
+          // otro sitio. `day` (currentDayInfo) ya calcula una fase estimada para
+          // cualquier fecha, se haya registrado algo o no, así que mostramos esa
+          // estimación con claridad de que es eso, una estimación, no un dato real.
+          <div className="hero-side-panel is-past is-estimate">
+            <div className="hero-panel-header">
+              <ClipboardList size={15} />
+              <span>{daysAgoLabel}</span>
+            </div>
+            <div className="hero-panel-body">
+              <span className="hero-panel-estimate-tag">Estimación, no un dato registrado</span>
+              <p className="hero-panel-estimate-text">
+                {day.isPeriod
+                  ? 'Ese día estaba prevista tu regla, sin confirmar.'
+                  : day.isOvulationDay
+                    ? 'Ese día era tu día estimado de ovulación.'
+                    : day.isFertileWindow
+                      ? 'Ese día estaba dentro de tu ventana fértil estimada.'
+                      : day.phase === 'follicular'
+                        ? 'Ese día estaba en tu fase folicular estimada.'
+                        : day.phase === 'unknown'
+                          ? 'No hay suficiente información para estimar la fase de ese día.'
+                          : 'Ese día estaba en tu fase lútea estimada.'}
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -1080,6 +1039,7 @@ export function HeroStatus({
         </div>
       )}
     </motion.div>
-  </section>;
+  </section>
+  </>;
 }
 

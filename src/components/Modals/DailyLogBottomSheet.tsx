@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, CheckCircle2, Droplets, Pill, Thermometer } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
@@ -7,6 +7,7 @@ import { NaturalInputBar } from '../Input/NaturalInputBar';
 import { ModalFrame } from './ModalFrame';
 import { modalChoice, modalPrimaryButton, modalSecondaryButton, modalUnselected } from './modalStyles';
 import type { FlowIntensity } from '../../types/cycle';
+import { computeDefaultCycleStart } from '../../utils/dailyLog';
 
 export function DailyLogBottomSheet({
   isOpen,
@@ -44,21 +45,33 @@ export function DailyLogBottomSheet({
   const [bleedingChoice, setBleedingChoice] = useState<'none' | 'period' | 'irregular'>(initialChoice);
   const [flow, setFlow] = useState<FlowIntensity>(log?.flow || settings.typicalFlowIntensity || 'medium');
   const [isCycleStart, setIsCycleStart] = useState<boolean>(
-    Boolean(log?.isCycleStart || settings.lastPeriodStartDate === selectedDate)
+    computeDefaultCycleStart(selectedDate, logs)
   );
 
+  // Solo queremos releer el registro guardado cuando el modal se ABRE o cambia de día,
+  // nunca en cada cambio de `logs`/`settings`. Antes este efecto dependía de `logs` completo,
+  // así que cualquier escritura disparada DESDE este mismo modal mientras estaba abierto
+  // (p.ej. removeSymptom('calm_day') al marcar "Tengo la regla", o tocar un síntoma más abajo)
+  // creaba una nueva referencia de `logs`, volvía a ejecutar este efecto y pisaba la elección
+  // que la persona acababa de hacer, devolviéndola a "Sin sangrado" un instante después.
+  // Con esta ref solo se sincroniza una vez por apertura+fecha, sin perder selecciones en curso.
+  const syncedKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!isOpen) return;
-    const timer = window.setTimeout(() => {
-      const currentLog = logs[selectedDate];
-      setBleedingChoice(
-        currentLog?.isPeriod ? 'period' : currentLog?.isIrregularBleeding ? 'irregular' : 'none'
-      );
-      setFlow(currentLog?.flow || settings.typicalFlowIntensity || 'medium');
-      setIsCycleStart(Boolean(currentLog?.isCycleStart || settings.lastPeriodStartDate === selectedDate));
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [isOpen, selectedDate, logs, settings]);
+    if (!isOpen) {
+      syncedKeyRef.current = null;
+      return;
+    }
+    const key = selectedDate;
+    if (syncedKeyRef.current === key) return;
+    syncedKeyRef.current = key;
+    const currentLog = logs[selectedDate];
+    setBleedingChoice(
+      currentLog?.isPeriod ? 'period' : currentLog?.isIrregularBleeding ? 'irregular' : 'none'
+    );
+    setFlow(currentLog?.flow || settings.typicalFlowIntensity || 'medium');
+    setIsCycleStart(computeDefaultCycleStart(selectedDate, logs));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, selectedDate]);
 
   const isCalmDay = day.symptoms.some(s => s.id === 'calm_day');
   const isApproachingOrPeriod = day.isPeriod || day.dayOfCycle === 1;
@@ -134,6 +147,13 @@ export function DailyLogBottomSheet({
               ¿Has tenido sangrado hoy?
             </legend>
             <div className="grid grid-cols-3 gap-2">
+              {/* The 3 captions below ("Día normal" etc.) used to render at opacity-75.
+                  Blending any of the three selected-state colors (accent, rose, amber)
+                  toward their soft background at 75% opacity dropped every one of them
+                  under the 4.5:1 WCAG AA minimum (confirmed via axe-core) — opacity
+                  isn't a safe way to mute text that already sits close to the contrast
+                  floor. Full opacity on the same color reads plenty muted on its own
+                  next to the bold label above it. */}
               {/* Opción 1: Sin sangrado */}
               <button
                 type="button"
@@ -147,7 +167,7 @@ export function DailyLogBottomSheet({
               >
                 <CheckCircle2 size={18} aria-hidden="true" />
                 <span className="text-xs font-semibold">Sin sangrado</span>
-                <span className="text-[10.5px] opacity-75">Día normal</span>
+                <span className="text-[10.5px]">Día normal</span>
               </button>
 
               {/* Opción 2: Regla / Adelantada */}
@@ -168,7 +188,7 @@ export function DailyLogBottomSheet({
                 <span className="text-xs font-semibold">
                   {isApproachingOrPeriod ? 'Tengo la regla' : 'Se me adelantó'}
                 </span>
-                <span className="text-[10.5px] opacity-75">Regla menstrual</span>
+                <span className="text-[10.5px]">Regla menstrual</span>
               </button>
 
               {/* Opción 3: Sangrado irregular */}
@@ -187,7 +207,7 @@ export function DailyLogBottomSheet({
               >
                 <Droplets size={18} aria-hidden="true" />
                 <span className="text-xs font-semibold">Sangrado irregular</span>
-                <span className="text-[10.5px] opacity-75">Manchado / leve</span>
+                <span className="text-[10.5px]">Manchado / leve</span>
               </button>
             </div>
           </fieldset>

@@ -10,7 +10,7 @@
     --bg-root: #fdfaf9; /* Warmer, softer background */
     --bg-card: #ffffff;
     --bg-card-inner: #f8f3f2; /* Soft blush gray */
-    --bg-pill-selected: #b86e6e; /* Muted rose */
+    --bg-pill-selected: #8f4a4a; /* Muted rose, darkened from #b86e6e for WCAG AA contrast — see --accent below */
     --bg-pill: #f7ecec;
     --bg-input-bar: #ffffff;
     --bg-chip: #f7ecec;
@@ -21,17 +21,26 @@
     --text-secondary: #7a6868;
     --text-tertiary: #9c8a8a;
     --text-muted: #9c8a8a;
-    --accent: #b86e6e; /* Soft feminine rose */
+    /* #b86e6e (the original rose) only clears 3.8:1 against white in either direction
+       (text-on-white or white-on-fill) — confirmed with axe-core across the nav, day
+       pills, legends and advice labels that all use this token. 4.5:1 is the WCAG AA
+       minimum for normal text. #8f4a4a keeps the same hue, darkened just enough to
+       clear 4.5:1 everywhere it's checked, including against the soft tint backgrounds
+       below (5.4-6.5:1 in every combination tested). */
+    --accent: #8f4a4a;
     --accent-soft: #f7e6e6;
     --accent-on: #ffffff;
-    --rose: #b86e6e;
+    --rose: #8f4a4a;
     --rose-soft: #f7ecec;
     --gold: #b45309;
     --gold-soft: #fef3c7;
     --focus-ring: #e3a6a6;
     --shadow-soft: 0 16px 40px -12px rgba(184, 110, 110, 0.18);
     --hero-surface: #fcf4f3; /* Delicate blush for the hero card */
-    --phase-ink: #b86e6e;
+    --phase-ink: #8f4a4a;
+    --success: #5f8161; /* Salvia apagada, coherente con la paleta cálida en vez del verde saturado de Tailwind */
+    --success-soft: #eaf1e6;
+    --radius-md: 14px; /* antes sin definir: .period-registered-card y .future-day-card salían con esquinas cuadradas */
   }
   .dark, html.theme-refugio {
     color-scheme: dark;
@@ -59,6 +68,8 @@
     --shadow-soft: 0 16px 40px -12px rgba(0, 0, 0, 0.4);
     --hero-surface: #2e2227;
     --phase-ink: #e3a6a6;
+    --success: #9bc094;
+    --success-soft: #364330;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { min-width: 320px; scroll-behavior: smooth; height: 100%; overflow: hidden; }
@@ -165,11 +176,19 @@
 }
 .sidebar-install-info span {
   font-size: 11px;
-  color: var(--text-secondary);
+  /* var(--text-secondary) only clears 4.39:1 in light mode against this banner's
+     tinted background (12% accent mixed into bg-card) — short of the 4.5:1 WCAG
+     AA minimum for this font size (confirmed via axe-core). Light-only override:
+     dark mode's own --text-secondary already clears 5.9:1 against its equivalent
+     tinted background, so overriding unconditionally (as a first pass here did)
+     replaces a value that was already fine in dark mode with one tuned only for
+     light, which fails there instead. */
+  color: #625252;
   line-height: 1.2;
   margin-top: 2px;
   transition: color .18s ease;
 }
+.dark .sidebar-install-info span { color: var(--text-secondary); }
 .sidebar-install-banner:hover .sidebar-install-info span {
   color: color-mix(in srgb, var(--accent-on, #fff) 85%, transparent);
 }
@@ -230,8 +249,14 @@
 .day-pill.is-selected { background: var(--accent); color: var(--accent-on); border-color: var(--accent); box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--accent) 50%, transparent); }
 .day-pill.is-period.is-selected { background: var(--rose); color: #fff; border-color: var(--rose); box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--rose) 50%, transparent); }
 .dark .day-pill.is-period.is-selected { background: #be123c; color: #fff; border-color: #fb7185; }
-.day-pill.is-fertile.is-selected { background: #f59e0b; color: #fff; border-color: #d97706; box-shadow: 0 8px 24px -6px color-mix(in srgb, #f59e0b 50%, transparent); }
-.day-pill.is-ovulation.is-selected { background: #3b82f6; color: #fff; border-color: #2563eb; box-shadow: 0 8px 24px -6px color-mix(in srgb, #3b82f6 50%, transparent); }
+/* color: #3d2c00 instead of #fff — white on this amber only clears 2.14:1, far short
+   of the 4.5:1 WCAG AA text minimum (confirmed via axe-core: "Hoy"/day-number pills
+   land here whenever today falls in the fertile window). */
+.day-pill.is-fertile.is-selected { background: #f59e0b; color: #3d2c00; border-color: #d97706; box-shadow: 0 8px 24px -6px color-mix(in srgb, #f59e0b 50%, transparent); }
+/* background: #1e40af instead of #3b82f6 — white text only clears 3.68:1 on the
+   lighter blue, short of 4.5:1 (confirmed via axe-core). #1e40af is the same blue
+   already used as the non-selected ovulation pill's text color (8.72:1 with white). */
+.day-pill.is-ovulation.is-selected { background: #1e40af; color: #fff; border-color: #1e3a8a; box-shadow: 0 8px 24px -6px color-mix(in srgb, #1e40af 50%, transparent); }
 .day-pill.is-today:not(.is-selected) { border-color: var(--accent); }
 .day-pill.is-today:not(.is-selected) .day-label { color: var(--accent); font-weight: 700; }
 .fertile-indicator { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; display: inline-block; }
@@ -239,6 +264,9 @@
 .dark .ovulation-sparkle { color: #93c5fd; }
 .today-pill-button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
 .diary-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr); column-gap: 20px; row-gap: 10px; margin-top: 6px; align-items: stretch; flex: 1; }
+/* Días pasados/futuros no muestran Confidente ni consejos (solo aplica a hoy):
+   sin segunda columna, que la primera ocupe todo el ancho en vez de dejar hueco. */
+.diary-grid.single-column { grid-template-columns: minmax(0, 1fr); }
 .diary-primary { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .diary-secondary { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-left: 0; flex: 1; }
 .cycle-summary { position: relative; overflow: hidden; padding: 10px 14px 8px; border: 1px solid var(--border-subtle); border-radius: 20px; background: var(--hero-surface); display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center; transition: background 0.6s ease, box-shadow 0.6s ease; }
@@ -544,6 +572,37 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+.hero-panel-period-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+/* Same card as a real logged day (.hero-side-panel.is-past), but this one holds a
+   calculated guess, not a fact — a dashed border (same treatment as the "not yet
+   confirmed" catch-up banners) plus an explicit tag keep that distinction visible
+   instead of an estimate reading with the same confidence as a real record. */
+.hero-side-panel.is-estimate {
+  border-style: dashed;
+  border-color: var(--border-card);
+}
+.hero-panel-estimate-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+}
+.hero-panel-estimate-text {
+  margin: 0;
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.45;
+  color: var(--text-secondary);
 }
 .hero-symptom-chips {
   display: flex;
@@ -1269,6 +1328,18 @@
   .brand-caption, .navigation-footer, .navigation-note, .desktop-chat, .brand-theme-toggle, .desktop-only-nav { display: none; }
   .sidebar-install-banner { display: none; }
   .mobile-install-pill { display: none; }
+  /* Un momento para ti (consejo de bienestar) + enlace al Confidente añaden ~500px
+     apilados bajo la tarjeta principal en este ancho — la causa principal de que el
+     diario deje de caber en un viewport sin scroll (ver Golden Master + hallazgo 3.2
+     de Claude outputs/audit-cycle-states-report.md: hasta 692px de desbordamiento
+     medidos con un banner "sin registrar" presente). Pero solo hace falta el hueco
+     cuando ese banner (u otro aviso de "ponte al día") realmente compite por
+     espacio: para una cuenta nueva o un día ya tranquilo, es contenido de
+     bienvenida genuino, no relleno — ocultarlo ahí le quitaba a una usuaria nueva
+     justo el primer consejo ("Cada observación cuenta") sin ganar nada a cambio
+     (detectado porque rompía tests\e2e\visual.spec.ts's "estado inicial sin datos
+     inventados"). Se oculta solo cuando .past-catchup-banner está presente. */
+  .diary-grid:has(.past-catchup-banner) .diary-secondary { display: none; }
   .navigation-bottom { margin: 0; }
   .navigation-utilities { padding: 0; gap: 7px; align-items: center; }
   .primary-navigation { display: flex; position: fixed; inset: auto 0 0; margin: 0; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); flex-direction: row; justify-content: space-around; border-top: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 2px; z-index: 100; }
@@ -1294,7 +1365,11 @@
   .cycle-copy { font-size: 12.5px; }
   .diary-section { padding: 16px 0; }
   .diary-record-section { margin-top: 14px; padding-top: 16px; }
-  .diary-secondary { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; }
+  /* Sin `display` aquí: la propia .diary-secondary está oculta en este ancho (ver
+     arriba en este mismo media query) — esta regla solo ajustaba espaciado y
+     `display: flex` volvía a mostrarla, anulando el `display: none` de más arriba
+     por ir después en la cascada dentro del mismo bloque. */
+  .diary-secondary { flex-direction: column; gap: 8px; padding-top: 10px; }
   .confidente-link { margin: 0; padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 16px; }
   .advice-card { padding: 14px 16px; min-height: 0; }
   .quick-log-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -1533,40 +1608,60 @@
   .cycle-summary-motion {
     justify-content: flex-start !important;
   }
-  /* Las dos gotas se apilan en vertical en vez de compartir el ancho, y cada una es un
-     hijo flex:1 de este contenedor: así el propio flexbox reparte TODO el alto disponible
-     entre ambas (sin adivinar con vh, que no sabe cuánto ocupan alrededor los chips/botones
-     y antes hacía que el conjunto se desbordara por debajo de la pantalla). */
-  .cycle-summary-visuals {
-    display: flex !important;
+  /* Diagonal en vez de apiladas: la rueda de fases arriba, centrada y grande;
+     la gota de cuenta atrás abajo a la derecha, aprovechando que termina en
+     punta para "meterse" en la esquina libre de la rueda (un círculo nunca
+     llega a las esquinas de su propia caja) sin llegar a tocarla. Esto deja
+     más aire que apilarlas y dedica más espacio a la que sea protagonista
+     (is-primary) según la fase, aunque la posición (rueda arriba / gota
+     abajo-derecha) es siempre la misma. */
+  .cycle-summary-visuals:not(.single-ring) {
+    display: block !important;
+    position: relative !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: clamp(2px, 1.2vh, 10px) !important;
     width: 100% !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    /* Este padding-bottom es lo que separa verticalmente la rueda (arriba) de la
+       gota (abajo-derecha). NO lo bajes de ~34% sin volver a comprobar los dos
+       casos con el script _qa_ring_layout.mjs: por debajo de eso el círculo de la
+       gota (cuando ES la protagonista, más grande) puede llegar a tocar el de la
+       rueda, que en ese caso es la secundaria pero sigue siendo bastante grande.
+       34% dejaba ~3.7% de Cw de margen real entre los dos círculos, medido a mano;
+       es el mínimo con el que no se tocan. */
+    padding: 0 0 34% !important;
   }
-  /* min-height aquí es un SUELO, no un techo: si un día muy cargado (banner + chips +
-     botones) deja poco hueco, preferimos que la tarjeta crezca un poco más que la
-     pantalla (y haya que bajar un pelín) antes que dejar los anillos ilegibles. */
-  .cycle-summary-top.has-ring .cycle-ring-wrap.is-primary {
-    flex: 1.6 1 0 !important;
-    min-height: 150px !important;
-    width: auto !important;
-    height: 100% !important;
-    max-width: 92% !important;
+  .cycle-summary-visuals:not(.single-ring) .wheel-wrap {
+    position: relative !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    /* Pegada a la izquierda (no centrada): así deja todo el hueco libre en la
+       esquina inferior derecha para la gota, en vez de repartir aire a ambos lados. */
+    margin: 0 !important;
+    z-index: 1;
   }
-  .cycle-summary-top.has-ring .cycle-ring-wrap.is-secondary {
-    flex: 1 1 0 !important;
-    min-height: 110px !important;
-    width: auto !important;
-    height: 100% !important;
-    max-width: 64% !important;
+  .cycle-summary-visuals:not(.single-ring) .drop-wrap {
+    position: absolute !important;
+    flex: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    right: 1% !important;
+    bottom: 1% !important;
     margin-left: 0 !important;
+    z-index: 2;
   }
+  /* Los porcentajes de rueda/gota NO son independientes: la combinación
+     "rueda secundaria + gota protagonista" (fase lútea, regla o retraso) es la
+     que queda más ajustada geométricamente, porque la gota (abajo-derecha, más
+     grande) y la rueda (arriba-izquierda, más pequeña en ese caso) se acercan.
+     Por eso wheel-secondary es notablemente más pequeña que drop-primary, no al
+     revés: así hay hueco real entre ambos círculos. Ver nota en padding-bottom.
+     Comprobado con _qa_ring_layout.mjs para las dos combinaciones posibles. */
+  .cycle-summary-visuals:not(.single-ring) .wheel-wrap.is-primary { width: 84% !important; }
+  .cycle-summary-visuals:not(.single-ring) .wheel-wrap.is-secondary { width: 58% !important; }
+  .cycle-summary-visuals:not(.single-ring) .drop-wrap.is-primary { width: 62% !important; }
+  .cycle-summary-visuals:not(.single-ring) .drop-wrap.is-secondary { width: 48% !important; }
   .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
     flex: 1 1 0 !important;
     min-height: 220px !important;
@@ -1581,6 +1676,16 @@
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
+  }
+  /* Gana a la regla anterior (misma especificidad, declarada después) solo
+     para el caso de dos anillos: aquí el ancho lo fija wheel-wrap/drop-wrap
+     y el alto es automático según el aspect-ratio de cada gota. */
+  .cycle-summary-visuals:not(.single-ring) .cycle-ring.is-primary,
+  .cycle-summary-visuals:not(.single-ring) .cycle-ring.is-secondary {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: none !important;
   }
 
   .cycle-ring.is-primary .cycle-ring-label strong {
@@ -1682,6 +1787,7 @@
 /* Banner de recuperación para días pasados no registrados */
 /* Banner de recuperación para días pasados no registrados */
 .past-catchup-banner {
+  position: relative;
   width: 100%;
   box-sizing: border-box;
   margin: 8px 0 6px;
@@ -1695,6 +1801,48 @@
   flex-wrap: wrap;
   gap: 8px 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+.past-catchup-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.past-catchup-dismiss:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
+.dark .past-catchup-dismiss:hover { background: rgba(255, 255, 255, 0.1); }
+/* Variante flotante: mismo aspecto que el banner de "ponte al día", pero como
+   una pequeña tarjeta que aparece sobre la app al entrar (una vez al día, si hoy
+   todavía no tiene nada registrado) en vez de ocupar un hueco fijo en la tarjeta
+   principal. Así la pantalla de hoy queda limpia y este aviso solo aparece cuando
+   aporta algo. */
+.today-checkin-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;
+}
+.today-checkin-overlay .past-catchup-banner {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 480px;
+  margin: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
 }
 .past-catchup-body {
   flex: 1 1 auto;
@@ -1733,8 +1881,21 @@
 .past-catchup-actions {
   display: flex;
   align-items: center;
+  /* flex-wrap aquí es necesario: sin él, dos botones con etiquetas largas (p.ej.
+     "Se me está retrasando la regla") no se reducen ni pasan a una segunda línea
+     -- por defecto un flex item no encoge por debajo de su contenido sin
+     min-width:0 -- así que sencillamente se salían de la pantalla en móviles
+     estrechos. Se vio con el aviso flotante de hoy (today-checkin-overlay),
+     pero afecta igual al banner en línea. */
+  flex-wrap: wrap;
   gap: 6px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+.past-catchup-actions .aura-button {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
 }
 .hero-past-actions {
   display: flex;
@@ -1802,20 +1963,86 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--rose) 25%, transparent) !important;
 }
 
-@keyframes toast-enter {
-  0% {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.97);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+/* ---------- Notificaciones (toasts) ----------
+   Antes usaban colores y sombras genéricos de Tailwind (emerald-500, shadow-xl,
+   rounded-xl a secas) que no seguían la paleta cálida rosa/dorada ni las
+   convenciones de tarjeta (borde var(--border-subtle), sombra var(--shadow-soft)
+   teñida de rosa, radios 14-16px) que usa el resto de la app. Ahora comparten
+   la misma "voz" visual que .tool-card, .past-catchup-banner y .aura-button. */
+.toast-stack {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  /* Suma la altura real del aviso flotante de "registra tu día" (HeroStatus la
+     publica en --checkin-banner-offset vía ResizeObserver) para que un toast
+     nunca se dibuje encima de ese aviso si ambos coinciden en pantalla. */
+  top: calc(max(12px, calc(env(safe-area-inset-top, 0px) + 10px)) + var(--checkin-banner-offset, 0px));
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: calc(100vw - 24px);
+  padding: 0 8px;
+  pointer-events: none;
+  transition: top 0.2s ease;
 }
-
-.animate-toast-enter {
-  animation: toast-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+@media (min-width: 640px) {
+  .toast-stack { max-width: 400px; }
 }
+.toast-item {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px 11px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+.toast-item.error {
+  border-color: color-mix(in srgb, var(--rose) 45%, var(--border-subtle));
+  background: color-mix(in srgb, var(--rose) 9%, var(--bg-card));
+  color: var(--rose);
+}
+.toast-item.success {
+  border-color: color-mix(in srgb, var(--success) 40%, var(--border-subtle));
+  background: color-mix(in srgb, var(--success) 10%, var(--bg-card));
+  color: var(--success);
+}
+.toast-item.info svg { color: var(--accent); }
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.toast-content svg { flex-shrink: 0; }
+.toast-message { word-break: break-word; }
+.toast-dismiss {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  margin: -5px -3px -5px 0;
+  border-radius: 8px;
+  color: currentColor;
+  opacity: .6;
+  transition: opacity .15s, background .15s, transform .12s;
+}
+.toast-item:hover .toast-dismiss { opacity: .85; }
+.toast-dismiss:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+.toast-dismiss:active { transform: scale(.92); }
 
 .modal-error-banner {
   backdrop-filter: blur(8px);

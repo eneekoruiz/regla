@@ -46,9 +46,14 @@ for (const theme of ['claro', 'oscuro']) test(`catálogo ${theme} accesible, sin
   test.setTimeout(300_000);
   await seedAccount(page);
   if (theme === 'oscuro') await setTheme(page, 'dark');
+  // Groups match the `ids` arrays in App.tsx's tools-workspace section — "Medicación"
+  // and "Tendencias del ciclo" swapped groups at some point (App.tsx now puts
+  // 'medication' under "Conoce tu ciclo" and 'analytics' under "Cuídate a tu manera"),
+  // but this catalog was never updated to match, so every card lookup after the first
+  // group timed out searching the wrong section.
   const catalog = [
-    { group: 'Conoce tu ciclo' as const, tools: [/^Tendencias del ciclo/, /^Temperatura y moco/, /^Fases del ciclo/] },
-    { group: 'Cuídate a tu manera' as const, tools: [/^Medicación/, /^Cuidados del ciclo/, /^Confidente/] }
+    { group: 'Conoce tu ciclo' as const, tools: [/^Medicación/, /^Temperatura y moco/, /^Fases del ciclo/] },
+    { group: 'Cuídate a tu manera' as const, tools: [/^Tendencias del ciclo/, /^Cuidados del ciclo/, /^Confidente/] }
   ];
   let index = 0;
   for (const section of catalog) {
@@ -72,15 +77,22 @@ for (const theme of ['claro', 'oscuro']) test(`catálogo ${theme} accesible, sin
       index++;
     }
   }
+  // Quiz cards are `.quiz-card` (the card itself is the button — see App.tsx's
+  // "Cuestionarios de bienestar" section), not `.tool-card` with a nested "Iniciar
+  // en Confidente" button — that pattern belongs to the other two groups. Clicking
+  // a quiz card opens the Chat dialog (aria-labelledby="chat-title" → "Chat"), same
+  // as helpers.ts's openTool() already does correctly for this group.
   const quizGroup = await openToolGroup(page, 'Cuestionarios de bienestar');
-  const quizCount = await quizGroup.locator('.tool-card').count();
+  const quizCount = await quizGroup.locator('.quiz-card').count();
   expect(quizCount).toBeGreaterThanOrEqual(3);
   for (let quizIndex = 0; quizIndex < quizCount; quizIndex++) {
-    const card = quizGroup.locator('.tool-card').nth(quizIndex);
-    const name = await card.locator('strong').innerText();
-    await card.getByRole('button', { name: /Iniciar en Confidente/ }).click();
-    const dialog = page.getByRole('dialog');
+    const card = quizGroup.locator('.quiz-card').nth(quizIndex);
+    const name = await card.locator('.quiz-card-title').innerText();
+    await card.click();
+    // ChatDrawer.tsx's dialog heading (id="chat-title") reads "Confidente", not "Chat".
+    const dialog = page.getByRole('dialog', { name: 'Confidente' });
     await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Abrir chequeo nuevo', exact: true }).click();
     await checkLayout(page);
     await checkAccessibility(page, info, name);
     await capture(page, info, `tool-${index}`);
