@@ -67,7 +67,7 @@ export function PastCatchupBanner({ notice, onDismiss }: { notice: PastCatchupNo
         )}
       </div>
       {onDismiss && (
-        <button type="button" className="past-catchup-dismiss" onClick={onDismiss} aria-label="Cerrar aviso hasta mañana">
+        <button type="button" className="past-catchup-dismiss" onClick={onDismiss} aria-label="Ocultar recordatorio hasta mañana">
           <X size={14} aria-hidden="true" />
         </button>
       )}

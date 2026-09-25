@@ -118,8 +118,10 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
   const tone = detail?.phase.tone ?? dial.tone;
 
   const preview = (day: number) => {
-    if (day === previewDay) return;
-    setPreviewDay(day === dial.day && !dial.isLate ? null : day);
+    // Volver al día consultado equivale a dejar de explorar; solo vibra al cambiar de día.
+    const next = day === dial.day && !dial.isLate ? null : day;
+    if (next === previewDay) return;
+    setPreviewDay(next);
     hapticTick();
     if (!hintSeen) {
       setHintSeen(true);
