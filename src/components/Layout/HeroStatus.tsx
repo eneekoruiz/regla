@@ -1,6 +1,6 @@
-import { Children, useMemo } from 'react';
+import { Children, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown, ClipboardList, NotebookPen } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useCatchupNotice } from '../../hooks/useCatchupNotice';
@@ -8,11 +8,13 @@ import { BIOLOGICAL_LABELS } from '../../services/biologicalMachine';
 import { describeCycleDay, phaseBadgeFor } from '../../services/cycleSnapshot';
 import { describeHeadline } from '../../services/cycleHeadline';
 import { buildCycleDial, closedCycleLengthFor, createDayStatusResolver, weekdayDateLabel } from '../../services/cycleDial';
+import { buildPhaseRing } from '../../services/phaseRing';
 import type { DailyLog } from '../../types/cycle';
 import { hasDayEntries } from '../../utils/dailyLog';
 import { CycleDial } from './CycleDial';
 import { HeroDayActions } from './HeroDayActions';
-import { PastCatchupBanner } from './PastCatchupBanner';
+import { PhaseRing } from './PhaseRing';
+import { CatchupPrompt, CatchupSheet } from './CatchupNotice';
 
 /** Anotaciones de un día pasado cuando no hay ciclo que dibujar (sin regla conocida). */
 function PastDayNotes({ log, onOpenDailyModal }: { log: DailyLog; onOpenDailyModal: () => void }) {
@@ -60,8 +62,8 @@ function FirstRecordEmptyState({ onRecordPeriod }: { onRecordPeriod: () => void 
 }
 
 /**
- * Tarjeta principal del diario: aviso pendiente (si lo hay), fase y día del
- * ciclo, la gota que resume el ciclo y las acciones del momento. Toda la
+ * Tarjeta principal del diario: fase y día del ciclo, la gota que resume el
+ * ciclo (y pregunta por los días pendientes) y las acciones del momento. Toda la
  * lógica de qué mostrar vive en modelos puros (cycleSnapshot, cycleDial) y en
  * el hook useCatchupNotice; aquí solo se componen.
  */
@@ -100,8 +102,14 @@ export function HeroStatus({
     : null, [snapshot, selectedDate, cycleStats, logs]);
 
   const { notice, dismiss } = useCatchupNotice(snapshot, hasAnyLog, { onRecordPeriod, onOpenDailyModal, onOpenRecoveryModal, onOpenChat });
+  const [answeringNotice, setAnsweringNotice] = useState(false);
+  // Día que se recorre en la gota, para que el círculo de fases lo marque también.
+  const [preview, setPreview] = useState<{ date: string; day: number | null }>({ date: selectedDate, day: null });
+  const previewDay = preview.date === selectedDate ? preview.day : null;
+  const prompt = notice && (
+    <CatchupPrompt notice={notice} placement={dial ? 'bubble' : 'inline'} onOpen={() => setAnsweringNotice(true)} />
+  );
   const { title, copy } = describeHeadline(snapshot, dial, hasAnyLog);
-  const dayLabel = `${snapshot.isToday ? 'Hoy' : weekdayDateLabel(selectedDate)} · día ${snapshot.cycleDay}`;
   const badge = phaseBadgeFor(day, snapshot, BIOLOGICAL_LABELS.unknown);
   const showFirstRecord = !hasEnoughData && !cycleStats.lastVerifiedPeriodStart && !settings.lastPeriodStartDate;
 
@@ -118,10 +126,7 @@ export function HeroStatus({
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="cycle-summary-motion"
       >
-        {/* Al abrir el diario el aviso ya está ahí; solo se anima al aparecer o resolverse después. */}
-        <AnimatePresence initial={false}>
-          {notice && <PastCatchupBanner key={notice.id} notice={notice} onDismiss={dismiss} />}
-        </AnimatePresence>
+        {!dial && prompt}
 
         <div className={`cycle-summary-top${dial ? ' has-ring' : ' no-ring'}`}>
           <div className="cycle-summary-header">
@@ -133,7 +138,7 @@ export function HeroStatus({
                 title="Toca para ver la leyenda de fases del ciclo"
               >
                 <span className="phase-dot" />
-                {badge.label}
+                Día {snapshot.cycleDay} · {badge.label}
                 <ChevronDown size={13} aria-hidden="true" />
               </button>
             )}
@@ -141,7 +146,18 @@ export function HeroStatus({
             {copy && <p className="cycle-copy">{copy}</p>}
           </div>
 
-          {dial && <CycleDial key={selectedDate} dial={dial} selectedLabel={dayLabel} resetLabel={snapshot.isToday ? 'Hoy' : weekdayDateLabel(selectedDate)} />}
+          {dial && (
+            <div className="cycle-instruments">
+              <CycleDial
+                key={selectedDate}
+                dial={dial}
+                resetLabel={snapshot.isToday ? 'Hoy' : weekdayDateLabel(selectedDate)}
+                prompt={prompt}
+                onPreviewChange={day => setPreview({ date: selectedDate, day })}
+              />
+              <PhaseRing ring={buildPhaseRing(dial, snapshot.cycleDay, previewDay)} onOpenLegend={onOpenLegend} />
+            </div>
+          )}
 
           <HeroDayActions snapshot={snapshot} isPeriodPrediction={day.isPeriod} showPastPrompt={!notice} onRecordPeriod={onRecordPeriod} />
 
@@ -152,6 +168,7 @@ export function HeroStatus({
         {Children.toArray(children).length > 0 && <div className="hero-integrated-record">{children}</div>}
         {showFirstRecord && <FirstRecordEmptyState onRecordPeriod={onRecordPeriod} />}
       </motion.div>
+      {notice && <CatchupSheet notice={notice} isOpen={answeringNotice} onClose={() => setAnsweringNotice(false)} onDismiss={dismiss} />}
     </section>
   );
 }

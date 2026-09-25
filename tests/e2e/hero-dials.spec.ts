@@ -3,14 +3,14 @@ import { test, expect, type Page } from '@playwright/test';
 const qaUser = { id: 'qa-isolated', email: 'qa@example.invalid' };
 const qaToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
 
-/** Ciclo de 28 días cuya regla empezó hace `daysAgo` días; ayer queda registrado para no mostrar el aviso. */
-async function setupCycleState(page: Page, daysAgo: number) {
+/** Ciclo de 28 días cuya regla empezó hace `daysAgo` días; salvo que se pida, ayer queda registrado (sin pregunta pendiente). */
+async function setupCycleState(page: Page, daysAgo: number, { yesterdayLogged = true } = {}) {
   await page.route('**/api/auth/**', async route => route.fulfill({ json: { token: qaToken, user: qaUser } }));
   await page.route('**/api/settings', async route => route.fulfill({ json: {} }));
   await page.route('**/api/logs/**', async route => route.fulfill({ json: [] }));
   await page.route('**/api/logs', async route => route.fulfill({ json: [] }));
 
-  await page.addInitScript(({ daysAgoStart, user, token }) => {
+  await page.addInitScript(({ daysAgoStart, logYesterday, user, token }) => {
     const logsKey = `regla_daily_logs_v1:${encodeURIComponent(user.id)}`;
     const settingsKey = `regla_user_settings_v1:${encodeURIComponent(user.id)}`;
     const today = new Date();
@@ -24,9 +24,9 @@ async function setupCycleState(page: Page, daysAgo: number) {
     }));
     localStorage.setItem(logsKey, JSON.stringify({
       [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() },
-      [key(yesterday)]: { date: key(yesterday), isPeriod: false, symptoms: [{ id: 'calm_day', name: 'Día normal sin molestias', category: 'general', emoji: '✨' }], recordedAt: yesterday.toISOString() }
+      ...(logYesterday ? { [key(yesterday)]: { date: key(yesterday), isPeriod: false, symptoms: [{ id: 'calm_day', name: 'Día normal sin molestias', category: 'general', emoji: '✨' }], recordedAt: yesterday.toISOString() } } : {})
     }));
-  }, { daysAgoStart: daysAgo, user: qaUser, token: qaToken });
+  }, { daysAgoStart: daysAgo, logYesterday: yesterdayLogged, user: qaUser, token: qaToken });
 
   await page.goto('/');
   await expect(page.locator('.cycle-dial-box')).toBeVisible();
@@ -42,14 +42,14 @@ test.describe('La gota del ciclo', () => {
     await setupCycleState(page, 10); // hoy es el día 11
 
     const header = page.locator('.cycle-summary-header');
-    await expect(header.locator('.phase-chip')).toContainText(/Ventana Fértil/i);
+    await expect(header.locator('.phase-chip')).toContainText(/Día 11 · Ventana Fértil/i);
     await expect(header.locator('.cycle-headline')).toHaveText('Ovulación en 3 días');
 
     const dial = page.locator('.cycle-dial-box');
     await expect(dial).toHaveAttribute('role', 'slider');
     await expect(dial).toHaveAttribute('aria-valuenow', '11');
     await expect(dial).toHaveAttribute('aria-valuemax', '28');
-    await expect(page.locator('.cycle-dial-eyebrow')).toHaveText(/hoy · día 11/i);
+    await expect(page.locator('.cycle-dial-eyebrow')).toHaveCount(0);
     await expect(page.locator('.cycle-dial-value')).toHaveText('18');
     await expect(page.locator('.cycle-dial-caption')).toHaveText('días para tu regla');
 
@@ -70,6 +70,7 @@ test.describe('La gota del ciclo', () => {
     await dial.focus();
     await page.keyboard.press('ArrowRight');
     await expect(dial).toHaveAttribute('aria-valuenow', '12');
+    await expect(page.locator('.cycle-dial-eyebrow')).toContainText('día 12');
     await page.keyboard.press('End');
     await expect(dial).toHaveAttribute('aria-valuenow', '28');
     await expect(dial).toHaveAttribute('aria-valuetext', /día 28 del ciclo\. Fase lútea\. 1 día para la regla/);
@@ -85,6 +86,21 @@ test.describe('La gota del ciclo', () => {
     await page.getByRole('button', { name: 'Hoy', exact: true }).click();
     await expect(dial).toHaveAttribute('aria-valuenow', '11');
     await expect(page.locator('.cycle-dial-tag')).toHaveCount(0);
+  });
+
+  test('la gota pregunta por ayer y se responde en una ventana', async ({ page }) => {
+    await setupCycleState(page, 10, { yesterdayLogged: false });
+    const question = page.getByRole('button', { name: /^¿Y ayer\?/ });
+    await expect(question).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    await question.click();
+    const sheet = page.getByRole('dialog', { name: 'Ayer quedó sin registrar.' });
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Recordármelo mañana' })).toBeVisible();
+    await sheet.getByRole('button', { name: 'Estuve bien' }).click();
+    await expect(sheet).toHaveCount(0);
+    await expect(question).toHaveCount(0);
   });
 
   test('fase lútea: la cabecera anuncia la próxima ventana fértil', async ({ page }, testInfo) => {

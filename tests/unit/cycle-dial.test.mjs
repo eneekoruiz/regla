@@ -2,8 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { calculateCycleStatistics, predictDayStatus } from '../../src/services/predictiveEngine.ts';
 import { describeCycleDay, phaseBadgeFor } from '../../src/services/cycleSnapshot.ts';
-import { buildCycleDial, createDayStatusResolver, describeDialDay, fillLevel } from '../../src/services/cycleDial.ts';
+import { buildCycleDial, createDayStatusResolver, describeDialDay, fillLevel, moodOnDay } from '../../src/services/cycleDial.ts';
 import { describeHeadline } from '../../src/services/cycleHeadline.ts';
+import { buildPhaseRing } from '../../src/services/phaseRing.ts';
 import { createDropTrack } from '../../src/utils/dropGeometry.ts';
 import { hasActivityOnOrBefore, hasDayEntries, shiftDateKey } from '../../src/utils/dailyLog.ts';
 import { getDefaultSettings } from '../../src/utils/storage.ts';
@@ -38,6 +39,22 @@ test('drop track: starts and ends at the tip and is symmetric around its lowest 
   assert.ok(Math.abs(right.y - left.y) < 0.5);
   assert.match(track.outline, /^M 100 16 C .* A .* C .* Z$/);
   assert.ok(track.slice(0.3, 0.6).startsWith(`M ${Math.round(track.pointAt(0.3).x * 100) / 100}`));
+});
+
+test('drop track: the liquid level follows the volume, from the bottom to the tip', () => {
+  const track = createDropTrack(100, 16, 68);
+  const bottomY = track.belly.center.y + 68;
+  assert.equal(track.levelAt(0), bottomY);
+  assert.ok(Math.abs(track.levelAt(1) - 16) < 0.5, 'llena hasta la punta');
+  const levels = [0.1, 0.25, 0.5, 0.75, 0.9].map(volume => track.levelAt(volume));
+  levels.reduce((previous, level) => { assert.ok(level < previous, 'sube al llenarse'); return level; }, bottomY);
+  // Por volumen, un octavo de la gota llega más alto que un octavo de su altura.
+  assert.ok(bottomY - track.levelAt(0.125) > (bottomY - 16) * 0.125 * 1.2);
+  // La mitad del volumen queda en el vientre, por debajo de su centro... pero no mucho.
+  const half = track.levelAt(0.5);
+  assert.ok(half > track.belly.center.y - 12 && half < track.belly.center.y + 20);
+  assert.equal(track.levelAt(-1), bottomY);
+  assert.ok(Math.abs(track.levelAt(2) - 16) < 0.5);
 });
 
 test('fertile window: the drop counts down to the period, the headline to ovulation', () => {
@@ -97,6 +114,27 @@ test('scrubbing describes any day and the drop fills up as the period approaches
   assert.equal(describeDialDay(dial, 99).day, 28, 'se limita al ciclo dibujado');
   assert.ok(fillLevel(dial, 1) < 0.05, 'casi vacía al empezar la regla');
   assert.ok(fillLevel(dial, 28) > 0.95, 'casi llena justo antes de la siguiente');
+});
+
+test('the drop avatar rests during the period, livens up when fertile and calms down afterwards', () => {
+  const { dial } = scenario('2026-07-09');
+  assert.deepEqual([2, 7, 10, 14, 20].map(day => moodOnDay(dial, day)), ['resting', 'calm', 'energetic', 'energetic', 'soft']);
+});
+
+test('phase ring: real-length phases around the whole cycle and where you are in it', () => {
+  const { dial, snapshot } = scenario('2026-07-04');
+  const ring = buildPhaseRing(dial, snapshot.cycleDay);
+  assert.deepEqual(ring.segments.map(({ kind, start, end }) => `${kind} ${start}-${end}`), ['period 1-5', 'follicular 6-8', 'fertile 9-15', 'luteal 16-28']);
+  assert.deepEqual([ring.kicker, ring.value, ring.caption], ['Regla', '4', 'de 28 días']);
+  // Mientras se recorre la gota, el círculo marca el mismo día.
+  assert.equal(buildPhaseRing(dial, snapshot.cycleDay, 14).kicker, 'Ovulación estimada');
+  assert.equal(buildPhaseRing(dial, snapshot.cycleDay, 11).kicker, 'Ventana fértil');
+  assert.equal(buildPhaseRing(dial, snapshot.cycleDay, 20).kicker, 'Fase lútea');
+  assert.equal(buildPhaseRing(dial, snapshot.cycleDay, 7).kicker, 'Fase folicular');
+
+  const late = scenario('2026-08-01');
+  const lateRing = buildPhaseRing(late.dial, late.snapshot.cycleDay);
+  assert.deepEqual([lateRing.isLate, lateRing.kicker, lateRing.value], [true, 'Retraso', String(late.snapshot.cycleDay)]);
 });
 
 test('daily entries, date shifting and first-day activity are detected consistently', () => {

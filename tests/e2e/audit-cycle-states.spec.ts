@@ -187,7 +187,7 @@ async function captureState(
   const checkinLocator = page.locator('.today-checkin-overlay').first();
   const checkinText = (await checkinLocator.count()) ? await checkinLocator.innerText() : null;
 
-  const catchupLocator = page.locator('.past-catchup-banner').first();
+  const catchupLocator = page.locator('.catchup-prompt').first();
   const catchupText = (await catchupLocator.count()) ? await catchupLocator.innerText() : null;
 
   let a11yViolationCount = 0;
@@ -345,7 +345,7 @@ test.describe('Audit: cycle-day information matrix', () => {
 
     const heroLocator = page.locator('.cycle-summary').first();
     const heroText = (await heroLocator.count()) ? await heroLocator.innerText() : null;
-    const catchupLocator = page.locator('.past-catchup-banner').first();
+    const catchupLocator = page.locator('.catchup-prompt').first();
     const catchupText = (await catchupLocator.count()) ? await catchupLocator.innerText() : null;
 
     let a11yViolationCount = 0;

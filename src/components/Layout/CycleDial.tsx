@@ -1,16 +1,17 @@
-import { useId, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, PointerEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent, PointerEvent, ReactNode } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { createDropTrack, type Point } from '../../utils/dropGeometry';
-import { describeDialDay, fillLevel, type CycleDial as CycleDialModel, type DayRange } from '../../services/cycleDial';
+import { createDropTrack, sparklePath, type Point } from '../../utils/dropGeometry';
+import { describeDialDay, fillLevel, moodOnDay, type CycleDial as CycleDialModel, type DayRange } from '../../services/cycleDial';
+import type { MascotMood } from '../../utils/mascotFace';
 import { hapticTick } from '../../utils/haptics';
 
 const VIEWBOX_SIZE = 200;
-const DROP_TIP_Y = 16;
-const DROP_RADIUS = 68;
+const DROP_TIP_Y = 8;
+const DROP_RADIUS = 74;
 const TRACK = createDropTrack(VIEWBOX_SIZE / 2, DROP_TIP_Y, DROP_RADIUS);
-const DROP_BOTTOM_Y = TRACK.belly.center.y + TRACK.belly.radius;
-const CENTER_TOP_PERCENT = (TRACK.belly.center.y / VIEWBOX_SIZE) * 100;
+/** El texto va un poco por debajo del centro del vientre para dejar sitio a la cara. */
+const CENTER_TOP_PERCENT = ((TRACK.belly.center.y + 4) / VIEWBOX_SIZE) * 100;
 const KEYBOARD_PAGE_DAYS = 7;
 const HINT_STORAGE_KEY = 'aura_dial_explored';
 
@@ -28,12 +29,17 @@ const SURFACE_PATH = (() => {
 })();
 const LIQUID_PATH = `${SURFACE_PATH} V ${VIEWBOX_SIZE + 20} H ${WAVE_START_X} Z`;
 
+/** Cara de la gota-avatar: dos ojos (como la mascota del Confidente) que miran al día marcado. */
+const EYE_Y = 60;
+const EYE_OFFSET_X = 15;
+const LOOK_DISTANCE = 1.8;
+const EYE_RADIUS: Record<Exclude<MascotMood, 'resting'>, number> = { calm: 4.2, energetic: 4.8, soft: 3.7 };
+const CLOSED_EYE_RADIUS = 4.4;
+/** Hacia dónde mira mientras pregunta algo: su bocadillo, arriba a la izquierda. */
+const PROMPT_GAZE: Point = { x: 64, y: 18 };
+
 const dayFraction = (day: number, length: number) => (day - 0.5) / length;
 const rangePath = ({ start, end }: DayRange, length: number) => TRACK.slice((start - 1) / length, end / length);
-
-function sparklePath({ x, y }: Point, size: number): string {
-  return `M ${x} ${y - size} Q ${x} ${y} ${x + size} ${y} Q ${x} ${y} ${x} ${y + size} Q ${x} ${y} ${x - size} ${y} Q ${x} ${y} ${x} ${y - size} Z`;
-}
 
 function readHintSeen(): boolean {
   try {
@@ -50,6 +56,24 @@ function rememberHintSeen(): void {
   } catch {
     // Solo afecta a si la pista vuelve a aparecer la próxima vez.
   }
+}
+
+function gazeOffset(target: Point): Point {
+  const dx = target.x - VIEWBOX_SIZE / 2;
+  const dy = target.y - EYE_Y;
+  const distance = Math.hypot(dx, dy) || 1;
+  return { x: (dx / distance) * LOOK_DISTANCE, y: (dy / distance) * LOOK_DISTANCE };
+}
+
+function DropFace({ mood, gaze }: { mood: MascotMood; gaze: Point }) {
+  const eyesX = [VIEWBOX_SIZE / 2 - EYE_OFFSET_X, VIEWBOX_SIZE / 2 + EYE_OFFSET_X];
+  return (
+    <g className="cycle-dial-face" style={{ transform: `translate(${gaze.x}px, ${gaze.y}px)` }}>
+      {eyesX.map(x => (mood === 'resting'
+        ? <path key={x} className="cycle-dial-eye is-closed" d={`M ${x - CLOSED_EYE_RADIUS} ${EYE_Y} Q ${x} ${EYE_Y + CLOSED_EYE_RADIUS * 0.9} ${x + CLOSED_EYE_RADIUS} ${EYE_Y}`} />
+        : <circle key={x} className="cycle-dial-eye" cx={x} cy={EYE_Y} r={EYE_RADIUS[mood]} />))}
+    </g>
+  );
 }
 
 function nearestDay(points: Point[], target: Point): number {
@@ -87,22 +111,33 @@ function keyboardTarget(key: string, current: number, length: number): number | 
 }
 
 /**
- * La gota del diario: su contorno es el ciclo completo y su interior se llena
- * a medida que se acerca la regla. Se puede recorrer tocando o arrastrando
- * cualquier punto (o con las flechas del teclado) para ver qué pasa ese día.
+ * La gota del diario, convertida en avatar: su contorno es el ciclo completo,
+ * su interior se llena a medida que se acerca la regla y sus ojos siguen el
+ * día marcado. Se puede recorrer tocando o arrastrando cualquier punto (o con
+ * las flechas del teclado) para ver qué pasa ese día. Si hay un día pendiente,
+ * lo pregunta en un bocadillo (`prompt`).
  */
-export function CycleDial({ dial, selectedLabel, resetLabel }: {
+export function CycleDial({ dial, resetLabel, prompt, onPreviewChange }: {
   dial: CycleDialModel;
-  /** Rótulo del día consultado, p. ej. "Hoy · día 9". */
-  selectedLabel: string;
   /** Texto del botón que vuelve al día consultado tras recorrer la gota. */
   resetLabel: string;
+  /** Bocadillo con la pregunta de la gota sobre un día pendiente. */
+  prompt?: ReactNode;
+  /** Avisa del día que se está recorriendo (o `null` al volver), p. ej. para el círculo de fases. */
+  onPreviewChange?: (day: number | null) => void;
 }) {
   const svgId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const boxRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
   const [hintSeen, setHintSeen] = useState(readHintSeen);
+  // La gota aparece vacía y se llena hasta su nivel (con movimiento reducido, sin transición).
+  const [filled, setFilled] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setFilled(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   const dayPoints = useMemo(
     () => Array.from({ length: dial.length }, (_, index) => TRACK.pointAt(dayFraction(index + 1, dial.length))),
@@ -113,15 +148,22 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
   const activeDay = detail?.day ?? dial.day;
   const knob = dial.isLate && !detail ? TRACK.pointAt(0) : dayPoints[activeDay - 1];
   const fill = detail?.fill ?? fillLevel(dial, dial.isLate ? dial.length : dial.day);
-  const liquidY = DROP_BOTTOM_Y - fill * (DROP_BOTTOM_Y - DROP_TIP_Y);
+  const liquidY = TRACK.levelAt(filled ? fill : 0);
   const center = detail?.center ?? dial.center;
   const tone = detail?.phase.tone ?? dial.tone;
+  const mood = moodOnDay(dial, activeDay);
+  const gaze = gazeOffset(prompt && !detail ? PROMPT_GAZE : knob);
+
+  const changePreview = (next: number | null) => {
+    setPreviewDay(next);
+    onPreviewChange?.(next);
+  };
 
   const preview = (day: number) => {
     // Volver al día consultado equivale a dejar de explorar; solo vibra al cambiar de día.
     const next = day === dial.day && !dial.isLate ? null : day;
     if (next === previewDay) return;
-    setPreviewDay(next);
+    changePreview(next);
     hapticTick();
     if (!hintSeen) {
       setHintSeen(true);
@@ -149,7 +191,7 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape' && previewDay !== null) {
       event.preventDefault();
-      setPreviewDay(null);
+      changePreview(null);
       return;
     }
     const target = keyboardTarget(event.key, activeDay, dial.length);
@@ -213,6 +255,8 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
                 <path className="cycle-dial-ovulation" d={sparklePath(dayPoints[dial.ovulationDay - 1], 5.5)} />
               )}
 
+              <DropFace mood={mood} gaze={gaze} />
+
               {detail && !dial.isLate && <circle className="cycle-dial-ghost" cx={dayPoints[dial.day - 1].x} cy={dayPoints[dial.day - 1].y} r="3.2" />}
               <g className="cycle-dial-knob" style={{ transform: `translate(${knob.x}px, ${knob.y}px)` }}>
                 <circle className="cycle-dial-knob-dot" r="6.5" />
@@ -220,7 +264,7 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
             </svg>
 
             <div className="cycle-dial-center" style={{ top: `${CENTER_TOP_PERCENT}%` }} aria-hidden="true">
-              <span className="cycle-dial-eyebrow">{detail ? `${detail.dateLabel} · día ${detail.day}` : selectedLabel}</span>
+              {detail && <span className="cycle-dial-eyebrow">{`${detail.dateLabel} · día ${detail.day}`}</span>}
               <span className={`cycle-dial-value${/^\+?\d+$/.test(center.value) ? '' : ' is-word'}`}>
                 {center.value}
               </span>
@@ -230,8 +274,9 @@ export function CycleDial({ dial, selectedLabel, resetLabel }: {
             </div>
           </div>
 
+          {prompt}
           {detail && (
-            <button type="button" className="cycle-dial-reset" onClick={() => setPreviewDay(null)}>
+            <button type="button" className="cycle-dial-reset" onClick={() => changePreview(null)}>
               <RotateCcw size={13} aria-hidden="true" />
               {resetLabel}
             </button>

@@ -54,6 +54,16 @@ export interface DropTrack {
   pointAt: (fraction: number) => Point;
   /** Tramo del contorno entre dos fracciones, como `<path d>` abierto. */
   slice: (from: number, to: number) => string;
+  /**
+   * Altura (y) de la superficie de un líquido que ocupa esa fracción del
+   * volumen de la gota: 0 = vacía (el fondo), 1 = llena (la punta).
+   */
+  levelAt: (volume: number) => number;
+}
+
+/** Destello de cuatro puntas centrado en un punto (marca la ovulación sobre el trazo). */
+export function sparklePath({ x, y }: Point, size: number): string {
+  return `M ${x} ${y - size} Q ${x} ${y} ${x + size} ${y} Q ${x} ${y} ${x} ${y + size} Q ${x} ${y} ${x - size} ${y} Q ${x} ${y} ${x} ${y - size} Z`;
 }
 
 /** Proporciones de la silueta de referencia (radio 64). */
@@ -62,6 +72,7 @@ const TIP_CONTROL = { x: 22, y: 12 };
 const SHOULDER_CONTROL_Y = 50;
 const EQUATOR_Y = 92;
 const CURVE_SAMPLES = 96;
+const VOLUME_SAMPLES = 240;
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 const round = (value: number) => Math.round(value * 100) / 100;
@@ -211,10 +222,34 @@ export function createDropTrack(centerX: number, tipY: number, radius: number): 
     return commands.join(' ');
   };
 
+  // La mitad derecha (de la punta al fondo) da la anchura de la gota a cada altura;
+  // acumulando franjas desde el fondo se sabe cuánto volumen queda bajo cada nivel.
+  const bottomY = equatorY + radius;
+  const rightHalf = Array.from({ length: VOLUME_SAMPLES + 1 }, (_, index) => pointAt(index / VOLUME_SAMPLES / 2));
+  const levels = [{ y: bottomY, volume: 0 }];
+  for (let index = rightHalf.length - 1; index > 0; index--) {
+    const lower = rightHalf[index];
+    const upper = rightHalf[index - 1];
+    const slab = (lower.x - centerX + upper.x - centerX) * (lower.y - upper.y);
+    levels.push({ y: upper.y, volume: levels[levels.length - 1].volume + slab });
+  }
+  const totalVolume = levels[levels.length - 1].volume;
+
+  const levelAt = (volume: number): number => {
+    const target = clamp01(volume) * totalVolume;
+    const index = levels.findIndex(level => level.volume >= target);
+    if (index <= 0) return bottomY;
+    const below = levels[index - 1];
+    const above = levels[index];
+    const ratio = (target - below.volume) / (above.volume - below.volume);
+    return below.y + (above.y - below.y) * ratio;
+  };
+
   return {
     outline: `${slice(0, 1)} Z`,
     belly: { center: { x: centerX, y: equatorY }, radius },
     pointAt,
     slice,
+    levelAt,
   };
 }

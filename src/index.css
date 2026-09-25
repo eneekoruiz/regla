@@ -1469,15 +1469,12 @@
    rounded-xl a secas) que no seguían la paleta cálida rosa/dorada ni las
    convenciones de tarjeta (borde var(--border-subtle), sombra var(--shadow-soft)
    teñida de rosa, radios 14-16px) que usa el resto de la app. Ahora comparten
-   la misma "voz" visual que .tool-card, .past-catchup-banner y .aura-button. */
+   la misma "voz" visual que .tool-card, .catchup-prompt y .aura-button. */
 .toast-stack {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  /* Suma la altura real del aviso flotante de "registra tu día" (HeroStatus la
-     publica en --checkin-banner-offset vía ResizeObserver) para que un toast
-     nunca se dibuje encima de ese aviso si ambos coinciden en pantalla. */
-  top: calc(max(12px, calc(env(safe-area-inset-top, 0px) + 10px)) + var(--checkin-banner-offset, 0px));
+  top: max(12px, calc(env(safe-area-inset-top, 0px) + 10px));
   z-index: 99999;
   display: flex;
   flex-direction: column;
@@ -1487,7 +1484,6 @@
   max-width: calc(100vw - 24px);
   padding: 0 8px;
   pointer-events: none;
-  transition: top 0.2s ease;
 }
 @media (min-width: 640px) {
   .toast-stack { max-width: 400px; }
@@ -1665,14 +1661,6 @@
 /* ==========================================================================
    MOBILE LANDSCAPE EXPERIENCE (Smartphones rotated horizontally: max-height: 520px)
    ========================================================================== */
-@media (max-width: 380px) {
-  .past-catchup-text span, .past-catchup-link { display: none; }
-  .quick-log { padding-inline: 2px; font-size: 10.5px; overflow-wrap: normal; }
-  .quick-log-short { white-space: nowrap; }
-}
-@media (max-width: 700px) and (max-height: 780px) {
-  .cycle-dial-stage { min-height: 180px; }
-}
 @media (orientation: landscape) and (max-height: 520px), (max-height: 520px) and (max-width: 950px) {
   /* Navigation: Slim 56px icon rail */
   .app-navigation {
@@ -1841,15 +1829,16 @@
     margin: 0 !important;
   }
 
-  /* Quick Log 4-button grid inside Hero */
-  .quick-log-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  /* Registro de hoy: los cuatro botones en una sola fila, con icono y rótulo corto */
+  .quick-log-grid, .quick-log-section .quick-log-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 4px !important;
     margin-top: 3px !important;
   }
   .quick-log {
-    min-height: 28px !important;
-    height: 28px !important;
+    flex-direction: row !important;
+    min-height: 30px !important;
+    height: 30px !important;
     padding: 2px 6px !important;
     font-size: 10.5px !important;
     border-radius: 7px !important;
@@ -2004,10 +1993,15 @@
   --dial-track: rgba(143, 74, 74, 0.1);
   --dial-glass-top: rgba(255, 255, 255, 0.9);
   --dial-glass-bottom: rgba(255, 255, 255, 0.35);
-  --dial-liquid-top: rgba(227, 93, 118, 0.1);
-  --dial-liquid-bottom: rgba(227, 93, 118, 0.22);
-  --dial-surface: rgba(227, 93, 118, 0.38);
+  --dial-liquid-top: rgba(227, 93, 118, 0.17);
+  --dial-liquid-bottom: rgba(227, 93, 118, 0.34);
+  --dial-surface: rgba(227, 93, 118, 0.32);
   --dial-knob: #ffffff;
+  --dial-face: #4f3d40;
+  --ring-follicular: #e8a6ae;
+  --ring-follicular-text: #a8505c;
+  --ring-luteal: #b79fd0;
+  --ring-luteal-text: #6f4f94;
 }
 .dark, html.theme-refugio {
   --dial-period: #ff7a93;
@@ -2022,10 +2016,15 @@
   --dial-track: rgba(255, 255, 255, 0.1);
   --dial-glass-top: rgba(255, 255, 255, 0.07);
   --dial-glass-bottom: rgba(255, 255, 255, 0.02);
-  --dial-liquid-top: rgba(255, 122, 147, 0.1);
-  --dial-liquid-bottom: rgba(255, 122, 147, 0.22);
-  --dial-surface: rgba(255, 122, 147, 0.45);
+  --dial-liquid-top: rgba(255, 122, 147, 0.16);
+  --dial-liquid-bottom: rgba(255, 122, 147, 0.32);
+  --dial-surface: rgba(255, 122, 147, 0.4);
   --dial-knob: #f7eef2;
+  --dial-face: #f4e9ee;
+  --ring-follicular: #f0b8c0;
+  --ring-follicular-text: #f3b8c0;
+  --ring-luteal: #c9b5e2;
+  --ring-luteal-text: #d4c2ec;
 }
 
 /* La tarjeta crece para ocupar su hueco; la gota se queda con el espacio libre. */
@@ -2049,8 +2048,9 @@
   container-type: size;
 }
 .cycle-dial-frame {
+  --dial-size: min(100cqw, 100cqh, 520px);
   position: relative;
-  width: min(100cqw, 100cqh, 440px);
+  width: var(--dial-size);
   aspect-ratio: 1;
 }
 @supports not (container-type: size) {
@@ -2084,12 +2084,13 @@
 .cycle-dial-glass-bottom { stop-color: var(--dial-glass-bottom); }
 .cycle-dial-liquid-top { stop-color: var(--dial-liquid-top); }
 .cycle-dial-liquid-bottom { stop-color: var(--dial-liquid-bottom); }
-.cycle-dial-liquid { transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+/* Se llena al aparecer y sube o baja al recorrer los días; se asienta despacio, como un líquido. */
+.cycle-dial-liquid { transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
 .cycle-dial-wave { animation: dial-wave 12s linear infinite; }
 .cycle-dial-surface {
   fill: none;
   stroke: var(--dial-surface);
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 
 .cycle-dial-track,
@@ -2109,6 +2110,26 @@
   stroke-linejoin: round;
 }
 .cycle-dial-ghost { fill: var(--dial-neutral); }
+/* Cara de la gota-avatar: parpadea de vez en cuando y mira hacia el día marcado. */
+.cycle-dial-face { transition: transform 0.25s ease-out; }
+.cycle-dial-eye {
+  fill: var(--dial-face);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dial-blink 5.6s ease-in-out infinite;
+}
+.cycle-dial-eye + .cycle-dial-eye { animation-delay: 0.04s; }
+.cycle-dial-eye.is-closed {
+  fill: none;
+  stroke: var(--dial-face);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  animation: none;
+}
+@keyframes dial-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
 .cycle-dial-knob-dot {
   fill: var(--dial-knob);
   stroke: var(--dial-tone);
@@ -2137,7 +2158,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--dial-secondary);
+  color: var(--dial-secondary-strong);
 }
 .cycle-dial-value {
   display: flex;
@@ -2201,120 +2222,157 @@
   color: var(--dial-secondary);
 }
 
-/* Recordatorio de días pendientes: una línea discreta, por debajo en jerarquía del registro de hoy. */
-.cycle-summary-motion { container: hero / inline-size; }
-.past-catchup-banner {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  row-gap: 6px;
-  column-gap: 8px;
+/* La gota y, cuando la tarjeta es ancha (ordenador), el círculo de fases a su lado. */
+.cycle-summary { container: hero / inline-size; }
+.cycle-instruments {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  padding: 8px;
-  border: 1px solid color-mix(in srgb, var(--text-primary) 7%, transparent);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--bg-card) 82%, transparent);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  box-shadow: 0 1px 2px rgba(40, 20, 24, 0.04);
-}
-.past-catchup-avatar {
-  position: relative;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, #f8e1e4, #efc3ca);
-  color: #8f4a4a;
-}
-.dark .past-catchup-avatar { background: linear-gradient(180deg, #5a3a45, #4a2f38); color: #f6c6cf; }
-.past-catchup-banner.is-urgent .past-catchup-avatar::after,
-.past-catchup-banner.is-gold .past-catchup-avatar::after {
-  content: "";
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid var(--bg-card);
-  border-radius: 50%;
-  background: var(--dial-period);
-}
-.past-catchup-banner.is-gold .past-catchup-avatar::after { background: var(--dial-fertile); }
-.past-catchup-text {
-  min-width: 0;
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.3;
-  color: var(--text-secondary);
-}
-.past-catchup-text strong { font-weight: 600; color: var(--text-primary); }
-.past-catchup-actions {
-  grid-column: 2 / -1;
-  grid-row: 2;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
+  gap: clamp(12px, 3cqw, 28px);
 }
-.past-catchup-action {
+.cycle-instruments > .cycle-dial { flex: 1 1 0; min-width: 0; }
+.phase-ring { display: none; }
+@container hero (min-width: 560px) {
+  .phase-ring {
+    flex: 0.7 1 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    container-type: size;
+  }
+}
+.phase-ring-frame {
+  --ring-tone: var(--dial-neutral);
+  --ring-tone-text: var(--dial-secondary-strong);
+  position: relative;
+  width: min(100cqw, 100cqh, 340px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  container-type: inline-size;
+}
+.phase-ring-frame[data-phase="period"] { --ring-tone: var(--dial-period); --ring-tone-text: var(--dial-period-text); }
+.phase-ring-frame[data-phase="follicular"] { --ring-tone: var(--ring-follicular); --ring-tone-text: var(--ring-follicular-text); }
+.phase-ring-frame[data-phase="fertile"] { --ring-tone: var(--dial-fertile); --ring-tone-text: var(--dial-fertile-text); }
+.phase-ring-frame[data-phase="luteal"] { --ring-tone: var(--ring-luteal); --ring-tone-text: var(--ring-luteal-text); }
+.phase-ring-frame > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.phase-ring-track { fill: none; stroke: var(--dial-track); stroke-width: 5; }
+.phase-ring-arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.45;
+  transition: opacity 0.4s ease, stroke-width 0.4s ease;
+}
+.phase-ring-arc.is-active { opacity: 1; stroke-width: 8; }
+.phase-ring-arc.is-period { stroke: var(--dial-period); }
+.phase-ring-arc.is-follicular { stroke: var(--ring-follicular); }
+.phase-ring-arc.is-fertile { stroke: var(--dial-fertile); }
+.phase-ring-arc.is-luteal { stroke: var(--ring-luteal); }
+.phase-ring-arc.is-unknown { stroke: var(--dial-neutral); }
+.phase-ring-ovulation { fill: var(--dial-ovulation); stroke: var(--bg-card); stroke-width: 1.4; }
+.phase-ring-marker {
+  fill: var(--dial-knob);
+  stroke: var(--ring-tone);
+  stroke-width: 2.6;
+  filter: drop-shadow(0 1px 2px rgba(40, 20, 24, 0.25));
+  transition: cx 0.3s ease, cy 0.3s ease;
+}
+.phase-ring-center {
+  position: absolute;
+  inset: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.phase-ring-kicker {
+  font-size: max(10px, 5.4cqw);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ring-tone-text);
+}
+.phase-ring-value {
+  font-size: 26cqw;
+  font-weight: 250;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum", "lnum";
+}
+.phase-ring-caption {
+  font-size: max(10.5px, 5.6cqw);
+  font-weight: 500;
+  color: var(--dial-secondary-strong);
+}
+
+/* Días pendientes: la gota los pregunta en un bocadillo y las respuestas se abren
+   en una ventana. No ocupan sitio en el diario. */
+.catchup-prompt {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  min-height: 30px;
-  padding: 5px 12px;
-  border: 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 12px 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+  background: var(--bg-card);
   color: var(--text-primary);
   font-size: 12.5px;
   font-weight: 600;
-  white-space: nowrap;
-  transition: transform 0.15s ease, background 0.15s ease;
+  line-height: 1.2;
+  text-align: left;
+  overflow-wrap: normal;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(40, 20, 24, 0.06), 0 10px 24px -14px rgba(40, 20, 24, 0.45);
+  transition: scale 0.15s ease;
 }
-.past-catchup-action svg, .past-catchup-link svg { flex-shrink: 0; }
-.past-catchup-action:hover { background: color-mix(in srgb, var(--text-primary) 11%, transparent); }
-.past-catchup-action:active { transform: scale(0.97); }
-.past-catchup-action.is-primary {
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card));
-  color: var(--accent);
+.catchup-prompt:active { scale: 0.96; }
+.catchup-prompt.is-inline { align-self: flex-start; border-radius: 999px; }
+/* Bocadillo: sale de la gota por la izquierda de su punta, sin salirse del hueco disponible. */
+.catchup-prompt.is-bubble {
+  position: absolute;
+  top: 1%;
+  right: calc(50% + 12px);
+  z-index: 2;
+  width: max-content;
+  max-width: calc(50% - 12px + (100cqw - var(--dial-size)) / 2);
+  border-radius: 18px 18px 5px 18px;
+  animation: catchup-pop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
-.past-catchup-link {
+.catchup-prompt-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dial-neutral);
+}
+.catchup-prompt[data-tone="urgent"] .catchup-prompt-dot { background: var(--dial-period); }
+.catchup-prompt[data-tone="gold"] .catchup-prompt-dot { background: var(--dial-fertile); }
+@keyframes catchup-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+.catchup-sheet-actions { display: flex; flex-direction: column; gap: 10px; }
+.catchup-sheet-actions > button { justify-content: center; gap: 8px; width: 100%; }
+.catchup-sheet-link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  min-height: 30px;
-  padding: 5px 6px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
   border: 0;
-  background: transparent;
+  background: none;
   color: var(--accent);
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
-  white-space: nowrap;
-}
-.past-catchup-dismiss {
-  grid-column: 3;
-  grid-row: 1;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-secondary);
-}
-.past-catchup-dismiss:hover { background: color-mix(in srgb, var(--text-primary) 7%, transparent); }
-
-@container hero (min-width: 640px) {
-  .past-catchup-banner { display: flex; padding: 7px 8px 7px 10px; }
-  .past-catchup-text { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .past-catchup-actions { flex: 0 0 auto; flex-wrap: nowrap; }
-}
-@media (min-width: 861px) {
-  .past-catchup-link { display: none; }
 }
 
 /* Registro de hoy: lo principal de la pantalla. El sangrado destaca sobre el resto. */
@@ -2388,34 +2446,57 @@
 @media (min-width: 701px) and (max-width: 860px) {
   .cycle-dial-stage { min-height: min(46vh, 440px); }
 }
-@media (max-width: 700px) {
-  /* En móvil el aviso sustituye a la columna de consejos para no alargar la primera pantalla. */
-  .diary-grid:has(.past-catchup-banner) .diary-secondary { display: none; }
-  .cycle-dial-stage { min-height: 210px; }
-  .past-catchup-banner { border-radius: 14px; }
-  .past-catchup-actions { grid-column: 1 / -1; flex-wrap: nowrap; }
-  .past-catchup-text { font-size: 13px; }
-  .past-catchup-dismiss { width: 26px; height: 26px; }
-  .past-catchup-link { padding: 5px 8px; }
-  .past-catchup-link-label { display: none; }
+/* En una sola columna (móvil y tableta en vertical): si la gota pregunta por un día
+   pendiente, los consejos se apartan para que el diario quepa en una pantalla, y el
+   registro de hoy va en cuatro botones con icono y rótulo corto. */
+@media (max-width: 860px) {
+  .diary-grid:has(.catchup-prompt) .diary-secondary { display: none; }
   .quick-log-grid, .quick-log-section .quick-log-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-  .quick-log { flex-direction: column; gap: 4px; min-height: 58px; padding: 8px 4px; font-size: 11.5px; text-align: center; }
+  .quick-log { flex-direction: column; gap: 4px; min-height: 58px; padding: 8px 4px; font-size: 11.5px; text-align: center; overflow-wrap: normal; }
   .quick-log-long { display: none; }
   .quick-log-short { display: inline; }
 }
 @media (max-width: 380px) {
-  .past-catchup-text span, .past-catchup-link { display: none; }
   .quick-log { padding-inline: 2px; font-size: 10.5px; overflow-wrap: normal; }
   .quick-log-short { white-space: nowrap; }
 }
-@media (max-width: 700px) and (max-height: 780px) {
-  .cycle-dial-stage { min-height: 180px; }
+/* Móvil en vertical: la tarjeta ya ocupa la primera pantalla (App.tsx mide --hero-fill)
+   y la gota, protagonista, se queda con todo el espacio libre. En pantallas bajas se
+   recoge antes el texto accesorio que la gota. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .cycle-dial-stage { min-height: 140px; }
+  /* Con el aviso, el diario es una sola pantalla: basta con dejar libre la barra inferior. */
+  .workspace:has(.catchup-prompt) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 700px) and (orientation: portrait) and (max-height: 740px) {
+  .cycle-summary-top.has-ring .cycle-copy { display: none !important; }
+}
+@media (max-width: 700px) and (orientation: portrait) and (max-height: 700px) {
+  .cycle-dial-hint { display: none; }
+  .quick-log-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 @media (orientation: landscape) and (max-height: 520px), (max-height: 520px) and (max-width: 950px) {
   .cycle-dial-stage { min-height: 150px; }
-  .cycle-dial-hint, .past-catchup-link { display: none; }
+  .cycle-dial-hint { display: none; }
+  .quick-log-long { display: none; }
+  .quick-log-short { display: inline; }
+  .quick-log-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cycle-dial-wave { animation: none; }
-  .cycle-dial-liquid, .cycle-dial-knob-dot { transition: none; }
+  .cycle-dial-wave, .cycle-dial-eye, .catchup-prompt { animation: none; }
+  .cycle-dial-liquid, .cycle-dial-knob-dot, .cycle-dial-face, .phase-ring-arc, .phase-ring-marker { transition: none; }
 }

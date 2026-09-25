@@ -3,7 +3,7 @@ import { useCycle } from './useCycle';
 import { useToast } from '../context/toast';
 import { useDailyDismissal } from './useDailyDismissal';
 import { useYesterdayCatchup } from './useYesterdayCatchup';
-import type { PastCatchupNotice } from '../components/Layout/PastCatchupBanner';
+import type { CatchupNotice } from '../components/Layout/CatchupNotice';
 import type { CycleSnapshot } from '../services/cycleSnapshot';
 import { diffDays, parseDateKey } from '../utils/dateKey';
 import { hapticSuccess } from '../utils/haptics';
@@ -36,11 +36,12 @@ export function useCatchupNotice(snapshot: CycleSnapshot, hasAnyLog: boolean, ha
   const { yesterdayKey, needsCatchup } = useYesterdayCatchup();
   const toast = useToast();
 
-  let notice: PastCatchupNotice | null = null;
+  let notice: CatchupNotice | null = null;
   if (snapshot.likelyMissedPeriod) {
     notice = {
       id: 'missed-period',
       tone: 'gold',
+      prompt: '¿Y tu regla?',
       message: '¿Te bajó la regla el mes pasado?',
       detail: `Hace más de ${snapshot.cycleLength + MISSED_PERIOD_GRACE_DAYS} días de tu último registro.`,
       actions: [{ label: 'Completar', icon: <CalendarPlus size={14} aria-hidden="true" />, onClick: () => handlers.onOpenRecoveryModal?.() }],
@@ -49,6 +50,7 @@ export function useCatchupNotice(snapshot: CycleSnapshot, hasAnyLog: boolean, ha
     notice = {
       id: 'yesterday',
       tone: 'urgent',
+      prompt: '¿Y ayer?',
       message: 'Ayer quedó sin registrar.',
       detail: '¿Qué tal fue?',
       actions: [
@@ -78,6 +80,7 @@ export function useCatchupNotice(snapshot: CycleSnapshot, hasAnyLog: boolean, ha
     notice = {
       id: 'past-day',
       tone: 'calm',
+      prompt: '¿Y este día?',
       message: daysAgo <= RECENT_PAST_DAYS ? `${pastDayLabel(daysAgo)} sin registrar.` : 'Día sin registros.',
       detail: '¿Tuviste la regla o algún síntoma?',
       actions: [

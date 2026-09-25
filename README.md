@@ -11,7 +11,7 @@ Aura es una app React/Vite para registrar ciclo menstrual, síntomas, bienestar 
 ## Estado actual
 
 - Frontend: React 19, TypeScript, Vite, Tailwind CSS v4, Framer Motion y PWA.
-- Pantalla central con la gota del ciclo: se recorre con el dedo, se llena al acercarse la regla y separa fertilidad (cabecera) de regla (gota). Registro del día destacado y consejos desplegables.
+- Pantalla central con la gota del ciclo como avatar: ocupa la pantalla, se recorre con el dedo (sus ojos siguen el día), se llena al acercarse la regla y pregunta por los días pendientes en un bocadillo. La cabecera habla de fertilidad; en el ordenador, un círculo de fases acompaña a la gota. Registro del día destacado y consejos desplegables.
 - Motor biológico de estados cerrados; SOP/irregularidad y etapas sin predicciones ovulatorias.
 - Datos locales: localStorage compatible con historiales anteriores, espejo IndexedDB y cola persistente de sincronización por cuenta.
 - Proyectos Capacitor para iOS/Android con puente de Salud y fuentes de widgets; pendientes de compilación en SDK nativos.

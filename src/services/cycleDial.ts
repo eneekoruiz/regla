@@ -4,6 +4,7 @@ import type { CycleSnapshot } from './cycleSnapshot';
 import { predictDayStatus } from './predictiveEngine';
 import { diffDays, parseDateKey } from '../utils/dateKey';
 import { shiftDateKey } from '../utils/dailyLog';
+import type { MascotMood } from '../utils/mascotFace';
 
 /**
  * Modelo de la gota del diario: el contorno es el ciclo completo y sobre él
@@ -17,7 +18,7 @@ import { shiftDateKey } from '../utils/dailyLog';
  * - La leyenda muestra siempre lo actual o lo próximo.
  */
 
-export type DialTone = 'period' | 'fertile' | 'ovulation' | 'neutral';
+type DialTone = 'period' | 'fertile' | 'ovulation' | 'neutral';
 
 /** Rango de días del ciclo, ambos incluidos (el día 1 es el inicio de la regla). */
 export interface DayRange {
@@ -25,14 +26,14 @@ export interface DayRange {
   end: number;
 }
 
-export interface DialCenter {
+interface DialCenter {
   value: string;
   caption: string;
   /** Línea discreta bajo la cifra: la fecha que responde a la pregunta central. */
   note?: string;
 }
 
-export interface DialFact {
+interface DialFact {
   kind: 'period' | 'fertile' | 'ovulation';
   label: string;
   value: string;
@@ -58,7 +59,7 @@ export interface CycleDial {
   summary: string;
 }
 
-export interface DialPhase {
+interface DialPhase {
   label: string;
   tone: DialTone;
 }
@@ -77,8 +78,8 @@ export interface DialDayDetail {
   summary: string;
 }
 
-export type DayStatus = Pick<PredictedDateInfo, 'isPeriod' | 'isFertileWindow' | 'isOvulationDay'>;
-export type DayStatusResolver = (dateKey: string) => DayStatus;
+type DayStatus = Pick<PredictedDateInfo, 'isPeriod' | 'isFertileWindow' | 'isOvulationDay'>;
+type DayStatusResolver = (dateKey: string) => DayStatus;
 
 export interface CycleDialSource {
   snapshot: CycleSnapshot;
@@ -244,6 +245,18 @@ function phaseOnDay(dial: CycleDial, day: number): DialPhase {
   if (!dial.fertile) return { label: 'Fase sin estimar', tone: 'neutral' };
   if (inRange(dial.fertile, day)) return { label: 'Días fértiles', tone: 'fertile' };
   return { label: day < dial.fertile.start ? 'Fase folicular' : 'Fase lútea', tone: 'neutral' };
+}
+
+/**
+ * Gesto de la gota-avatar ese día, con el mismo código que la mascota del
+ * Confidente: descansa durante la regla, se anima en los días fértiles y se
+ * calma al acabar la ventana.
+ */
+export function moodOnDay(dial: CycleDial, day: number): MascotMood {
+  if (inRange(dial.period, day)) return 'resting';
+  if (dial.ovulationDay === day || inRange(dial.fertile, day)) return 'energetic';
+  if (dial.fertile && day > dial.fertile.end) return 'soft';
+  return 'calm';
 }
 
 /**
