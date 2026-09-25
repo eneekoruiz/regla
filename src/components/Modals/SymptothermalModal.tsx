@@ -17,7 +17,9 @@ export function SymptothermalModal({ isOpen, onClose }: { isOpen: boolean; onClo
   const log = logs[selectedDate];
   const [mucus, setMucus] = useState<CervicalMucusType | undefined>(log?.cervicalMucus);
   const [temperature, setTemperature] = useState(log?.bbt?.toString() ?? '');
+  // El error de la temperatura va junto a su campo; el aviso general, solo si falla el guardado.
   const [error, setError] = useState('');
+  const [saveError, setSaveError] = useState('');
   const save = () => {
     const value = temperature.trim() === '' ? undefined : Number(temperature.replace(',', '.'));
     if (value !== undefined && (!Number.isFinite(value) || value < 30 || value > 45)) { setError('Introduce una temperatura entre 30 y 45 °C o deja el campo vacío.'); return; }
@@ -26,9 +28,9 @@ export function SymptothermalModal({ isOpen, onClose }: { isOpen: boolean; onClo
       toast.success('Registro sintotérmico guardado');
       onClose();
     }
-    catch { setError('No se ha guardado el registro. Vuelve a intentarlo.'); }
+    catch { setSaveError('No se ha guardado el registro. Vuelve a intentarlo.'); }
   };
-  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro sintotérmico" description={new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { dateStyle: 'long' })} errorMessage={error} onClearError={() => setError('')}
+  return <ModalFrame isOpen={isOpen} onClose={onClose} title="Registro sintotérmico" description={new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-ES', { dateStyle: 'long' })} errorMessage={saveError} onClearError={() => setSaveError('')}
     footer={<><button type="button" onClick={onClose} className={modalSecondaryButton}>Cancelar</button><button type="button" onClick={save} className={modalPrimaryButton}><Check size={17} aria-hidden="true" /> Guardar registro</button></>}>
     <fieldset><legend className="mb-2 text-sm font-semibold">Moco cervical</legend>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{mucusOptions.map(option => <button key={option.type} type="button" aria-pressed={mucus === option.type} onClick={() => setMucus(mucus === option.type ? undefined : option.type)} className={`${modalChoice} ${mucus === option.type ? modalSelected : modalUnselected}`}>

@@ -43,7 +43,7 @@
     --shadow-soft: 0 16px 40px -12px rgba(184, 110, 110, 0.18);
     --hero-surface: #fcf4f3; /* Delicate blush for the hero card */
     --phase-ink: #8f4a4a;
-    --success: #5f8161; /* Salvia apagada, coherente con la paleta cálida en vez del verde saturado de Tailwind */
+    --success: #4d6e50; /* Salvia apagada, coherente con la paleta cálida; contraste AA sobre el aviso de éxito */
     --success-soft: #eaf1e6;
     --radius-md: 14px; /* antes sin definir: .period-registered-card y .future-day-card salían con esquinas cuadradas */
   }

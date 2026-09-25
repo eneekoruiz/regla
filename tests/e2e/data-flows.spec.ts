@@ -20,9 +20,13 @@ test('cuestionario guardado en la fecha elegida, con respuestas visibles tras re
   await page.getByRole('button', { name: 'A veces', exact: true }).click();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'No', exact: true }).click();
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await page.getByRole('button', { name: 'Sí', exact: true }).click();
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await page.getByRole('button', { name: 'Sin cambios', exact: true }).click();
   await page.getByRole('button', { name: 'Guardar respuestas', exact: true }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  const expected = { stress_q1: 3, stress_q2: 'sometimes', stress_q3: false };
+  const expected = { stress_q1: 3, stress_q2: 'sometimes', stress_q3: false, stress_q4: true, stress_q5: 'no_change' };
   const results = (await readLogs(page))[date].quizResults;
   expect(results).toHaveLength(1);
   expect(results[0].answers).toEqual(expected);
@@ -33,7 +37,7 @@ test('cuestionario guardado en la fecha elegida, con respuestas visibles tras re
   await expect(history).toBeVisible();
   await history.locator('summary').click();
   await expect(history.getByText('A veces', { exact: true })).toBeVisible();
-  await expect(history.getByText('No', { exact: true })).toBeVisible();
+  await expect(history.getByText('Sin cambios', { exact: true })).toBeVisible();
   expect((await readLogs(page))[date].quizResults[0].answers).toEqual(expected);
   await checkLayout(page);
   await checkAccessibility(page, info, 'cuestionario-guardado');
@@ -146,15 +150,17 @@ test('informe PDF generado en el dispositivo y ajustes con validación', async (
   expect(pdf.length).toBeGreaterThan(1000);
   await info.attach('informe.pdf', { body: pdf, contentType: 'application/pdf' });
   await page.keyboard.press('Escape');
-  await openSettings(page, 'Mi ciclo');
-  await page.getByLabel('Duración media del ciclo (días)').fill('0');
+  // Los datos del ciclo se editan en Mi perfil › Mi ciclo.
+  await page.getByRole('button', { name: 'Ajustes de mi perfil' }).click();
+  await page.getByRole('dialog', { name: 'Tu perfil' }).getByRole('button', { name: /Mi ciclo menstrual/ }).click();
+  await page.getByLabel('Duración ciclo').fill('0');
   await page.getByRole('button', { name: 'Guardar cambios' }).click();
   await expect(page.getByText('Revisa la duración', { exact: false }).first()).toBeVisible();
   await checkLayout(page);
   await checkAccessibility(page, info, 'ajustes-error');
-  await page.getByLabel('Duración media del ciclo (días)').fill('30');
+  await page.getByLabel('Duración ciclo').fill('30');
   await page.getByRole('button', { name: 'Guardar cambios' }).click();
-  await expect(page.getByText('Ajustes del ciclo guardados correctamente.', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Mi ciclo: cambios guardados.', { exact: true }).first()).toBeVisible();
   await page.reload();
   expect((await readSettings(page)).averageCycleLength).toBe(30);
 });

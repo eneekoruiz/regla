@@ -137,7 +137,7 @@ export function ColorLegendModal({
 
               <button type="button" onClick={() => onOpenPhaseGuide?.('follicular')} className="text-left rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 hover:border-[var(--accent)] hover:shadow-sm transition-all group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#d8727d] dark:text-[#e89da5] font-bold text-xs">
+                  <div className="flex items-center gap-2 text-[#a8505c] dark:text-[#f3b8c0] font-bold text-xs">
                     <Sparkles size={15} />
                     <span>2. Fase Folicular (Días 6 a 13 aprox.)</span>
                   </div>

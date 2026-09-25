@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { enterAccount, openTool, readLogs } from './helpers';
+import { answerPendingDay, enterAccount, openTool, readLogs } from './helpers';
 
 test('sangrado se guarda en la fecha elegida, persiste y se puede corregir', async ({ page }) => {
+  // Fecha fija: una semana después del registro, sin que la app pregunte todavía por una regla olvidada.
+  await page.clock.install({ time: new Date('2026-08-20T12:00:00') });
   await enterAccount(page);
   await page.getByLabel('Fecha del registro').fill('2026-08-12');
-  await page.getByRole('button', { name: 'Registrar regla', exact: true }).click();
+  await answerPendingDay(page, 'Anotar regla');
   await page.getByRole('button', { name: 'Sí, hubo sangrado' }).click();
   await page.getByLabel('Es el primer día de un nuevo ciclo').check();
   await page.getByRole('button', { name: 'Abundante', exact: true }).click();
@@ -13,7 +15,7 @@ test('sangrado se guarda en la fecha elegida, persiste y se puede corregir', asy
   expect((await readLogs(page))['2026-08-12']).toMatchObject({ date: '2026-08-12', isPeriod: true, isCycleStart: true, flow: 'heavy' });
   await page.reload();
   await page.getByLabel('Fecha del registro').fill('2026-08-12');
-  await page.getByRole('button', { name: 'Editar regla', exact: true }).click();
+  await page.getByRole('button', { name: 'Editar flujo', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Abundante', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Quitar', exact: true }).click();
   await page.reload();
@@ -26,7 +28,7 @@ test('temperatura valida decimales, persiste y permite borrar', async ({ page })
   await openTool(page, /^Temperatura y moco/);
   await page.getByLabel('Temperatura basal (°C)').fill('abc');
   await page.getByRole('button', { name: 'Guardar registro' }).click();
-  await expect(page.getByRole('alert')).toContainText('temperatura');
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('temperatura');
   await page.getByLabel('Temperatura basal (°C)').fill('36,55');
   await page.getByRole('button', { name: /^Cremoso/ }).click();
   await page.getByRole('button', { name: 'Guardar registro' }).click();
@@ -45,7 +47,7 @@ test('medicación conserva nombre, dosis, hora y toma después de recargar', asy
   await enterAccount(page);
   await openTool(page, /^Medicación/);
   await page.getByRole('button', { name: 'Añadir toma', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('nombre');
+  await expect(page.getByRole('dialog').getByRole('alert')).toContainText('nombre');
   await page.getByLabel('Nombre', { exact: true }).fill('Registro de prueba');
   await page.getByLabel('Dosis (opcional)').fill('1 unidad');
   await page.getByLabel('Hora (opcional)').fill('09:30');

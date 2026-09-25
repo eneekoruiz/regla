@@ -108,22 +108,14 @@ export function MedicationTrackerModal({ isOpen, onClose }: { isOpen: boolean; o
       onClose={onClose}
       title="Pastillas y tomas"
       description={formattedDate}
-      errorMessage={saveError || (!showAddModal && error ? error : null)}
+      errorMessage={saveError || (!showAddModal && hasMedications && error ? error : null)}
       onClearError={() => { setSaveError(''); setError(''); }}
       footer={
         !hasMedications ? (
-          <>
-            <button type="button" onClick={onClose} className={modalSecondaryButton}>
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={() => addMedication(false)}
-              className={modalPrimaryButton}
-            >
-              <Plus size={17} aria-hidden="true" /> Añadir toma
-            </button>
-          </>
+          // Sin tomas, el formulario ya tiene su propio «Añadir toma».
+          <button type="button" onClick={onClose} className={modalSecondaryButton}>
+            Cancelar
+          </button>
         ) : (
           <>
             <button type="button" onClick={onClose} className={modalSecondaryButton}>

@@ -90,9 +90,12 @@ for (const theme of ['claro', 'oscuro']) test(`catálogo ${theme} accesible, sin
     const name = await card.locator('.quiz-card-title').innerText();
     await card.click();
     // ChatDrawer.tsx's dialog heading (id="chat-title") reads "Confidente", not "Chat".
-    const dialog = page.getByRole('dialog', { name: 'Confidente' });
+    const chat = page.getByRole('dialog', { name: 'Confidente' });
+    await expect(chat).toBeVisible();
+    await chat.getByRole('button', { name: 'Abrir chequeo nuevo', exact: true }).click();
+    // El chequeo se abre en su propia ventana, con el nombre del cuestionario.
+    const dialog = page.getByRole('dialog', { name });
     await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Abrir chequeo nuevo', exact: true }).click();
     await checkLayout(page);
     await checkAccessibility(page, info, name);
     await capture(page, info, `tool-${index}`);
