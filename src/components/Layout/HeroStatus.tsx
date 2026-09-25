@@ -118,7 +118,8 @@ export function HeroStatus({
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="cycle-summary-motion"
       >
-        <AnimatePresence>
+        {/* Al abrir el diario el aviso ya está ahí; solo se anima al aparecer o resolverse después. */}
+        <AnimatePresence initial={false}>
           {notice && <PastCatchupBanner key={notice.id} notice={notice} onDismiss={dismiss} />}
         </AnimatePresence>
 
