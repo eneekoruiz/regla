@@ -13,7 +13,6 @@ const TRACK = createDropTrack(VIEWBOX_SIZE / 2, DROP_TIP_Y, DROP_RADIUS);
 /** El texto va un poco por debajo del centro del vientre para dejar sitio a la cara. */
 const CENTER_TOP_PERCENT = ((TRACK.belly.center.y + 4) / VIEWBOX_SIZE) * 100;
 const KEYBOARD_PAGE_DAYS = 7;
-const HINT_STORAGE_KEY = 'aura_dial_explored';
 
 /** Superficie del líquido: una ondulación apenas perceptible, con el nivel en y = 0. */
 const WAVELENGTH = 64;
@@ -40,23 +39,6 @@ const PROMPT_GAZE: Point = { x: 64, y: 18 };
 
 const dayFraction = (day: number, length: number) => (day - 0.5) / length;
 const rangePath = ({ start, end }: DayRange, length: number) => TRACK.slice((start - 1) / length, end / length);
-
-function readHintSeen(): boolean {
-  try {
-    return localStorage.getItem(HINT_STORAGE_KEY) === 'true';
-  } catch {
-    // Sin almacenamiento, la pista se sigue mostrando: no bloquea nada.
-    return false;
-  }
-}
-
-function rememberHintSeen(): void {
-  try {
-    localStorage.setItem(HINT_STORAGE_KEY, 'true');
-  } catch {
-    // Solo afecta a si la pista vuelve a aparecer la próxima vez.
-  }
-}
 
 function gazeOffset(target: Point): Point {
   const dx = target.x - VIEWBOX_SIZE / 2;
@@ -117,7 +99,7 @@ function keyboardTarget(key: string, current: number, length: number): number | 
  * las flechas del teclado) para ver qué pasa ese día. Si hay un día pendiente,
  * lo pregunta en un bocadillo (`prompt`).
  */
-export function CycleDial({ dial, resetLabel, prompt, onPreviewChange }: {
+export function CycleDial({ dial, resetLabel, prompt, onPreviewChange, explored = false, onExplored }: {
   dial: CycleDialModel;
   /** Texto del botón que vuelve al día consultado tras recorrer la gota. */
   resetLabel: string;
@@ -125,12 +107,16 @@ export function CycleDial({ dial, resetLabel, prompt, onPreviewChange }: {
   prompt?: ReactNode;
   /** Avisa del día que se está recorriendo (o `null` al volver), p. ej. para el círculo de fases. */
   onPreviewChange?: (day: number | null) => void;
+  /** Si ya se recorrió alguna vez (se guarda en la cuenta): oculta la pista. */
+  explored?: boolean;
+  /** Primera vez que se recorre, para recordarlo en la cuenta. */
+  onExplored?: () => void;
 }) {
   const svgId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const boxRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [previewDay, setPreviewDay] = useState<number | null>(null);
-  const [hintSeen, setHintSeen] = useState(readHintSeen);
+  const [hintSeen, setHintSeen] = useState(explored);
   // La gota aparece vacía y se llena hasta su nivel (con movimiento reducido, sin transición).
   const [filled, setFilled] = useState(false);
 
@@ -167,7 +153,7 @@ export function CycleDial({ dial, resetLabel, prompt, onPreviewChange }: {
     hapticTick();
     if (!hintSeen) {
       setHintSeen(true);
-      rememberHintSeen();
+      onExplored?.();
     }
   };
 

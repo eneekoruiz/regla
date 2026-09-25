@@ -5,7 +5,6 @@ import { diffDays, isDateKey, parseDateKey } from '../utils/dateKey';
 
 /** Margen tras el que un registro de regla ausente se considera "probablemente olvidado". */
 const MISSED_PERIOD_GRACE_DAYS = 10;
-const MISSED_PERIOD_MAX_CYCLES = 2.5;
 const DEFAULT_CYCLE_LENGTH = 28;
 const DEFAULT_PERIOD_LENGTH = 5;
 
@@ -94,9 +93,7 @@ export function describeCycleDay({ day, selectedDate, todayDate, stats, settings
     daysToNext,
     remainingPeriodDays: Math.max(0, periodLength - cycleDay),
     flowName: log?.flow ? FLOW_NAMES[log.flow] : 'activo',
-    likelyMissedPeriod: isToday && hasCycle
-      && elapsedDays > cycleLength + MISSED_PERIOD_GRACE_DAYS
-      && elapsedDays < cycleLength * MISSED_PERIOD_MAX_CYCLES,
+    likelyMissedPeriod: isToday && hasCycle && elapsedDays > cycleLength + MISSED_PERIOD_GRACE_DAYS,
   };
 }
 

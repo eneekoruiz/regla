@@ -156,13 +156,8 @@ function MainScreen() {
     ? null
     : detectCycleRecovery(cycleStats, todayDate);
 
-  // Nunca se abre a la fuerza el registro del día: los días pendientes se piden
-  // con el aviso descartable de la tarjeta principal (useCatchupNotice).
-  useEffect(() => {
-    if (!recovery || view !== 'diary' || modal !== null) return;
-    const timer = window.setTimeout(() => setModal('recovery'), 0);
-    return () => window.clearTimeout(timer);
-  }, [modal, recovery, view]);
+  // Nada se abre a la fuerza: una regla que parece olvidada la pregunta la gota
+  // («¿Y tu regla?») y desde ahí se abre esta ventana (useCatchupNotice).
   const [periodModalType, setPeriodModalType] = useState<'period' | 'irregular'>('period');
   const toast = useToast();
   useEffect(() => {

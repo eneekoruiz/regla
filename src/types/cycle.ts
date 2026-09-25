@@ -122,6 +122,8 @@ export interface UserSettings {
   notificationPreferences?: NotificationPreference;
   hasPCOS?: boolean; // Mode for PCOS / Polycystic Ovary Syndrome (irregular cycles)
   worstDayOfPeriod?: number; // e.g. 1, 2, or 3 (day of highest discomfort)
+  /** Ya recorrió la gota alguna vez: deja de mostrarse la pista «Recorre la gota». */
+  dialExplored?: boolean;
   typicalFlowIntensity?: FlowIntensity; // e.g. 'light', 'medium', 'heavy'
   regularityPreference?: 'very_regular' | 'mostly_regular' | 'irregular' | 'pcos';
   // Modular Onboarding / Progressive Profile

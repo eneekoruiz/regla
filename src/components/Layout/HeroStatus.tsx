@@ -84,7 +84,7 @@ export function HeroStatus({
   topContent?: ReactNode;
   children?: ReactNode;
 }) {
-  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, logs, hasEnoughData } = useCycle();
+  const { currentDayInfo: day, todayDate, selectedDate, cycleStats, settings, updateSettings, logs, hasEnoughData } = useCycle();
   const log = logs[selectedDate];
   const hasAnyLog = hasDayEntries(log);
 
@@ -154,6 +154,8 @@ export function HeroStatus({
                 resetLabel={snapshot.isToday ? 'Hoy' : weekdayDateLabel(selectedDate)}
                 prompt={prompt}
                 onPreviewChange={day => setPreview({ date: selectedDate, day })}
+                explored={Boolean(settings.dialExplored)}
+                onExplored={() => updateSettings({ dialExplored: true })}
               />
               <PhaseRing ring={buildPhaseRing(dial, snapshot.cycleDay, previewDay)} onOpenLegend={onOpenLegend} />
             </div>
