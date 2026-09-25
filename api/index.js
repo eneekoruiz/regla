@@ -1,31 +1,18 @@
 import serverModule from '../server/app.js';
 
 const { createApp } = serverModule;
-const B64_DB = 'cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfVGpmaVFTOElaRTFjQGVwLXlvdW5nLW1vcm5pbmctemFvbW96NDgtcG9vbGVyLmMtMi5ldS13ZXN0LTIuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJl';
-const B64_SECRET = 'OWU2ZjdhM2UyYjE0YzVkNmU3ZjgwOTFhMmIzYzRkNWU2ZjcwODE5MmEzYjRjNWQ2ZTdmODA5MWEyYjNjNGQ1';
 
 let productionApp;
 function getProductionApp() {
   // Las pruebas nunca deben conectarse a una base de datos real, se lancen como se lancen.
   const isTestRun = process.env.npm_lifecycle_event === 'test' || Boolean(process.env.NODE_TEST_CONTEXT);
   if (isTestRun && !process.env.DATABASE_URL) return null;
-
-  const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
-  const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;
-  let jwtSecret = (process.env.JWT_SECRET || '').trim();
-  if (jwtSecret.length < 32 || /dev_jwt_secret|change_in_production|your_custom/i.test(jwtSecret)) {
-    jwtSecret = Buffer.from(B64_SECRET, 'base64').toString('utf8');
-  }
+  // Las credenciales solo llegan por el entorno del despliegue: sin ellas, el acceso queda cerrado.
+  if (!(process.env.DATABASE_URL || process.env.POSTGRES_URL) || !process.env.JWT_SECRET) return null;
 
   if (!productionApp) {
     try {
-      productionApp = createApp({
-        env: {
-          ...process.env,
-          DATABASE_URL: dbUrl,
-          JWT_SECRET: jwtSecret,
-        }
-      });
+      productionApp = createApp({ env: process.env });
     } catch (err) {
       console.error('Failed to create server app:', err);
     }
@@ -33,26 +20,26 @@ function getProductionApp() {
   return productionApp;
 }
 
-export default async function handler(req, res) {
+export default function handler(req, res) {
   const app = getProductionApp();
   if (app) return app(req, res);
+
+  // Without production secrets, fail closed instead of pretending that accounts or writes work.
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Vary', 'Origin');
+  const allowed = new Set((process.env.ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean));
+  const origin = req.headers?.origin;
+  const host = req.headers?.host;
+  if (origin && origin !== `https://${host}` && !allowed.has(origin)) {
+    return res.status(403).json({ error: 'Origen no permitido.' });
+  }
+  if (origin) res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
   const path = new URL(req.url || '/', 'https://aura.invalid').pathname.replace(/\/$/, '');
-  if (path === '/api/debug-db' && req.method === 'GET') {
-    let dbError = 'None';
-    try {
-      const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
-      const { Pool } = require('pg');
-      const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
-      await pool.query('SELECT 1');
-      dbError = 'Success';
-    } catch (err) {
-      dbError = err.message || String(err);
-    }
-    return res.status(200).json({ error: dbError });
-  }
   if (path === '/api/health' && req.method === 'GET') {
     return res.status(200).json({ status: 'ok', authentication: 'unavailable' });
   }
