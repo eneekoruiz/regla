@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { containDialogFocus } from '../../utils/dialogFocus';
+import { hapticError } from '../../utils/haptics';
 
 interface DialogSurfaceProps {
   isOpen: boolean;
@@ -42,9 +43,7 @@ export function DialogSurface({ isOpen, onClose, label, children, className = ''
   useEffect(() => {
     if (errorMessage && dialogRef.current) {
       dialogRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-      try {
-        navigator.vibrate?.([30, 40, 30]);
-      } catch {}
+      hapticError();
     }
   }, [errorMessage]);
 

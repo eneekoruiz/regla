@@ -201,13 +201,17 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         let alreadySent = false;
         try {
           alreadySent = Boolean(localStorage.getItem(storageKey));
-        } catch {}
+        } catch {
+          // Sin almacenamiento no se puede saber si ya se envió; se intenta de nuevo.
+        }
         if (isDue && !alreadySent) {
           void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
             if (sent) {
               try {
                 localStorage.setItem(storageKey, 'true');
-              } catch {}
+              } catch {
+                // Si no se puede recordar el envío, como mucho se repetirá el aviso.
+              }
             }
           });
         }
@@ -363,12 +367,15 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
+  /** Ese día no hubo sangrado: ni regla ni sangrado irregular (con su etiqueta). */
   const denyPeriodOnDate = (date: string) => {
     updateLogs((prev) => {
       const currentLog = prev[date] || { date, isPeriod: false, symptoms: [] };
       const newLog = {
         ...currentLog,
         isPeriod: false,
+        isIrregularBleeding: false,
+        symptoms: currentLog.symptoms.filter(symptom => symptom.id !== 'irregular_bleeding'),
         flow: undefined,
         recordedAt: new Date().toISOString()
       };
@@ -423,13 +430,15 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     dateStr: string,
     options: { flow: FlowIntensity; isCycleStart: boolean; isIrregular: boolean }
   ) => {
+    // El manchado nunca es regla: se guarda como sangrado irregular, igual que en el resto de la app.
+    const isIrregular = options.isIrregular || options.flow === 'spotting';
     updateLogs((prev) => {
       const currentLog = prev[dateStr] || { date: dateStr, isPeriod: false, symptoms: [] };
-      const isPeriod = !options.isIrregular && options.flow !== 'spotting';
+      const isPeriod = !isIrregular;
 
       // If irregular bleeding, add tag symptom
       let updatedSymptoms = currentLog.symptoms;
-      if (options.isIrregular) {
+      if (isIrregular) {
         const irregularSymptom: SymptomItem = {
           id: 'irregular_bleeding',
           name: 'Sangrado irregular',
@@ -445,8 +454,8 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ...currentLog,
         isPeriod,
         flow: options.flow,
-        isIrregularBleeding: options.isIrregular,
-        isCycleStart: options.isCycleStart,
+        isIrregularBleeding: isIrregular,
+        isCycleStart: options.isCycleStart && !isIrregular,
         symptoms: updatedSymptoms,
         recordedAt: new Date().toISOString()
       };
@@ -457,7 +466,7 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       };
     });
 
-    if (options.isCycleStart && !options.isIrregular && options.flow !== 'spotting') {
+    if (options.isCycleStart && !isIrregular) {
       updateSettings({ lastPeriodStartDate: dateStr });
     }
   };

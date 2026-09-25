@@ -53,6 +53,12 @@ export async function seedAccount(page: Page) {
   await expect(page.getByLabel('Fecha del registro')).toBeVisible();
 }
 
+/** Responde a la pregunta de la gota sobre un día pendiente («¿Y este día?», «¿Y ayer?»…) desde su ventana. */
+export async function answerPendingDay(page: Page, answer: string) {
+  await page.getByRole('button', { name: /^¿Y (este día|ayer|tu regla)\?/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: answer, exact: true }).click();
+}
+
 /** Compatibility fixture for the diary tests. The product now requires an account,
  * so this seeds the isolated, mocked account instead of an unauthenticated store. */
 export async function seedLocal(page: Page, _greeting = false) {

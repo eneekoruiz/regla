@@ -1,6 +1,41 @@
 import type { CervicalMucusType, DailyLog, FlowIntensity, SymptomItem } from '../types/cycle';
 import { formatDateKey, parseDateKey } from './dateKey';
 
+/** Fecha desplazada `days` días (negativo hacia atrás), en formato YYYY-MM-DD. */
+export function shiftDateKey(dateKey: string, days: number): string {
+  const date = parseDateKey(dateKey);
+  date.setDate(date.getDate() + days);
+  return formatDateKey(date);
+}
+
+/** Un día cuenta como registrado en cuanto guarda cualquier observación de la usuaria. */
+export function hasDayEntries(log: DailyLog | undefined): boolean {
+  if (!log) return false;
+  return Boolean(
+    log.isPeriod
+    || log.isIrregularBleeding
+    || log.symptoms?.length
+    || log.notes
+    || (log.intimacyLog && log.intimacyLog.activity !== 'none')
+    || log.medications?.some(medication => medication.taken)
+    || log.bbt !== undefined
+    || (log.intimacy !== undefined && log.intimacy !== 'none')
+    || log.quizResults?.length
+  );
+}
+
+/**
+ * ¿La usuaria ya usaba el diario ese día o antes? Evita reclamar "ayer sin
+ * registrar" a quien acaba de empezar hoy (aunque haya anotado una regla
+ * antigua): cuenta cuándo se guardó cada registro, no la fecha que describe.
+ */
+export function hasActivityOnOrBefore(logs: Record<string, DailyLog>, dateKey: string): boolean {
+  return Object.values(logs).some(log => {
+    const savedOn = log.recordedAt ? formatDateKey(new Date(log.recordedAt)) : '';
+    return (savedOn || log.date) <= dateKey;
+  });
+}
+
 /**
  * ¿Debe marcarse "primer día de un nuevo ciclo" por defecto al registrar
  * sangrado en `selectedDate`? Antes se comparaba con
@@ -18,9 +53,7 @@ import { formatDateKey, parseDateKey } from './dateKey';
 export function computeDefaultCycleStart(selectedDate: string, logs: Record<string, DailyLog>): boolean {
   const existing = logs[selectedDate];
   if (existing?.isPeriod) return Boolean(existing.isCycleStart);
-  const prevDate = parseDateKey(selectedDate);
-  prevDate.setDate(prevDate.getDate() - 1);
-  const prevKey = formatDateKey(prevDate);
+  const prevKey = shiftDateKey(selectedDate, -1);
   const previousDayIsPeriod = Boolean(prevKey && logs[prevKey]?.isPeriod);
   return !previousDayIsPeriod;
 }

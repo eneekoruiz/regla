@@ -12,7 +12,8 @@ test('chat local conserva mensajes y permite borrar sólo la conversación', asy
   await openTool(page, /^Confidente/);
   await expect(page.getByRole('log').getByText(question, { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Catálogo de temas', exact: true }).click();
-  await expect(page.getByRole('region', { name: 'Catálogo local' }).getByRole('button')).toHaveCount(22);
+  // 17 temas y 5 chequeos; el botón de cerrar el catálogo no cuenta.
+  await expect(page.getByRole('region', { name: 'Catálogo local' }).getByRole('button').filter({ hasNotText: /^Cerrar$/ })).toHaveCount(22);
   await checkLayout(page);
   await page.getByRole('button', { name: 'Borrar historial', exact: true }).click();
   await page.getByRole('button', { name: 'Borrar', exact: true }).click();

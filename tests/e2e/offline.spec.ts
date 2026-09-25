@@ -21,11 +21,16 @@ test('arranque en frío sin red y catálogo completo de herramientas', async ({ 
   // Playwright 1.62 resets navigator.onLine after navigation: microsoft/playwright#42174.
   // Restore only the browser status; context network blocking remains enabled throughout.
   const network = await context.newCDPSession(page);
-  await network.send('Network.overrideNetworkState', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 });
+  const offlineState = { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 };
+  // `overrideNetworkState` solo existe en Chromium reciente; en versiones anteriores hace lo mismo `emulateNetworkConditions`.
+  await network.send('Network.overrideNetworkState', offlineState)
+    .catch(() => network.send('Network.emulateNetworkConditions', offlineState));
   await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
   await expect(page.getByLabel('Fecha del registro')).toBeVisible();
-  await expect(page.getByText('Sin conexión', { exact: true }).filter({ visible: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Siguiente consejo' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Sin conexión', visible: true }).first()).toBeVisible();
+  // En móvil, con una pregunta pendiente, los consejos se apartan; donde se ven, deben funcionar sin red.
+  const nextTip = page.getByRole('button', { name: 'Siguiente consejo' }).filter({ visible: true });
+  if (await nextTip.count()) await nextTip.first().click();
   for (const tool of [/^Tendencias del ciclo/, /^Fases del ciclo/, /^Medicación/, /^Cuidados del ciclo/, /^Confidente/, /^Importar registros/, /^Informe de salud/]) {
     await openTool(page, tool);
     await expect(page.getByRole('dialog')).toBeVisible();

@@ -176,7 +176,7 @@ export function YearViewCalendar({
                     : ovulation
                     ? 'bg-amber-400 text-amber-950 font-bold shadow-xs ring-1 ring-amber-400/80'
                     : fertile
-                    ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-medium'
+                    ? 'bg-amber-100 text-amber-800 font-medium dark:bg-amber-500/20 dark:text-amber-200'
                     : 'text-[var(--text-primary)] hover:bg-[var(--bg-chip)]';
 
                   return (

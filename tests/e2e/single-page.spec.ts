@@ -1,43 +1,43 @@
 import { test, expect } from '@playwright/test';
 import { seedLocal, checkAccessibility, checkLayout, capture, readLogs } from './helpers';
 
-test('single page, floating greeting, progressive symptoms and compact responsive ring', async ({ page }, info) => {
+test('una sola pantalla: diario sin errores, síntomas que persisten, pregunta de la gota y navegación', async ({ page }, info) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
-  await seedLocal(page, true);
-  const greeting = page.getByRole('dialog', { name: 'Hola, ¿has notado algún síntoma menstrual hoy?' });
-  await expect(greeting).toBeVisible();
+  await seedLocal(page);
+  // Con una pregunta pendiente, el diario cabe entero en la pantalla.
+  await expect(page.locator('.cycle-dial-box')).toBeVisible();
   await checkLayout(page);
-  await checkAccessibility(page, info, 'saludo');
-  await capture(page, info, 'saludo');
-  await greeting.getByRole('button', { name: 'Me siento bien', exact: true }).click();
-  await expect(greeting).toHaveCount(0);
-  await expect(page.locator('.orbit')).toBeVisible();
   await checkAccessibility(page, info, 'single-page');
-  await checkLayout(page);
   await capture(page, info, 'single-page');
   const dimensions = await page.evaluate(() => ({ scroll: document.documentElement.scrollHeight, height: innerHeight }));
   expect(dimensions.scroll).toBe(dimensions.height);
+
+  // Los síntomas se añaden desde el registro de hoy y siguen ahí tras recargar.
   await page.getByRole('button', { name: 'Síntomas y notas', exact: true }).click();
-  await expect(page.getByRole('group', { name: 'Categorías de síntomas' }).getByRole('button')).toHaveCount(4);
-  await page.getByRole('button', { name: 'Dolor', exact: true }).click();
-  await page.locator('.symptom-options button').first().click();
-  await page.getByRole('button', { name: 'Más opciones', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Sueño', exact: true })).toBeVisible();
-  await checkLayout(page);
+  const daily = page.getByRole('dialog', { name: '¿Cómo estás hoy?' });
+  await daily.getByRole('button', { name: 'Cólicos', exact: true }).click();
   await checkAccessibility(page, info, 'sintomas');
-  await page.keyboard.press('Escape');
+  await daily.getByRole('button', { name: 'Listo', exact: true }).click();
+  await expect(daily).toHaveCount(0);
   await page.reload();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(Object.values(await readLogs(page)).some((log: any) => log.symptoms.length >= 2)).toBe(true);
-  if (await page.locator('.compact-care').isVisible()) await page.locator('.compact-care').click();
-  else await page.locator('.tip-thumbnail').first().click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+
+  // La pregunta de la gota abre su ventana, que se cierra con Escape.
+  await page.getByRole('button', { name: /^¿Y ayer\?/ }).click();
+  await expect(page.getByRole('dialog', { name: 'Ayer quedó sin registrar.' })).toBeVisible();
   await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  // Se cambia de vista sin salir de la página.
   await page.getByRole('button', { name: 'Calendario', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Calendario del ciclo' })).toBeVisible();
   await checkLayout(page);
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('heading', { name: 'Mi diario', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Mi diario', exact: true }).click();
+  await expect(page.getByLabel('Fecha del registro')).toBeVisible();
+
+  // El tema lo decide la app (claro), aunque el sistema esté en oscuro.
   await page.emulateMedia({ colorScheme: 'dark' });
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme)).toBe('light');
   expect(errors).toEqual([]);

@@ -225,7 +225,7 @@ export const AppleMonthlyCalendar = ({ onSelectDate, onOpenLegendModal, onOpenCy
                   : ovulation
                   ? 'bg-amber-400 text-amber-950 font-bold shadow-sm ring-2 ring-amber-400/70'
                   : fertile
-                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-medium'
+                  ? 'bg-amber-100 text-amber-800 font-medium dark:bg-amber-500/20 dark:text-amber-200'
                   : 'text-[var(--text-primary)] hover:bg-[var(--bg-chip)]';
                 return <div key={date} className="flex items-center justify-center py-0.5">
                   <button type="button" id={'calendar-day-' + date} aria-label={`${parseDateKey(date).toLocaleDateString('es-ES', { dateStyle: 'full' })}${state ? ', ' + state : ''}${hasLog ? ', con registros' : ''}`} aria-current={isToday ? 'date' : undefined} aria-pressed={isSelected} onClick={() => select(date)} onKeyDown={event => moveFocus(event, date)}

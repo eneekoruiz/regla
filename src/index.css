@@ -43,7 +43,7 @@
     --shadow-soft: 0 16px 40px -12px rgba(184, 110, 110, 0.18);
     --hero-surface: #fcf4f3; /* Delicate blush for the hero card */
     --phase-ink: #8f4a4a;
-    --success: #5f8161; /* Salvia apagada, coherente con la paleta cálida en vez del verde saturado de Tailwind */
+    --success: #4d6e50; /* Salvia apagada, coherente con la paleta cálida; contraste AA sobre el aviso de éxito */
     --success-soft: #eaf1e6;
     --radius-md: 14px; /* antes sin definir: .period-registered-card y .future-day-card salían con esquinas cuadradas */
   }
@@ -95,8 +95,6 @@
 }
 
 [class*="tracking-"] { letter-spacing: 0; }
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
 .aura-app { height: 100dvh; width: 100%; max-width: 100vw; overflow: hidden; display: flex; font-size: 14px; }
 .app-navigation { position: fixed; inset: 0 auto 0 0; width: 224px; background: var(--bg-card); border-right: 1px solid var(--border-subtle); padding: 22px 16px 14px; display: flex; flex-direction: column; z-index: 30; overflow: hidden; scrollbar-width: none; }
 .app-navigation::-webkit-scrollbar { display: none; }
@@ -208,7 +206,6 @@
   gap: 4px;
   margin: 10px 4px 0;
 }
-.navigation-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 11px; color: var(--text-secondary); }
 .sidebar-connection-status {
   display: inline-flex;
   align-items: center;
@@ -396,223 +393,7 @@
   color: var(--text-secondary);
   line-height: 1.25;
 }
-.cycle-summary-visuals {
-  flex: 1 1 auto;
-  height: auto;
-  min-height: 220px;
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(18px, 2.5vw, 42px);
-  width: 100%;
-  margin: 0;
-  padding: 6px 12px;
-}
-.cycle-ring-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 0 1 auto;
-  max-height: 100%;
-  transition: all 0.4s ease-in-out;
-}
-
-.cycle-ring-wrap.is-primary {
-  order: 1;
-  width: clamp(285px, 42vh, 400px);
-  max-width: 50%;
-  z-index: 2;
-}
-
-.cycle-ring-wrap.is-secondary {
-  order: 2;
-  width: clamp(260px, 38vh, 360px);
-  max-width: 48%;
-  margin-left: 0;
-  z-index: 1;
-}
-
-.cycle-summary-visuals.single-ring {
-  min-height: 0;
-  justify-content: center !important;
-  padding: 6px 12px !important;
-  flex: 1 1 auto;
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary {
-  display: none !important;
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
-  width: clamp(235px, 35vh, 320px) !important;
-  max-width: 95% !important;
-  max-height: min(325px, 37vh) !important;
-  margin: 0 auto !important;
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring.is-primary .cycle-ring-label strong {
-  font-size: clamp(44px, 6.2vh, 64px);
-  line-height: 1;
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring.is-primary .cycle-ring-label span:first-child {
-  font-size: clamp(12.5px, 1.8vh, 14.5px);
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
-  font-size: clamp(13px, 1.8vh, 15px);
-}
-
-.cycle-summary-visuals.single-ring .cycle-ring-context {
-  font-size: clamp(11.5px, 1.6vh, 13px);
-}
-
-/* Dial Protagonista (Primer Plano) */
-.cycle-ring.is-primary {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 160 / 170;
-  margin: 0 auto;
-  opacity: 1;
-  filter: drop-shadow(0 12px 34px color-mix(in srgb, var(--phase-ink) 26%, transparent));
-}
-
-/* Dial en Segundo Plano */
-.cycle-ring.is-secondary {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 160 / 170;
-  margin: 0 auto;
-  opacity: 0.88;
-  filter: drop-shadow(0 8px 20px color-mix(in srgb, var(--phase-ink) 18%, transparent));
-  cursor: pointer;
-}
-
-.cycle-summary-bottom-actions {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.hero-cycle-highlights {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  width: 100%;
-  margin: 6px 0 2px;
-}
-.hero-highlight-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(184, 110, 110, 0.15);
-  box-shadow: 0 2px 8px -2px rgba(184, 110, 110, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-.dark .hero-highlight-chip {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
-}
-.hero-chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.hero-chip-text {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.cycle-phase-wheel {
-  cursor: pointer;
-  outline: none;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-}
-.cycle-phase-wheel:focus-visible {
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-.cycle-summary-side-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  width: 100%;
-  grid-column: 1 / -1;
-  margin-top: 8px;
-  min-width: 0;
-}
-.cycle-summary-top.has-ring .hero-quick-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  width: 100%;
-}
-.cycle-summary-top.has-ring .hero-quick-actions .aura-button {
-  font-size: 12.5px;
-  padding: 6px 12px;
-  min-height: 35px;
-  width: 100%;
-  justify-content: flex-start;
-}
-.cycle-side-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-}
-.cycle-stat-pill {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 5px 10px;
-  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-}
-.cycle-stat-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-  opacity: 0.9;
-}
-.cycle-stat-val {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 12px;
-}
-.confirmed-feedback-msg {
-  grid-column: 1 / -1;
-}
 .hero-integrated-record { margin-top: 0; width: 100%; }
-.cycle-ring-context {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  opacity: 0.85;
-  margin-top: 1px;
-}
-.cycle-summary.is-annotated .cycle-ring-context {
-  font-size: 12.5px;
-}
 
 /* Panel lateral cuando no hay anillo (días pasados / futuros) para aprovechar el espacio */
 .hero-side-panel {
@@ -637,60 +418,10 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.hero-panel-empty {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.hero-empty-text {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--text-secondary);
-  margin: 0;
-}
-.hero-add-symptom-btn {
-  align-self: flex-start;
-  font-size: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 2px;
-}
 .hero-panel-body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-.hero-panel-period-summary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-/* Same card as a real logged day (.hero-side-panel.is-past), but this one holds a
-   calculated guess, not a fact — a dashed border (same treatment as the "not yet
-   confirmed" catch-up banners) plus an explicit tag keep that distinction visible
-   instead of an estimate reading with the same confidence as a real record. */
-.hero-side-panel.is-estimate {
-  border-style: dashed;
-  border-color: var(--border-card);
-}
-.hero-panel-estimate-tag {
-  font-size: 10.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text-tertiary);
-}
-.hero-panel-estimate-text {
-  margin: 0;
-  font-size: 12.5px;
-  font-style: italic;
-  line-height: 1.45;
-  color: var(--text-secondary);
 }
 .hero-symptom-chips {
   display: flex;
@@ -739,327 +470,8 @@
 .hero-panel-action-btn:hover {
   text-decoration: underline;
 }
-
-/* Barra inferior de anotaciones de hoy cuando se muestra el anillo */
-.hero-today-symptoms-bar {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-subtle);
-}
-.hero-today-symptoms-empty {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12.5px;
-  color: var(--text-secondary);
-}
-.hero-today-symptoms-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.hero-today-symptoms-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-.hero-today-symptoms-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.hero-today-notes-snippet {
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  font-style: italic;
-  max-width: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.hero-today-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 4px 10px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all .15s ease;
-}
-.hero-today-action-btn:hover {
-  background: var(--accent);
-  color: var(--accent-on, #fff);
-}
-.urgent-today-banner {
-  margin: 12px 0 6px;
-  padding: 16px 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-left: 5px solid var(--accent);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  transition: all .18s ease;
-}
-
-.dark .urgent-today-banner {
-  background: var(--bg-card);
-  border-color: var(--border-subtle);
-  border-left-color: var(--accent);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-}
-
-.urgent-today-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex: 1;
-  min-width: 0;
-}
-
-/* Círculo símbolo — mismo patrón que .confidente-symbol */
-.urgent-today-symbol {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.urgent-today-symbol svg {
-  width: 22px;
-  height: 22px;
-}
-
-.urgent-today-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-/* Eyebrow de categoría — igual que .advice-category pero con color heredado */
-.urgent-today-cat {
-  margin-bottom: 2px;
-  font-size: 13px;
-}
-
-/* Titular con fuente display — igual que .advice-card h3 */
-.urgent-today-headline {
-  font: 400 20px/1.2 var(--font-display);
-  letter-spacing: -0.3px;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.urgent-today-btn {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 8px 18px;
-  min-height: 42px;
-  border-radius: 12px;
-  background: var(--accent);
-  color: var(--accent-on, #ffffff);
-  border: 1px solid var(--accent);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 20%, transparent);
-  transition: all .16s ease;
-  cursor: pointer;
-}
-
-.urgent-today-btn:hover {
-  filter: brightness(0.92);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.urgent-today-btn:active {
-  transform: scale(0.96);
-}
-
-.hero-side-panel.is-future {
-  border-style: dashed;
-  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
-}
-.hero-future-text {
-  font-size: 12px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  margin: 0;
-}
-.hero-future-badge {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--accent);
-  background: var(--accent-soft);
-  padding: 3px 8px;
-  border-radius: 6px;
-}
 .eyebrow { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
 .cycle-headline { font: 400 30px/1.16 var(--font-display); letter-spacing: -0.5px; margin: 0 0 6px; max-width: 540px; text-wrap: balance; }
-.cycle-ring {
-  flex-shrink: 0;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-}
-.cycle-ring > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.cycle-ring > svg circle,
-.cycle-ring > svg path {
-  transition: stroke-dasharray 0.5s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.35s ease, opacity 0.35s ease;
-}
-
-/* Dial Protagonista (Primer Plano - Ocupa el máximo espacio) */
-
-
-/* Dial en Segundo Plano (Acompaña con presencia equilibrada) */
-
-.cycle-ring.is-secondary:hover {
-  opacity: 0.95;
-  transform: scale(1.03);
-}
-
-/* Tipografía interior del dial - Centrada exactamente en (80, 98) sin colisiones */
-.cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 58%, rgba(201, 99, 107, 0.05) 0%, rgba(201, 99, 107, 0.015) 60%, transparent 72%);
-}
-.dark .cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 58%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-}
-
-.cycle-ring-label {
-  position: absolute;
-  inset: 0;
-  top: 15.3%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-  padding: 0 14px;
-}
-
-/* 1. Kicker / Etiqueta de fase — editorial italic, not industrial caps */
-.cycle-ring-label span:first-child {
-  letter-spacing: 0.02em;
-  font-weight: 500;
-  text-transform: capitalize;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 11px;
-  line-height: 1.15;
-  opacity: 0.88;
-  transition: font-size 0.3s ease;
-}
-.cycle-ring.is-primary .cycle-ring-label span:first-child {
-  font-size: clamp(12.5px, 1.8vh, 14.5px);
-  letter-spacing: 0.02em;
-  margin-bottom: 3px;
-}
-.cycle-ring.is-secondary .cycle-ring-label span:first-child {
-  font-size: clamp(10.5px, 1.4vh, 12px);
-  letter-spacing: 0.02em;
-  margin-bottom: 1px;
-}
-
-/* 2. Número central serif en cursiva */
-.cycle-ring-label strong {
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 0.95;
-  font-family: var(--font-display);
-  font-style: italic;
-  letter-spacing: -0.02em;
-  transition: font-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.cycle-ring.is-primary .cycle-ring-label strong {
-  font-size: clamp(48px, 6.8vh, 68px);
-}
-.cycle-ring.is-secondary .cycle-ring-label strong {
-  font-size: clamp(34px, 5vh, 48px);
-}
-.cycle-ring.is-primary .cycle-ring-day-number.is-text {
-  font-size: clamp(26px, 3.8vh, 36px) !important;
-  font-style: normal !important;
-}
-.cycle-ring.is-secondary .cycle-ring-day-number.is-text {
-  font-size: clamp(14px, 2vh, 18px) !important;
-  font-style: normal !important;
-}
-
-/* 3. Unidad */
-.cycle-ring-label span:nth-of-type(2) {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.15;
-  margin-top: 2px;
-  opacity: 0.88;
-  transition: font-size 0.3s ease;
-}
-.cycle-ring.is-primary .cycle-ring-label span:nth-of-type(2) {
-  font-size: clamp(13px, 1.8vh, 15px);
-  margin-top: 2px;
-}
-.cycle-ring.is-secondary .cycle-ring-label span:nth-of-type(2) {
-  font-size: clamp(10.5px, 1.4vh, 12px);
-  margin-top: 1px;
-}
-
-/* 4. Contexto / Aclaración */
-.cycle-ring-context {
-  font-size: 11px;
-  font-weight: 400;
-  font-style: italic;
-  color: var(--text-tertiary);
-  opacity: 0.82;
-  margin-top: 2px;
-}
-.cycle-ring.is-primary .cycle-ring-context {
-  font-size: clamp(11.5px, 1.5vh, 13px);
-  margin-top: 2px;
-}
-.cycle-ring.is-secondary .cycle-ring-context {
-  font-size: clamp(9.5px, 1.3vh, 11px);
-  margin-top: 0px;
-}
-.period-registered-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-left: 4px solid var(--rose); border-radius: var(--radius-md); margin-top: 10px; }
-.period-registered-badge { display: flex; align-items: center; gap: 12px; }
-.period-registered-badge strong { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: block; }
-.period-registered-badge span { font-size: 12px; color: var(--text-secondary); }
 .future-forecast-container { display: flex; flex-direction: column; gap: 4px; margin-top: 0; }
 .future-forecast-card { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 4px 16px -4px rgba(184, 110, 110, 0.06); }
 .dark .future-forecast-card { background: rgba(46, 34, 39, 0.75); border: 1px solid rgba(255, 255, 255, 0.06); }
@@ -1130,12 +542,6 @@
   display: block;
 }
 .future-day-note { font-size: 11px; color: var(--text-tertiary); margin: 0 auto; text-align: center; font-style: italic; opacity: 0.85; }
-.future-day-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 12.5px; line-height: 1.45; margin-top: 8px; }
-.future-day-card p { margin: 0; }
-.cycle-meta { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
-.cycle-meta div { display: flex; flex-direction: column; gap: 2px; }
-.cycle-meta dt { font-size: 11.5px; color: var(--text-secondary); }
-.cycle-meta dd { font-size: 14.5px; font-weight: 600; margin: 0; }
 .muted-note { font-size: 12px; color: var(--text-secondary); margin: 12px 0 0; line-height: 1.45; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .section-heading h2 { font-size: 15px; font-weight: 600; margin: 0; }
@@ -1162,24 +568,6 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
-}
-.hero-integrated-record .section-caption {
-  margin: 1px 0 0;
-  color: var(--text-secondary);
-  font-size: 11.5px;
-}
-.hero-add-quick-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
-.hero-add-quick-btn:hover {
-  background: var(--accent);
-  color: var(--accent-on, #fff);
-  border-color: var(--accent);
 }
 .quick-log-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
 .quick-log {
@@ -1215,15 +603,8 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 16px -2px rgba(184, 110, 110, 0.14);
 }
-.log-preview { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
-.log-preview p { font-size: 12px; color: var(--text-secondary); margin: 0; white-space: pre-wrap; }
-.symptom-list { display: flex; gap: 5px; flex-wrap: wrap; padding: 0; margin: 0 0 5px; list-style: none; }
-.symptom-list li { border-radius: 6px; background: var(--accent-soft); padding: 3px 7px; color: var(--accent); font-size: 11px; }
-.empty-log { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; padding: 2px 0; color: var(--text-secondary); font-size: 11.5px; }
-.empty-log svg { flex-shrink: 0; }
 .wellness-section { padding: 0; display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .wellness-carousel-wrapper { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.wellness-count { font-size: 11.5px; color: var(--text-secondary); min-width: 32px; text-align: center; }
 .wellness-controls { display: flex; align-items: center; gap: 4px; }
 .advice-card {
   background: linear-gradient(150deg, #ffffff 0%, #fdf9fa 100%);
@@ -1241,16 +622,6 @@
 .advice-category { display: flex; gap: 6px; align-items: center; color: var(--accent); font-size: 12.5px; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
 .advice-card h3 { font: 500 21px/1.2 var(--font-display); letter-spacing: -.3px; color: var(--text-primary); margin: 0 0 8px; }
 .advice-card p { font-size: 13.5px; line-height: 1.45; color: var(--text-secondary); margin: 0 0 8px; }
-.advice-card .advice-tip {
-  padding: 8px 12px;
-  background: rgba(247, 230, 230, 0.35);
-  border-left: 3px solid var(--accent);
-  border-radius: 8px;
-  margin-top: 8px;
-  font-size: 12.5px;
-  font-style: italic;
-  color: var(--text-primary);
-}
 .text-action { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; font-size: 12.5px; font-weight: 600; color: var(--accent); text-align: left; margin-top: auto; padding-top: 6px; }
 .confidente-link {
   display: flex;
@@ -1473,7 +844,6 @@
   transform: translateX(3px);
   transition: transform .18s ease;
 }
-.tool-section-title { font-size: 15px; font-weight: 650; margin: 16px 0 8px; }
 .biomarker-list { margin: 0; }
 .quiz-history { padding: 0 0 16px; }
 .quiz-history h3 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
@@ -1609,43 +979,13 @@
   .cycle-summary-top.has-ring .cycle-headline { font-size: clamp(18px, 2.3vh, 22px); }
   .cycle-summary-top.has-ring .cycle-copy { font-size: clamp(11px, 1.4vh, 12px); }
 
-  .cycle-summary-visuals {
-    min-height: 185px;
-    gap: clamp(14px, 2.2vw, 36px);
-    padding: 4px 8px;
-  }
-  .cycle-ring-wrap.is-primary {
-    width: clamp(245px, 36.5vh, 330px);
-    max-width: 50%;
-  }
-  .cycle-ring-wrap.is-secondary {
-    width: clamp(225px, 33.5vh, 305px);
-    max-width: 48%;
-    margin-left: 0;
-  }
-
-  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(46px, 6.6vh, 64px); }
-  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(34px, 5vh, 46px); }
-
-  .cycle-summary-visuals.single-ring { min-height: 160px; }
-  .cycle-summary-visuals.single-ring .cycle-ring-wrap.is-primary {
-    width: clamp(235px, 35vh, 310px);
-    max-width: 90%;
-    max-height: min(320px, 36vh);
-  }
-  .cycle-summary-visuals.single-ring .cycle-ring.is-primary .cycle-ring-label strong {
-    font-size: clamp(44px, 6vh, 58px);
-  }
-
   .hero-quick-actions { margin-top: 2px; }
   .advice-card { min-height: 105px; padding: 10px 14px; }
   .advice-card h3 { font-size: clamp(14.5px, 2vh, 17px); margin: 0 0 2px; }
   .advice-card p { font-size: clamp(11.5px, 1.5vh, 12.5px); line-height: 1.35; margin: 0 0 3px; }
-  .advice-card .advice-tip { padding: 3px 0; margin-top: 3px; font-size: 10.5px; }
   .confidente-link { padding: 7px 12px; min-height: 38px; gap: 8px; }
   .confidente-link strong { font-size: 13px; }
   .confidente-link small { font-size: 10.5px; }
-  .past-catchup-banner { margin: 4px 0 2px; padding: 5px 10px; }
   .quick-log { min-height: 36px; padding: 4px 10px; font-size: 11.5px; }
 }
 
@@ -1656,15 +996,6 @@
   .day-pill { width: 40px; height: 42px; }
   .diary-grid { margin-top: 2px; row-gap: 4px; }
   .cycle-summary { padding: 8px 14px 6px; }
-  .cycle-summary-visuals {
-    min-height: 165px;
-    gap: clamp(10px, 1.8vw, 24px);
-    padding: 2px 6px;
-  }
-  .cycle-ring-wrap.is-primary { width: clamp(215px, 32vh, 275px); }
-  .cycle-ring-wrap.is-secondary { width: clamp(195px, 30vh, 255px); }
-  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(40px, 5.6vh, 52px); }
-  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(30px, 4.4vh, 40px); }
   .advice-card { min-height: 95px; padding: 8px 12px; }
   .confidente-link { padding: 6px 12px; min-height: 36px; }
   .quick-log { min-height: 34px; padding: 4px 8px; font-size: 11px; }
@@ -1680,18 +1011,13 @@
   .diary-grid { margin-top: 2px; row-gap: 3px; }
   .cycle-summary { padding: 6px 12px 6px; }
   .cycle-summary-motion { gap: 2px; }
-  .cycle-summary-visuals { min-height: 150px; gap: clamp(8px, 1.5vw, 20px); padding: 2px 4px; }
-  .cycle-ring-wrap.is-primary { width: clamp(200px, 31vh, 250px); }
-  .cycle-ring-wrap.is-secondary { width: clamp(185px, 29vh, 235px); }
-  .cycle-ring.is-primary .cycle-ring-label strong { font-size: clamp(38px, 5.2vh, 48px); }
-  .cycle-ring.is-secondary .cycle-ring-label strong { font-size: clamp(28px, 4vh, 38px); }
   .advice-card { min-height: 85px; padding: 8px 12px; }
   .confidente-link { padding: 5px 10px; min-height: 34px; }
   .quick-log { min-height: 32px; padding: 3px 6px; font-size: 11px; }
 }
 @media (min-width: 701px) and (max-height: 500px) {
   .app-navigation { padding-block: 20px; }
-  .brand-caption, .navigation-footer, .navigation-note, .desktop-chat { display: none; }
+  .brand-caption, .navigation-footer { display: none; }
   .primary-navigation { margin-top: 16px; }
   .navigation-utilities { padding-block: 8px; }
 }
@@ -1710,8 +1036,6 @@
   .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 861px) and (min-height: 751px) {
-  .cycle-summary-visuals:not(.single-ring) { min-height: 190px; }
-  .cycle-summary-visuals.single-ring { min-height: 140px; }
   .advice-card { min-height: 120px; }
 }
 @media (max-width: 860px) {
@@ -1719,7 +1043,6 @@
   .diary-grid { display: flex; flex-direction: column; }
   .diary-primary { display: contents; }
   .cycle-summary { order: 1; height: auto; min-height: auto; }
-  .period-registered-card { order: 2; }
   .diary-secondary { order: 3; padding-left: 0; padding-top: 18px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 12px; }
   .confidente-link { margin-top: 0; }
   .quiz-history { order: 5; }
@@ -1732,21 +1055,9 @@
   .brand { font-size: 27px; padding: 0; gap: 9px; }
   .brand-symbol { height: 32px; width: 32px; font-size: 28px; }
   .brand-header-area, .brand-row { width: auto; }
-  .brand-caption, .navigation-footer, .navigation-note, .desktop-chat, .brand-theme-toggle, .desktop-only-nav { display: none; }
+  .brand-caption, .navigation-footer, .brand-theme-toggle, .desktop-only-nav { display: none; }
   .sidebar-install-banner { display: none; }
   .mobile-install-pill { display: none; }
-  /* Un momento para ti (consejo de bienestar) + enlace al Confidente añaden ~500px
-     apilados bajo la tarjeta principal en este ancho — la causa principal de que el
-     diario deje de caber en un viewport sin scroll (ver Golden Master + hallazgo 3.2
-     de Claude outputs/audit-cycle-states-report.md: hasta 692px de desbordamiento
-     medidos con un banner "sin registrar" presente). Pero solo hace falta el hueco
-     cuando ese banner (u otro aviso de "ponte al día") realmente compite por
-     espacio: para una cuenta nueva o un día ya tranquilo, es contenido de
-     bienvenida genuino, no relleno — ocultarlo ahí le quitaba a una usuaria nueva
-     justo el primer consejo ("Cada observación cuenta") sin ganar nada a cambio
-     (detectado porque rompía tests\e2e\visual.spec.ts's "estado inicial sin datos
-     inventados"). Se oculta solo cuando .past-catchup-banner está presente. */
-  .diary-grid:has(.past-catchup-banner) .diary-secondary { display: none; }
   .navigation-bottom { margin: 0; }
   .navigation-utilities { padding: 0; gap: 7px; align-items: center; }
   .primary-navigation { display: flex; position: fixed; inset: auto 0 0; margin: 0; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); flex-direction: row; justify-content: space-around; border-top: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--bg-card) 85%, transparent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); gap: 2px; z-index: 100; }
@@ -1814,54 +1125,7 @@
     padding: 0 !important;
     text-align: center !important;
   }
-
-  /* En el móvil, en vertical: solo la gota gana protagonismo, el anillo de fases se oculta */
-  .cycle-summary-visuals {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    min-height: 250px !important;
-    height: auto !important;
-    margin: 4px 0 2px !important;
-    padding: 2px 0 !important;
-  }
-  .cycle-summary-visuals .wheel-wrap {
-    display: none !important;
-  }
-  .cycle-summary-visuals .drop-wrap {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: clamp(230px, 36vh, 290px) !important;
-    height: calc(clamp(230px, 36vh, 290px) * 170 / 160) !important;
-    max-width: 90% !important;
-    margin: 0 auto !important;
-    position: relative !important;
-    order: 1 !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring {
-    width: 100% !important;
-    height: 100% !important;
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 auto !important;
-    opacity: 1 !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring > svg {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
-    font-size: clamp(48px, 7vh, 66px) !important;
-  }
   .diary-section { padding: 16px 0; }
-  .diary-record-section { margin-top: 14px; padding-top: 16px; }
   /* Sin `display` aquí: la propia .diary-secondary está oculta en este ancho (ver
      arriba en este mismo media query) — esta regla solo ajustaba espaciado y
      `display: flex` volvía a mostrarla, anulando el `display: none` de más arriba
@@ -1953,36 +1217,13 @@
   box-shadow: 0 16px 40px -12px rgba(157, 129, 137, 0.15), 0 4px 14px rgba(157, 129, 137, 0.05);
 }
 
-.cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 56%, rgba(244, 218, 222, 0.5) 0%, rgba(253, 244, 245, 0.25) 55%, transparent 72%);
-}
-.cycle-summary[data-phase="follicular"] .cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 56%, rgba(248, 222, 226, 0.5) 0%, rgba(254, 246, 248, 0.25) 55%, transparent 72%);
-}
-.cycle-summary[data-phase="ovulation"] .cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 56%, rgba(253, 235, 205, 0.5) 0%, rgba(255, 250, 240, 0.25) 55%, transparent 72%);
-}
-.cycle-summary[data-phase="luteal"] .cycle-ring.hero-prominent-ring.is-primary {
-  background: radial-gradient(circle at 50% 56%, rgba(240, 222, 235, 0.5) 0%, rgba(250, 244, 248, 0.25) 55%, transparent 72%);
-}
-
 .dark .cycle-summary[data-phase="menstrual"] { background: linear-gradient(135deg, color-mix(in srgb, var(--rose-soft) 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #4a1f2c 60%, var(--hero-surface))); }
 .dark .cycle-summary[data-phase="follicular"] { background: linear-gradient(135deg, color-mix(in srgb, #3d2229 60%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, #331c22 60%, var(--hero-surface))); }
 .dark .cycle-summary[data-phase="ovulation"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(100,140,255,0.18) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(100,140,255,0.05) 80%, var(--hero-surface))); }
 .dark .cycle-summary[data-phase="luteal"] { background: linear-gradient(135deg, color-mix(in srgb, rgba(234, 88, 12, 0.15) 80%, var(--hero-surface)), var(--hero-surface), color-mix(in srgb, rgba(234, 88, 12, 0.05) 80%, var(--hero-surface))); }
 
 /* Mejora 4: tipografía editorial */
-.cycle-headline, .page-title, .cycle-ring-label strong, .date-heading { font-family: var(--font-display); font-weight: 600; }
-.cycle-ring-label strong { font-style: italic; font-weight: 500; letter-spacing: -0.5px; }
-
-@keyframes gentleBreathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-.hero-prominent-ring {
-  animation: gentleBreathe 8s ease-in-out infinite;
-  will-change: transform;
-}
+.cycle-headline, .page-title, .date-heading { font-family: var(--font-display); font-weight: 600; }
 .phase-chip.is-fertile { color: #b45309; background: #fef3c7; border-radius: 12px; }
 .dark .phase-chip.is-fertile { color: #fcd34d; background: rgba(245, 158, 11, 0.2); }
 .phase-chip.is-ovulation { color: #9a3412; background: #fde7c7; border-radius: 12px; }
@@ -2108,7 +1349,6 @@
   .date-picker { max-width: 150px; padding-inline: 6px; border-radius: 12px; }
   .date-toolbar-actions { gap: 4px; }
   .date-toolbar-actions .aura-icon-button { border: 0; background: transparent; }
-  .cycle-meta { gap: 24px; margin-top: 16px; padding-top: 14px; }
   .cycle-summary:not(.is-first-record) .cycle-summary-top.has-ring {
     display: flex !important;
     flex-direction: column !important;
@@ -2150,56 +1390,6 @@
   .cycle-summary-motion {
     justify-content: flex-start !important;
   }
-  .cycle-summary-visuals .wheel-wrap {
-    display: none !important;
-  }
-  .cycle-summary-visuals .drop-wrap {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: clamp(230px, 36vh, 290px) !important;
-    height: calc(clamp(230px, 36vh, 290px) * 170 / 160) !important;
-    max-width: 90% !important;
-    margin: 0 auto !important;
-    position: relative !important;
-    order: 1 !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring {
-    width: 100% !important;
-    height: 100% !important;
-    position: relative !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    margin: 0 auto !important;
-    opacity: 1 !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring > svg {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
-    font-size: clamp(48px, 7vh, 66px) !important;
-  }
-  .cycle-summary-top.has-ring .cycle-summary-side-actions {
-    align-items: center !important;
-    width: 100% !important;
-  }
-  .cycle-summary-top.has-ring .hero-quick-actions {
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-  }
-  .cycle-summary-top.has-ring .hero-quick-actions .aura-button {
-    width: auto !important;
-    justify-content: center !important;
-  }
-  .cycle-side-stats {
-    display: none !important;
-  }
   .cycle-summary:not(.is-first-record) .cycle-summary-top.no-ring {
     display: flex !important;
     flex-direction: column !important;
@@ -2213,9 +1403,6 @@
   .cycle-summary.is-first-record .hero-side-panel {
     flex: 0 0 auto;
   }
-  .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) { display: flex; flex-direction: column; gap: 12px; }
-  .cycle-summary:not(.is-first-record) .cycle-summary-top:not(:has(.cycle-ring)) > div:first-child { display: block; }
-  .cycle-meta dd { font-size: 14px; }
   .cycle-summary .muted-note { font-size: 11px; margin-top: 12px; }
   .modal-heading { padding: 16px; }
   .modal-footer { padding: 12px 16px max(12px, env(safe-area-inset-bottom)); }
@@ -2254,229 +1441,6 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
 }
 
-/* Banner de recuperación para días pasados no registrados */
-/* Banner de recuperación para días pasados no registrados */
-.past-catchup-banner {
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 8px 0 6px;
-  padding: 8px 12px;
-  background: color-mix(in srgb, #f59e0b 10%, var(--bg-card));
-  border: 1.5px dashed color-mix(in srgb, #f59e0b 45%, var(--border-subtle));
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-}
-.past-catchup-dismiss {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  opacity: 0.65;
-  transition: opacity 0.15s ease, background 0.15s ease;
-}
-.past-catchup-dismiss:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
-.dark .past-catchup-dismiss:hover { background: rgba(255, 255, 255, 0.1); }
-/* Variante flotante: mismo aspecto que el banner de "ponte al día", pero como
-   una pequeña tarjeta que aparece sobre la app al entrar (una vez al día, si hoy
-   todavía no tiene nada registrado) en vez de ocupar un hueco fijo en la tarjeta
-   principal. Así la pantalla de hoy queda limpia y este aviso solo aparece cuando
-   aporta algo. */
-.today-checkin-overlay {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: calc(env(safe-area-inset-top, 0px) + 10px);
-  z-index: 60;
-  display: flex;
-  justify-content: center;
-  padding: 0 12px;
-  pointer-events: none;
-}
-.today-checkin-overlay .past-catchup-banner {
-  pointer-events: auto;
-  width: 100%;
-  max-width: 480px;
-  margin: 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
-}
-.past-catchup-banner.is-urgent {
-  background: color-mix(in srgb, #f59e0b 14%, var(--bg-card));
-  border: 1.5px solid color-mix(in srgb, #f59e0b 70%, var(--border-subtle));
-  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.12);
-}
-.past-catchup-banner.is-urgent .past-catchup-badge {
-  background: color-mix(in srgb, #f59e0b 22%, transparent);
-  /* #b45309 (the plain badge's color) only clears 3.9:1 once composited over this
-     badge's own 22%-amber pill on top of the already-tinted urgent banner —
-     darkened to clear 4.5:1 against that actual rendered background (confirmed
-     via axe-core). */
-  color: #92400e;
-  padding: 2px 7px;
-  border-radius: 9999px;
-}
-.dark .past-catchup-banner.is-urgent .past-catchup-badge {
-  /* #fbbf24 only clears 4.02:1 against this badge's own composited background — see the light-mode note above. */
-  color: #fde68a;
-  background: color-mix(in srgb, #f59e0b 30%, transparent);
-}
-.past-catchup-body {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.past-catchup-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #b45309;
-  margin-bottom: 1px;
-}
-.dark .past-catchup-badge {
-  color: #fcd34d;
-}
-.past-catchup-title {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 650;
-  color: var(--text-primary);
-  line-height: 1.3;
-}
-.past-catchup-sub {
-  margin: 1px 0 0;
-  font-size: 11px;
-  color: var(--text-secondary);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.past-catchup-actions {
-  display: flex;
-  align-items: center;
-  /* flex-wrap aquí es necesario: sin él, dos botones con etiquetas largas (p.ej.
-     "Se me está retrasando la regla") no se reducen ni pasan a una segunda línea
-     -- por defecto un flex item no encoge por debajo de su contenido sin
-     min-width:0 -- así que sencillamente se salían de la pantalla en móviles
-     estrechos. Se vio con el aviso flotante de hoy (today-checkin-overlay),
-     pero afecta igual al banner en línea. */
-  flex-wrap: wrap;
-  gap: 6px;
-  flex-shrink: 1;
-  min-width: 0;
-}
-.past-catchup-actions .aura-button {
-  min-width: 0;
-  white-space: normal;
-  text-align: center;
-}
-.hero-past-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-@media (min-width: 701px) {
-  .past-catchup-banner {
-    margin: 4px 0 0;
-    padding: 5px 12px;
-    gap: 8px 12px;
-    align-items: center;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    border-radius: 10px;
-  }
-  .past-catchup-body {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-  }
-  .past-catchup-badge {
-    margin-bottom: 0;
-    flex-shrink: 0;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: rgba(180, 83, 9, 0.1);
-  }
-  .past-catchup-title {
-    font-size: 11.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0;
-  }
-  .past-catchup-sub {
-    display: none;
-  }
-  .past-catchup-actions {
-    gap: 6px;
-    flex-shrink: 0;
-  }
-  .past-catchup-actions .aura-button {
-    min-height: 28px;
-    padding: 2px 9px;
-    font-size: 11px;
-    border-radius: 6px;
-  }
-}
-
-/* Barra de aviso en HOY si ayer quedó sin registrar */
-.yesterday-reminder-bar {
-  margin: 8px 0 4px;
-  padding: 7px 12px;
-  background: color-mix(in srgb, var(--accent-soft) 40%, var(--bg-card));
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border-subtle));
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 12px;
-}
-.yesterday-reminder-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-secondary);
-  font-weight: 550;
-}
-.yesterday-reminder-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--accent);
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-}
-.yesterday-reminder-link:hover {
-  text-decoration: underline;
-}
-
 /* Animaciones y estilos para gestión inmediata de errores y alertas flotantes */
 @keyframes modal-shake {
   0%, 100% { transform: translateX(0); }
@@ -2505,15 +1469,12 @@
    rounded-xl a secas) que no seguían la paleta cálida rosa/dorada ni las
    convenciones de tarjeta (borde var(--border-subtle), sombra var(--shadow-soft)
    teñida de rosa, radios 14-16px) que usa el resto de la app. Ahora comparten
-   la misma "voz" visual que .tool-card, .past-catchup-banner y .aura-button. */
+   la misma "voz" visual que .tool-card, .catchup-prompt y .aura-button. */
 .toast-stack {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  /* Suma la altura real del aviso flotante de "registra tu día" (HeroStatus la
-     publica en --checkin-banner-offset vía ResizeObserver) para que un toast
-     nunca se dibuje encima de ese aviso si ambos coinciden en pantalla. */
-  top: calc(max(12px, calc(env(safe-area-inset-top, 0px) + 10px)) + var(--checkin-banner-offset, 0px));
+  top: max(12px, calc(env(safe-area-inset-top, 0px) + 10px));
   z-index: 99999;
   display: flex;
   flex-direction: column;
@@ -2523,7 +1484,6 @@
   max-width: calc(100vw - 24px);
   padding: 0 8px;
   pointer-events: none;
-  transition: top 0.2s ease;
 }
 @media (min-width: 640px) {
   .toast-stack { max-width: 400px; }
@@ -2624,96 +1584,6 @@
   align-self: flex-start;
 }
 
-/* ===== MEJORA 5: Widget de resumen semanal ===== */
-.weekly-recap-widget {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.weekly-recap-header {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-}
-.weekly-recap-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.weekly-recap-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
-  width: fit-content;
-}
-.weekly-recap-chip.period {
-  background: var(--rose-soft);
-  color: var(--rose);
-}
-.weekly-recap-chip.phase {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.weekly-recap-symptoms {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.weekly-recap-symptoms-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.weekly-recap-symptoms ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.weekly-recap-symptoms li {
-  font-size: 12px;
-  background: var(--bg-card-inner);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  padding: 3px 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-primary);
-}
-.weekly-recap-count {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-radius: 8px;
-  padding: 0 5px;
-}
-.weekly-recap-hint {
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.4;
-  font-style: italic;
-}
-
 /* ===== MEJORA 10: Banner de síntoma recurrente ===== */
 .recurring-symptom-banner {
   background: color-mix(in srgb, var(--gold-soft) 80%, var(--bg-card));
@@ -2768,11 +1638,11 @@
 
 
 /* Sanctuary Update: Soft diffuse shadows and organic shapes */
-.cycle-summary, .tool-card, .advice-card, .modal-content, .diary-secondary, .past-catchup-banner, .urgent-today-banner, .period-registered-card, .future-forecast-card, .confidente-link, .tool-group, .install-banner {
+.cycle-summary, .tool-card, .advice-card, .diary-secondary, .future-forecast-card, .confidente-link, .tool-group, .install-banner {
   box-shadow: var(--shadow-soft) !important;
   border: 1px solid rgba(184, 110, 110, 0.05) !important;
 }
-.dark .cycle-summary, .dark .tool-card, .dark .advice-card, .dark .modal-content, .dark .diary-secondary, .dark .past-catchup-banner, .dark .urgent-today-banner, .dark .period-registered-card, .dark .future-forecast-card, .dark .confidente-link, .dark .tool-group, .dark .install-banner {
+.dark .cycle-summary, .dark .tool-card, .dark .advice-card, .dark .diary-secondary, .dark .future-forecast-card, .dark .confidente-link, .dark .tool-group, .dark .install-banner {
   border: 1px solid rgba(255, 255, 255, 0.03) !important;
 }
 
@@ -2787,7 +1657,6 @@
 .dark .aura-button.primary {
   background: linear-gradient(135deg, #f0b9b9, var(--accent)) !important;
 }
-.cycle-summary-visuals.single-ring .cycle-ring-wrap.is-secondary { display: none !important; }
 
 /* ==========================================================================
    MOBILE LANDSCAPE EXPERIENCE (Smartphones rotated horizontally: max-height: 520px)
@@ -2959,40 +1828,17 @@
     line-height: 1.15 !important;
     margin: 0 !important;
   }
-  .cycle-summary-visuals {
-    min-height: 95px !important;
-    height: auto !important;
-    margin: 2px 0 !important;
-    padding: 0 !important;
-  }
-  .cycle-summary-visuals .wheel-wrap {
-    display: none !important;
-  }
-  .cycle-summary-visuals .drop-wrap {
-    width: clamp(90px, 20vh, 115px) !important;
-    height: calc(clamp(90px, 20vh, 115px) * 170 / 160) !important;
-    margin: 0 auto !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring-label strong {
-    font-size: clamp(22px, 5vh, 28px) !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring-label span {
-    font-size: 8px !important;
-    line-height: 1.1 !important;
-  }
-  .cycle-summary-visuals .drop-wrap .cycle-ring-label .cycle-ring-context {
-    font-size: 7.5px !important;
-  }
 
-  /* Quick Log 4-button grid inside Hero */
-  .quick-log-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  /* Registro de hoy: los cuatro botones en una sola fila, con icono y rótulo corto */
+  .quick-log-grid, .quick-log-section .quick-log-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 4px !important;
     margin-top: 3px !important;
   }
   .quick-log {
-    min-height: 28px !important;
-    height: 28px !important;
+    flex-direction: row !important;
+    min-height: 30px !important;
+    height: 30px !important;
     padding: 2px 6px !important;
     font-size: 10.5px !important;
     border-radius: 7px !important;
@@ -3001,34 +1847,6 @@
   .quick-log svg {
     width: 13px !important;
     height: 13px !important;
-  }
-
-  /* Past catch-up banner in landscape */
-  .past-catchup-banner {
-    padding: 4px 8px !important;
-    margin: 4px 0 0 !important;
-    border-radius: 8px !important;
-    gap: 4px 6px !important;
-  }
-  .past-catchup-badge {
-    font-size: 9px !important;
-  }
-  .past-catchup-title {
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-  .past-catchup-sub {
-    display: none !important;
-  }
-  .past-catchup-actions {
-    gap: 4px !important;
-  }
-  .past-catchup-actions .aura-button {
-    min-height: 24px !important;
-    height: 24px !important;
-    padding: 1px 6px !important;
-    font-size: 10px !important;
-    border-radius: 6px !important;
   }
 
   /* Secondary Column in landscape */
@@ -3042,9 +1860,6 @@
     padding: 8px 12px !important;
     min-height: 0 !important;
     border-radius: 12px !important;
-  }
-  .advice-card-header {
-    margin-bottom: 2px !important;
   }
   .advice-card h3 {
     font-size: 12.5px !important;
@@ -3158,4 +1973,530 @@
   .modal-footer {
     padding: 6px 16px max(6px, env(safe-area-inset-bottom, 0px)) !important;
   }
+}
+/* ==========================================================================
+   DIARIO · TARJETA PRINCIPAL
+   La gota del ciclo (contorno = ciclo completo, interior que se llena), el
+   aviso de registro pendiente y las acciones del día. Un único lenguaje de
+   color para toda la app: rosa = regla, ámbar = días fértiles, ✦ = ovulación.
+   ========================================================================== */
+:root {
+  --dial-period: #e35d76;
+  --dial-period-text: #a3334a;
+  --dial-fertile: #f0a63a;
+  --dial-fertile-text: #7a4700;
+  --dial-ovulation: #c96d0e;
+  --dial-ovulation-text: #7c3300;
+  --dial-neutral: #a8959a;
+  --dial-secondary: #7a6668;
+  --dial-secondary-strong: #5f4f51;
+  --dial-track: rgba(143, 74, 74, 0.1);
+  --dial-glass-top: rgba(255, 255, 255, 0.9);
+  --dial-glass-bottom: rgba(255, 255, 255, 0.35);
+  --dial-liquid-top: rgba(227, 93, 118, 0.17);
+  --dial-liquid-bottom: rgba(227, 93, 118, 0.34);
+  --dial-surface: rgba(227, 93, 118, 0.32);
+  --dial-knob: #ffffff;
+  --dial-face: #4f3d40;
+  --ring-follicular: #e8a6ae;
+  --ring-follicular-text: #a8505c;
+  --ring-luteal: #b79fd0;
+  --ring-luteal-text: #6f4f94;
+}
+.dark, html.theme-refugio {
+  --dial-period: #ff7a93;
+  --dial-period-text: #ffb3c2;
+  --dial-fertile: #ffc562;
+  --dial-fertile-text: #ffd894;
+  --dial-ovulation: #ffab4d;
+  --dial-ovulation-text: #ffc98a;
+  --dial-neutral: #a8959e;
+  --dial-secondary: #c7b6be;
+  --dial-secondary-strong: #e2d5db;
+  --dial-track: rgba(255, 255, 255, 0.1);
+  --dial-glass-top: rgba(255, 255, 255, 0.07);
+  --dial-glass-bottom: rgba(255, 255, 255, 0.02);
+  --dial-liquid-top: rgba(255, 122, 147, 0.16);
+  --dial-liquid-bottom: rgba(255, 122, 147, 0.32);
+  --dial-surface: rgba(255, 122, 147, 0.4);
+  --dial-knob: #f7eef2;
+  --dial-face: #f4e9ee;
+  --ring-follicular: #f0b8c0;
+  --ring-follicular-text: #f3b8c0;
+  --ring-luteal: #c9b5e2;
+  --ring-luteal-text: #d4c2ec;
+}
+
+/* La tarjeta crece para ocupar su hueco; la gota se queda con el espacio libre. */
+.cycle-summary-motion { flex: 1 1 auto; min-height: 0; }
+
+.cycle-dial {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.cycle-dial-stage {
+  flex: 1 1 0;
+  min-height: 180px;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  container-type: size;
+}
+.cycle-dial-frame {
+  --dial-size: min(100cqw, 100cqh, 520px);
+  position: relative;
+  width: var(--dial-size);
+  aspect-ratio: 1;
+}
+@supports not (container-type: size) {
+  .cycle-dial-frame { width: min(100%, 300px); }
+}
+.cycle-dial-box {
+  --dial-tone: var(--dial-neutral);
+  --dial-tone-text: var(--dial-secondary-strong);
+  position: absolute;
+  inset: 0;
+  container-type: inline-size;
+  border-radius: 36px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.cycle-dial-box[data-dragging] { cursor: grabbing; }
+.cycle-dial-box[data-tone="period"] { --dial-tone: var(--dial-period); --dial-tone-text: var(--dial-period-text); }
+.cycle-dial-box[data-tone="fertile"] { --dial-tone: var(--dial-fertile); --dial-tone-text: var(--dial-fertile-text); }
+.cycle-dial-box[data-tone="ovulation"] { --dial-tone: var(--dial-ovulation); --dial-tone-text: var(--dial-ovulation-text); }
+.cycle-dial-box > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.cycle-dial-glass-top { stop-color: var(--dial-glass-top); }
+.cycle-dial-glass-bottom { stop-color: var(--dial-glass-bottom); }
+.cycle-dial-liquid-top { stop-color: var(--dial-liquid-top); }
+.cycle-dial-liquid-bottom { stop-color: var(--dial-liquid-bottom); }
+/* Se llena al aparecer y sube o baja al recorrer los días; se asienta despacio, como un líquido. */
+.cycle-dial-liquid { transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+.cycle-dial-wave { animation: dial-wave 12s linear infinite; }
+.cycle-dial-surface {
+  fill: none;
+  stroke: var(--dial-surface);
+  stroke-width: 1.2;
+}
+
+.cycle-dial-track,
+.cycle-dial-arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cycle-dial-track { stroke: var(--dial-track); }
+.cycle-dial-arc.is-period { stroke: var(--dial-period); }
+.cycle-dial-arc.is-fertile { stroke: var(--dial-fertile); }
+.cycle-dial-ovulation {
+  fill: var(--dial-ovulation);
+  stroke: var(--dial-knob);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.cycle-dial-ghost { fill: var(--dial-neutral); }
+/* Cara de la gota-avatar: parpadea de vez en cuando y mira hacia el día marcado. */
+.cycle-dial-face { transition: transform 0.25s ease-out; }
+.cycle-dial-eye {
+  fill: var(--dial-face);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dial-blink 5.6s ease-in-out infinite;
+}
+.cycle-dial-eye + .cycle-dial-eye { animation-delay: 0.04s; }
+.cycle-dial-eye.is-closed {
+  fill: none;
+  stroke: var(--dial-face);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  animation: none;
+}
+@keyframes dial-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
+.cycle-dial-knob-dot {
+  fill: var(--dial-knob);
+  stroke: var(--dial-tone);
+  stroke-width: 2.6;
+  filter: drop-shadow(0 1px 2px rgba(40, 20, 24, 0.28));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+.cycle-dial-box[data-dragging] .cycle-dial-knob-dot { transform: scale(1.18); }
+
+.cycle-dial-center {
+  position: absolute;
+  left: 50%;
+  width: 66%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+  color: var(--text-primary);
+}
+.cycle-dial-eyebrow {
+  font-size: max(9px, 3.9cqw);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dial-secondary-strong);
+}
+.cycle-dial-value {
+  display: flex;
+  align-items: baseline;
+  gap: 0.05em;
+  margin-top: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 27cqw;
+  font-weight: 250;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.cycle-dial-value.is-word { font-size: 16cqw; font-weight: 300; letter-spacing: -0.03em; }
+.cycle-dial-caption {
+  margin-top: 0.25em;
+  font-size: max(10.5px, 5.2cqw);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--dial-secondary-strong);
+}
+.cycle-dial-note {
+  margin-top: 0.3em;
+  font-size: max(10px, 4.4cqw);
+  font-weight: 600;
+  color: var(--dial-period-text);
+}
+.cycle-dial-tag {
+  margin-top: 0.6em;
+  padding: 0.2em 0.7em;
+  border-radius: 999px;
+  font-size: max(10.5px, 4cqw);
+  font-weight: 600;
+  color: var(--dial-tone-text);
+  background: color-mix(in srgb, var(--dial-tone) 16%, var(--bg-card));
+}
+.cycle-dial-reset {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  box-shadow: 0 1px 2px rgba(40, 20, 24, 0.08), 0 6px 16px -10px rgba(40, 20, 24, 0.4);
+}
+.cycle-dial-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--dial-secondary);
+}
+
+/* La gota y, cuando la tarjeta es ancha (ordenador), el círculo de fases a su lado. */
+.cycle-summary { container: hero / inline-size; }
+.cycle-instruments {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(12px, 3cqw, 28px);
+}
+.cycle-instruments > .cycle-dial { flex: 1 1 0; min-width: 0; }
+.phase-ring { display: none; }
+@container hero (min-width: 560px) {
+  .phase-ring {
+    flex: 0.7 1 0;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+    container-type: size;
+  }
+}
+.phase-ring-frame {
+  --ring-tone: var(--dial-neutral);
+  --ring-tone-text: var(--dial-secondary-strong);
+  position: relative;
+  width: min(100cqw, 100cqh, 340px);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  container-type: inline-size;
+}
+.phase-ring-frame[data-phase="period"] { --ring-tone: var(--dial-period); --ring-tone-text: var(--dial-period-text); }
+.phase-ring-frame[data-phase="follicular"] { --ring-tone: var(--ring-follicular); --ring-tone-text: var(--ring-follicular-text); }
+.phase-ring-frame[data-phase="fertile"] { --ring-tone: var(--dial-fertile); --ring-tone-text: var(--dial-fertile-text); }
+.phase-ring-frame[data-phase="luteal"] { --ring-tone: var(--ring-luteal); --ring-tone-text: var(--ring-luteal-text); }
+.phase-ring-frame > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.phase-ring-track { fill: none; stroke: var(--dial-track); stroke-width: 5; }
+.phase-ring-arc {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.45;
+  transition: opacity 0.4s ease, stroke-width 0.4s ease;
+}
+.phase-ring-arc.is-active { opacity: 1; stroke-width: 8; }
+.phase-ring-arc.is-period { stroke: var(--dial-period); }
+.phase-ring-arc.is-follicular { stroke: var(--ring-follicular); }
+.phase-ring-arc.is-fertile { stroke: var(--dial-fertile); }
+.phase-ring-arc.is-luteal { stroke: var(--ring-luteal); }
+.phase-ring-arc.is-unknown { stroke: var(--dial-neutral); }
+.phase-ring-ovulation { fill: var(--dial-ovulation); stroke: var(--bg-card); stroke-width: 1.4; }
+.phase-ring-marker {
+  fill: var(--dial-knob);
+  stroke: var(--ring-tone);
+  stroke-width: 2.6;
+  filter: drop-shadow(0 1px 2px rgba(40, 20, 24, 0.25));
+  transition: cx 0.3s ease, cy 0.3s ease;
+}
+.phase-ring-center {
+  position: absolute;
+  inset: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.phase-ring-kicker {
+  font-size: max(10px, 5.4cqw);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ring-tone-text);
+}
+.phase-ring-value {
+  font-size: 26cqw;
+  font-weight: 250;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum", "lnum";
+}
+.phase-ring-caption {
+  font-size: max(10.5px, 5.6cqw);
+  font-weight: 500;
+  color: var(--dial-secondary-strong);
+}
+
+/* Días pendientes: la gota los pregunta en un bocadillo y las respuestas se abren
+   en una ventana. No ocupan sitio en el diario. */
+.catchup-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 12px 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  overflow-wrap: normal;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(40, 20, 24, 0.06), 0 10px 24px -14px rgba(40, 20, 24, 0.45);
+  transition: scale 0.15s ease;
+}
+.catchup-prompt:active { scale: 0.96; }
+.catchup-prompt.is-inline { align-self: flex-start; border-radius: 999px; }
+/* Bocadillo: sale de la gota por la izquierda de su punta, sin salirse del hueco disponible. */
+.catchup-prompt.is-bubble {
+  position: absolute;
+  top: 1%;
+  right: calc(50% + 12px);
+  z-index: 2;
+  width: max-content;
+  max-width: calc(50% - 12px + (100cqw - var(--dial-size)) / 2);
+  border-radius: 18px 18px 5px 18px;
+  animation: catchup-pop 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+.catchup-prompt-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dial-neutral);
+}
+.catchup-prompt[data-tone="urgent"] .catchup-prompt-dot { background: var(--dial-period); }
+.catchup-prompt[data-tone="gold"] .catchup-prompt-dot { background: var(--dial-fertile); }
+@keyframes catchup-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+.catchup-sheet-actions { display: flex; flex-direction: column; gap: 10px; }
+.catchup-sheet-actions > button { justify-content: center; gap: 8px; width: 100%; }
+.catchup-sheet-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Registro de hoy: lo principal de la pantalla. El sangrado destaca sobre el resto. */
+.quick-log-section { width: 100%; }
+.quick-log-heading {
+  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dial-secondary);
+}
+.quick-log-section .quick-log-grid { grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr)); margin-top: 0; }
+.quick-log.period {
+  border-color: transparent;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--dial-period) 92%, #fff), var(--dial-period));
+  color: #fff;
+  font-weight: 650;
+  box-shadow: 0 1px 2px rgba(120, 30, 50, 0.18), 0 8px 18px -10px color-mix(in srgb, var(--dial-period) 80%, transparent);
+}
+.quick-log.period svg { color: #fff; }
+.quick-log.period:hover { border-color: transparent; background: var(--dial-period); }
+.quick-log.period[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--dial-period) 45%, transparent);
+  background: color-mix(in srgb, var(--dial-period) 12%, var(--bg-card));
+  color: var(--dial-period-text);
+  box-shadow: none;
+}
+.quick-log.period[aria-pressed="true"] svg { color: var(--dial-period); }
+.dark .quick-log.period:not([aria-pressed="true"]) { color: #2b1f25; }
+.dark .quick-log.period:not([aria-pressed="true"]) svg { color: #2b1f25; }
+/* Modo oscuro: los botones de registro y la tarjeta de consejos usaban fondos blancos fijos. */
+.dark .quick-log:not(.period) {
+  border-color: var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
+  color: var(--text-primary);
+}
+.dark .quick-log:not(.period):hover { background: var(--bg-card-inner); }
+.dark .advice-card { background: linear-gradient(150deg, var(--bg-card), var(--bg-card-inner)); }
+/* Etiqueta completa en pantallas amplias, palabra clave en móvil. */
+.quick-log-short { display: none; }
+
+/* Acciones del momento del ciclo, bajo la gota. */
+.hero-day-actions { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.hero-day-actions .hero-quick-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.hero-day-actions .hero-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+.hero-action.is-warning { border-color: var(--gold); background: var(--gold-soft); color: var(--gold); }
+.confirmed-feedback-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--accent);
+}
+
+@keyframes dial-wave {
+  from { transform: translateX(0); }
+  to { transform: translateX(-64px); }
+}
+
+@media (min-width: 701px) and (max-width: 860px) {
+  .cycle-dial-stage { min-height: min(46vh, 440px); }
+}
+/* En una sola columna (móvil y tableta en vertical): si la gota pregunta por un día
+   pendiente, los consejos se apartan para que el diario quepa en una pantalla, y el
+   registro de hoy va en cuatro botones con icono y rótulo corto. */
+@media (max-width: 860px) {
+  .diary-grid:has(.catchup-prompt) .diary-secondary { display: none; }
+  .quick-log-grid, .quick-log-section .quick-log-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .quick-log { flex-direction: column; gap: 4px; min-height: 58px; padding: 8px 4px; font-size: 11.5px; text-align: center; overflow-wrap: normal; }
+  .quick-log-long { display: none; }
+  .quick-log-short { display: inline; }
+}
+@media (max-width: 380px) {
+  .quick-log { padding-inline: 2px; font-size: 10.5px; overflow-wrap: normal; }
+  .quick-log-short { white-space: nowrap; }
+}
+/* Móvil en vertical: la tarjeta ya ocupa la primera pantalla (App.tsx mide --hero-fill)
+   y la gota, protagonista, se queda con todo el espacio libre. En pantallas bajas se
+   recoge antes el texto accesorio que la gota. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .cycle-dial-stage { min-height: 140px; }
+  /* Con el aviso, el diario es una sola pantalla: basta con dejar libre la barra inferior. */
+  .workspace:has(.catchup-prompt) { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 700px) and (orientation: portrait) and (max-height: 740px) {
+  .cycle-summary-top.has-ring .cycle-copy { display: none !important; }
+}
+@media (max-width: 700px) and (orientation: portrait) and (max-height: 700px) {
+  .cycle-dial-hint { display: none; }
+  .quick-log-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+@media (orientation: landscape) and (max-height: 520px), (max-height: 520px) and (max-width: 950px) {
+  .cycle-dial-stage { min-height: 150px; }
+  .cycle-dial-hint { display: none; }
+  .quick-log-long { display: none; }
+  .quick-log-short { display: inline; }
+  .quick-log-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cycle-dial-wave, .cycle-dial-eye, .catchup-prompt { animation: none; }
+  .cycle-dial-liquid, .cycle-dial-knob-dot, .cycle-dial-face, .phase-ring-arc, .phase-ring-marker { transition: none; }
 }
