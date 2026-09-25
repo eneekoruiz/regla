@@ -27,7 +27,7 @@ test('arranque en frío sin red y catálogo completo de herramientas', async ({ 
     .catch(() => network.send('Network.emulateNetworkConditions', offlineState));
   await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false);
   await expect(page.getByLabel('Fecha del registro')).toBeVisible();
-  await expect(page.getByRole('status', { name: 'Sin conexión' }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Sin conexión', visible: true }).first()).toBeVisible();
   // En móvil, con una pregunta pendiente, los consejos se apartan; donde se ven, deben funcionar sin red.
   const nextTip = page.getByRole('button', { name: 'Siguiente consejo' }).filter({ visible: true });
   if (await nextTip.count()) await nextTip.first().click();
