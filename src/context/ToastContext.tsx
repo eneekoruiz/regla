@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, type ReactNode } from 'react';
 import { ToastContext, type ToastContextValue, type ToastItem, type ToastType } from './toast';
+import { hapticError } from '../utils/haptics';
 
 let toastCounter = 0;
 
@@ -20,9 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     });
 
     if (type === 'error') {
-      try {
-        navigator.vibrate?.([30, 40, 30]);
-      } catch {}
+      hapticError();
     }
 
     if (duration > 0) {

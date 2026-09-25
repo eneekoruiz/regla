@@ -4,6 +4,7 @@ import { useCycle } from '../../hooks/useCycle';
 import { formatDateKey } from '../../utils/dateKey';
 import { Droplets, Calendar as CalendarIcon, History } from 'lucide-react';
 import { useToast } from '../../context/toast';
+import { hapticSuccess } from '../../utils/haptics';
 
 export function PastCycleRecoveryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { logBleedingForDate, cycleStats, settings } = useCycle();
@@ -19,7 +20,7 @@ export function PastCycleRecoveryModal({ isOpen, onClose }: { isOpen: boolean; o
   const [duration, setDuration] = useState(settings.averagePeriodLength || 5);
 
   const handleSave = () => {
-    try { navigator.vibrate?.(20); } catch {}
+    hapticSuccess();
     const start = new Date(startDate + 'T12:00:00');
     for (let i = 0; i < duration; i++) {
       const d = new Date(start);

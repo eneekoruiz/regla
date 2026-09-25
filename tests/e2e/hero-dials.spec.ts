@@ -1,190 +1,98 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const qaUser = { id: 'qa-isolated', email: 'qa@example.invalid' };
 const qaToken = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
 
-async function setupCycleState(page: any, daysAgoStart: number) {
-  await page.route('**/api/auth/**', async (route: any) => route.fulfill({ json: { token: qaToken, user: qaUser } }));
-  await page.route('**/api/settings', async (route: any) => route.fulfill({ json: {} }));
-  await page.route('**/api/logs/**', async (route: any) => route.fulfill({ json: [] }));
-  await page.route('**/api/logs', async (route: any) => route.fulfill({ json: [] }));
+/** Ciclo de 28 días cuya regla empezó hace `daysAgo` días; ayer queda registrado para no mostrar el aviso. */
+async function setupCycleState(page: Page, daysAgo: number) {
+  await page.route('**/api/auth/**', async route => route.fulfill({ json: { token: qaToken, user: qaUser } }));
+  await page.route('**/api/settings', async route => route.fulfill({ json: {} }));
+  await page.route('**/api/logs/**', async route => route.fulfill({ json: [] }));
+  await page.route('**/api/logs', async route => route.fulfill({ json: [] }));
 
-  await page.addInitScript(({ daysAgo }: { daysAgo: number }) => {
-    const user = { id: 'qa-isolated', email: 'qa@example.invalid' };
-    const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJxYS1pc29sYXRlZCJ9.qa-signature';
+  await page.addInitScript(({ daysAgoStart, user, token }) => {
     const logsKey = `regla_daily_logs_v1:${encodeURIComponent(user.id)}`;
     const settingsKey = `regla_user_settings_v1:${encodeURIComponent(user.id)}`;
     const today = new Date();
     const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysAgo);
-
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysAgoStart);
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     localStorage.setItem('token', token);
     localStorage.setItem('cached_user', JSON.stringify(user));
     localStorage.setItem(settingsKey, JSON.stringify({
-      userName: 'Alex',
-      averageCycleLength: 28,
-      averagePeriodLength: 5,
-      lutealPhaseLength: 14,
-      lastPeriodStartDate: key(start),
-      theme: 'light'
+      userName: 'Alex', averageCycleLength: 28, averagePeriodLength: 5, lutealPhaseLength: 14, lastPeriodStartDate: key(start), theme: 'light'
     }));
     localStorage.setItem(logsKey, JSON.stringify({
-      [key(start)]: {
-        date: key(start),
-        isPeriod: true,
-        isCycleStart: true,
-        flow: 'medium',
-        symptoms: [],
-        recordedAt: start.toISOString()
-      }
+      [key(start)]: { date: key(start), isPeriod: true, isCycleStart: true, flow: 'medium', symptoms: [], recordedAt: start.toISOString() },
+      [key(yesterday)]: { date: key(yesterday), isPeriod: false, symptoms: [{ id: 'calm_day', name: 'Día normal sin molestias', category: 'general', emoji: '✨' }], recordedAt: yesterday.toISOString() }
     }));
-    localStorage.setItem('qa-initialized', 'true');
-  }, { daysAgo: daysAgoStart });
+  }, { daysAgoStart: daysAgo, user: qaUser, token: qaToken });
 
   await page.goto('/');
-  await page.waitForTimeout(500);
+  await expect(page.locator('.cycle-dial-box')).toBeVisible();
 }
 
-test.describe('Hero dials responsive behavior and space usage', () => {
-  test('fertile window: mobile shows only drop with phase in header; desktop shows both enlarged dials', async ({ page }, testInfo) => {
-    // Day 11 of cycle (10 days after start of 28 day cycle -> fertile window)
-    await setupCycleState(page, 10);
+async function expectNoHorizontalOverflow(page: Page) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+}
 
-    const isMobileViewport = testInfo.project.name === 'mobile' || testInfo.project.name === 'narrow';
-    const visuals = page.locator('.cycle-summary-visuals');
-    await expect(visuals).toBeVisible();
+test.describe('La gota del ciclo', () => {
+  test('ventana fértil: la cabecera cuenta hacia la ovulación y la gota hacia la regla', async ({ page }, testInfo) => {
+    await setupCycleState(page, 10); // hoy es el día 11
 
-    const gota = page.locator('.cycle-summary-visuals .drop-wrap .cycle-ring');
-    const wheel = page.locator('.cycle-summary-visuals .wheel-wrap .cycle-ring');
+    const header = page.locator('.cycle-summary-header');
+    await expect(header.locator('.phase-chip')).toContainText(/Ventana Fértil/i);
+    await expect(header.locator('.cycle-headline')).toHaveText('Ovulación en 3 días');
 
-    await expect(gota).toBeVisible();
+    const dial = page.locator('.cycle-dial-box');
+    await expect(dial).toHaveAttribute('role', 'slider');
+    await expect(dial).toHaveAttribute('aria-valuenow', '11');
+    await expect(dial).toHaveAttribute('aria-valuemax', '28');
+    await expect(page.locator('.cycle-dial-eyebrow')).toHaveText(/hoy · día 11/i);
+    await expect(page.locator('.cycle-dial-value')).toHaveText('18');
+    await expect(page.locator('.cycle-dial-caption')).toHaveText('días para tu regla');
 
-    if (isMobileViewport) {
-      // En móvil vertical: solo la gota, la rueda de fases se oculta
-      await expect(wheel).not.toBeVisible();
-
-      // Cabecera muestra la fase sin solapamientos
-      const chip = page.locator('.cycle-summary-header .phase-chip');
-      const headline = page.locator('.cycle-summary-header .cycle-headline');
-      const copy = page.locator('.cycle-summary-header .cycle-copy');
-
-      await expect(chip).toBeVisible();
-      await expect(headline).toBeVisible();
-      await expect(copy).toBeVisible();
-
-      await expect(chip).toContainText(/Ventana Fértil/i);
-
-      // Verificación de no solapamiento: chip está encima de headline, headline encima de copy
-      const chipBox = await chip.boundingBox();
-      const headlineBox = await headline.boundingBox();
-      const copyBox = await copy.boundingBox();
-
-      expect(chipBox).not.toBeNull();
-      expect(headlineBox).not.toBeNull();
-      expect(copyBox).not.toBeNull();
-
-      expect(chipBox!.y + chipBox!.height).toBeLessThanOrEqual(headlineBox!.y + 1);
-      expect(headlineBox!.y + headlineBox!.height).toBeLessThanOrEqual(copyBox!.y + 1);
-
-      // La gota tiene tamaño prominente y está centrada
-      const gotaBox = await gota.boundingBox();
-      expect(gotaBox).not.toBeNull();
-      expect(gotaBox!.width).toBeGreaterThanOrEqual(180);
-    } else {
-      // En versión grande (tablet u ordenador): están ambos diales
-      await expect(wheel).toBeVisible();
-
-      // En ventana fértil, wheel es primary y gota es secondary
-      await expect(wheel).toHaveClass(/is-primary/);
-      await expect(gota).toHaveClass(/is-secondary/);
-
-      const wheelBox = await wheel.boundingBox();
-      const gotaBox = await gota.boundingBox();
-      expect(wheelBox).not.toBeNull();
-      expect(gotaBox).not.toBeNull();
-
-      // Rueda más grande que gota y a la izquierda
-      expect(wheelBox!.width).toBeGreaterThan(gotaBox!.width);
-      expect(wheelBox!.x).toBeLessThan(gotaBox!.x);
-
-      // Ambos diales ocupan más espacio que antes (mínimo 235px en tablet, 380px en escritorio)
-      expect(wheelBox!.width).toBeGreaterThanOrEqual(235);
-      expect(gotaBox!.width).toBeGreaterThanOrEqual(210);
-    }
-
-    // Overflow check on viewport
-    const overflow = await page.evaluate(() => ({
-      scrollWidth: document.documentElement.scrollWidth,
-      innerWidth: window.innerWidth,
-    }));
-    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth + 1);
-
-    // Take screenshot for visual inspection
+    // La gota es cuadrada, grande y queda dentro de la pantalla en cualquier tamaño.
+    const box = await dial.boundingBox();
+    expect(box).not.toBeNull();
+    expect(Math.abs(box!.width - box!.height)).toBeLessThanOrEqual(1);
+    expect(box!.width).toBeGreaterThanOrEqual(180);
+    await expectNoHorizontalOverflow(page);
     await page.screenshot({ path: `artifacts/playwright-results/${testInfo.project.name}-hero-fertile-window.png` });
   });
 
-  test('post-fertile (luteal): mobile shows only drop; desktop shows both with gota as primary', async ({ page }, testInfo) => {
-    // Day 20 of cycle (19 days after start -> Luteal phase, fertile window passed)
-    await setupCycleState(page, 19);
+  test('recorrer la gota muestra cualquier día y se puede volver a hoy', async ({ page }) => {
+    await setupCycleState(page, 10);
+    const dial = page.locator('.cycle-dial-box');
 
-    const isMobileViewport = testInfo.project.name === 'mobile' || testInfo.project.name === 'narrow';
-    const visuals = page.locator('.cycle-summary-visuals');
-    await expect(visuals).toBeVisible();
+    // Teclado: cada flecha avanza un día; Fin salta al último día del ciclo.
+    await dial.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(dial).toHaveAttribute('aria-valuenow', '12');
+    await page.keyboard.press('End');
+    await expect(dial).toHaveAttribute('aria-valuenow', '28');
+    await expect(dial).toHaveAttribute('aria-valuetext', /día 28 del ciclo\. Fase lútea\. 1 día para la regla/);
+    await expect(page.locator('.cycle-dial-tag')).toHaveText('Fase lútea');
+    await page.keyboard.press('Escape');
+    await expect(dial).toHaveAttribute('aria-valuenow', '11');
 
-    const gota = page.locator('.cycle-summary-visuals .drop-wrap .cycle-ring');
-    const wheel = page.locator('.cycle-summary-visuals .wheel-wrap .cycle-ring');
+    // Puntero: tocar la punta de la gota lleva al inicio del ciclo (regla).
+    const box = (await dial.boundingBox())!;
+    await page.mouse.click(box.x + box.width * 0.53, box.y + box.height * 0.12);
+    await expect(dial).toHaveAttribute('aria-valuenow', /^[12]$/);
+    await expect(page.locator('.cycle-dial-tag')).toHaveText('Regla');
+    await page.getByRole('button', { name: 'Hoy', exact: true }).click();
+    await expect(dial).toHaveAttribute('aria-valuenow', '11');
+    await expect(page.locator('.cycle-dial-tag')).toHaveCount(0);
+  });
 
-    await expect(gota).toBeVisible();
-
-    if (isMobileViewport) {
-      // En móvil vertical: solo la gota
-      await expect(wheel).not.toBeVisible();
-
-      // Fase lútea claramente escrita en cabecera sin solapamientos
-      const chip = page.locator('.cycle-summary-header .phase-chip');
-      const headline = page.locator('.cycle-summary-header .cycle-headline');
-
-      await expect(chip).toBeVisible();
-      await expect(headline).toBeVisible();
-      await expect(chip).toContainText(/Fase Lútea/i);
-
-      const chipBox = await chip.boundingBox();
-      const headlineBox = await headline.boundingBox();
-      expect(chipBox).not.toBeNull();
-      expect(headlineBox).not.toBeNull();
-      expect(chipBox!.y + chipBox!.height).toBeLessThanOrEqual(headlineBox!.y + 1);
-
-      // Gota prominente
-      const gotaBox = await gota.boundingBox();
-      expect(gotaBox).not.toBeNull();
-      expect(gotaBox!.width).toBeGreaterThanOrEqual(180);
-    } else {
-      // En versión grande: ambos diales, gota es primary
-      await expect(wheel).toBeVisible();
-      await expect(wheel).toHaveClass(/is-secondary/);
-      await expect(gota).toHaveClass(/is-primary/);
-
-      const gotaBox = await gota.boundingBox();
-      const wheelBox = await wheel.boundingBox();
-      expect(gotaBox).not.toBeNull();
-      expect(wheelBox).not.toBeNull();
-
-      expect(gotaBox!.width).toBeGreaterThan(wheelBox!.width);
-      expect(gotaBox!.x).toBeLessThan(wheelBox!.x);
-
-      // Ambos diales ocupan más espacio
-      expect(gotaBox!.width).toBeGreaterThanOrEqual(235);
-      expect(wheelBox!.width).toBeGreaterThanOrEqual(210);
-    }
-
-    // Overflow check on viewport
-    const overflow = await page.evaluate(() => ({
-      scrollWidth: document.documentElement.scrollWidth,
-      innerWidth: window.innerWidth,
-    }));
-    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.innerWidth + 1);
-
-    // Take screenshot for visual inspection
-    await page.screenshot({ path: `artifacts/playwright-results/${testInfo.project.name}-hero-luteal-swapped.png` });
+  test('fase lútea: la cabecera anuncia la próxima ventana fértil', async ({ page }, testInfo) => {
+    await setupCycleState(page, 19); // hoy es el día 20
+    await expect(page.locator('.cycle-summary-header .phase-chip')).toContainText(/Fase Lútea/i);
+    await expect(page.locator('.cycle-summary-header .cycle-headline')).toHaveText('Próxima ventana fértil en 17 días');
+    await expect(page.locator('.cycle-dial-value')).toHaveText('9');
+    await expectNoHorizontalOverflow(page);
+    await page.screenshot({ path: `artifacts/playwright-results/${testInfo.project.name}-hero-luteal.png` });
   });
 });

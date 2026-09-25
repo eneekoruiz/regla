@@ -201,13 +201,17 @@ export const CycleProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         let alreadySent = false;
         try {
           alreadySent = Boolean(localStorage.getItem(storageKey));
-        } catch {}
+        } catch {
+          // Sin almacenamiento no se puede saber si ya se envió; se intenta de nuevo.
+        }
         if (isDue && !alreadySent) {
           void sendLocalNotification(notif.title, notif.body, notif.id).then(sent => {
             if (sent) {
               try {
                 localStorage.setItem(storageKey, 'true');
-              } catch {}
+              } catch {
+                // Si no se puede recordar el envío, como mucho se repetirá el aviso.
+              }
             }
           });
         }

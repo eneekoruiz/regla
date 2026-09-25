@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ModalFrame } from './ModalFrame';
 import { useCycle } from '../../hooks/useCycle';
-import { Sparkles, Droplet, Check, Leaf, Moon } from 'lucide-react';
+import { Sparkles, Droplet, Check, Moon } from 'lucide-react';
 import type { CyclePhase } from '../../types/cycle';
 
 const CALENDAR_ITEMS = [
@@ -17,13 +17,13 @@ const CALENDAR_ITEMS = [
   },
   {
     title: 'Ventana fértil estimada',
-    description: 'Los tonos azulados / turquesas indican los días de mayor probabilidad de concepción.',
-    preview: <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 text-xs font-semibold ring-1 ring-sky-300 dark:ring-sky-700">14<span className="ml-0.5 text-[8px]">•</span></span>
+    description: 'El ámbar suave marca los días con más probabilidad de concepción, igual que en la gota del diario.',
+    preview: <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-200 text-xs font-semibold ring-1 ring-amber-300 dark:ring-amber-600">14<span className="ml-0.5 text-[8px]">•</span></span>
   },
   {
     title: 'Día de ovulación estimada',
-    description: 'Día con máxima probabilidad ovulatoria. El óvulo permanece viable de 12 a 24 horas.',
-    preview: <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-bold ring-2 ring-amber-400">15<span className="ml-0.5 text-[10px]">✦</span></span>
+    description: 'El ámbar intenso y la estrella ✦ marcan el día con máxima probabilidad ovulatoria. El óvulo permanece viable de 12 a 24 horas.',
+    preview: <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400 text-amber-950 text-xs font-bold ring-2 ring-amber-400/70">15<span className="ml-0.5 text-[10px]">✦</span></span>
   },
   {
     title: 'Con síntomas o notas',
@@ -148,13 +148,13 @@ export function ColorLegendModal({
                 </p>
               </button>
 
-              <button type="button" onClick={() => onOpenPhaseGuide?.('ovulation')} className="text-left rounded-xl border border-sky-300/50 bg-sky-50/50 dark:bg-sky-950/20 p-3 hover:border-sky-400 hover:shadow-sm transition-all group">
+              <button type="button" onClick={() => onOpenPhaseGuide?.('ovulation')} className="text-left rounded-xl border border-amber-300/60 bg-amber-50/60 dark:bg-amber-500/10 p-3 hover:border-amber-400 hover:shadow-sm transition-all group">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-bold text-xs">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-bold text-xs">
                     <Sparkles size={15} />
                     <span>3. Ventana Fértil y Ovulación (Aprox. 6 días clave)</span>
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-sky-600 dark:text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-200 opacity-0 group-hover:opacity-100 transition-opacity">Guía &rarr;</span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--text-secondary)] leading-relaxed">
                   Comprende los 5 días previos a la ovulación y el día ovulatorio. El pico de LH libera el óvulo. El moco cervical se vuelve elástico y transparente tipo clara de huevo, permitiendo la supervivencia espermática.

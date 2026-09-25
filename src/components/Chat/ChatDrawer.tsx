@@ -4,6 +4,7 @@ import { containDialogFocus } from '../../utils/dialogFocus';
 import { ArrowUpRight, BookOpen, Check, ChevronRight, ClipboardList, Clock, Loader2, Send, Sparkles, Trash2, X } from 'lucide-react';
 import { DropMascot } from '../Mascot/DropMascot';
 import { useCycle } from '../../hooks/useCycle';
+import { useYesterdayCatchup } from '../../hooks/useYesterdayCatchup';
 import { useAuth } from '../../hooks/useAuth';
 import { CHAT_QUIZ_SUGGESTIONS, detectChatQuiz, generateChatResponse, isUrgentChatMessage, LOCAL_CHAT_TOPICS, topicSuggestion } from '../../services/aiAgent';
 import type { ChatQuizKey, ChatSuggestion } from '../../services/aiAgent';
@@ -80,31 +81,10 @@ function ChatSession({
     logMultipleSymptoms,
     startPeriodOnDate,
     setPeriodFlowForDate,
-    logs,
-    hasEnoughData
+    logs
   } = useCycle();
 
-  const yesterdayKey = (() => {
-    const d = new Date(todayDate + 'T12:00:00');
-    d.setDate(d.getDate() - 1);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  })();
-  const yesterdayLog = logs[yesterdayKey];
-  const yesterdayHasLog = Boolean(
-    yesterdayLog && (
-      yesterdayLog.isPeriod ||
-      yesterdayLog.isIrregularBleeding ||
-      (yesterdayLog.symptoms && yesterdayLog.symptoms.length > 0) ||
-      yesterdayLog.notes ||
-      (yesterdayLog.intimacyLog && yesterdayLog.intimacyLog.activity !== 'none') ||
-      yesterdayLog.medications?.some(m => m.taken) ||
-      yesterdayLog.bbt !== undefined
-    )
-  );
-  const needsYesterdayCatchup = hasEnoughData && !yesterdayHasLog;
+  const { yesterdayKey, needsCatchup: needsYesterdayCatchup } = useYesterdayCatchup();
 
   const [snapshot, setSnapshot] = useState(() => loadConversation(storageKey));
   const snapshotRef = useRef(snapshot);

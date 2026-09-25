@@ -13,14 +13,14 @@ async function assertFixedViewport(page: Page) {
 }
 
 async function assertStableRing(page: Page) {
-  const ring = page.locator('.cycle-ring').first();
+  const ring = page.locator('.cycle-dial-box').first();
   await expect(ring).toBeVisible();
   await page.waitForTimeout(500);
   const samples = await page.evaluate(async () => {
     const values: number[][] = [];
     for (let index = 0; index < 12; index++) {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-      const rect = document.querySelector<HTMLElement>('.cycle-ring')!.getBoundingClientRect();
+      const rect = document.querySelector<HTMLElement>('.cycle-dial-box')!.getBoundingClientRect();
       values.push([rect.x, rect.y, rect.width, rect.height]);
     }
     return values;
@@ -32,7 +32,7 @@ async function assertStableRing(page: Page) {
   }
 }
 
-test('Golden Master: diario fijo, controles alcanzables y anillo estable', async ({ page }, info) => {
+test('Golden Master: diario fijo, controles alcanzables y gota estable', async ({ page }, info) => {
   await seedAccount(page);
   await assertFixedViewport(page);
   await assertStableRing(page);

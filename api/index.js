@@ -6,7 +6,9 @@ const B64_SECRET = 'OWU2ZjdhM2UyYjE0YzVkNmU3ZjgwOTFhMmIzYzRkNWU2ZjcwODE5MmEzYjRj
 
 let productionApp;
 function getProductionApp() {
-  if (process.env.npm_lifecycle_event === 'test' && !process.env.DATABASE_URL) return null;
+  // Las pruebas nunca deben conectarse a una base de datos real, se lancen como se lancen.
+  const isTestRun = process.env.npm_lifecycle_event === 'test' || Boolean(process.env.NODE_TEST_CONTEXT);
+  if (isTestRun && !process.env.DATABASE_URL) return null;
 
   const rawDbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || Buffer.from(B64_DB, 'base64').toString('utf8');
   const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, Mic, MicOff, ArrowUp, X } from 'lucide-react';
 import { useCycle } from '../../hooks/useCycle';
 import { useToast } from '../../context/toast';
+import { hapticSuccess } from '../../utils/haptics';
 
 interface SpeechSession {
   continuous: boolean;
@@ -63,7 +64,7 @@ export function NaturalInputBar() {
       await processDailyNote(note, selectedDate);
       setInput('');
       // Mejora 9: vibración háptica suave al confirmar el guardado
-      try { navigator.vibrate?.(20); } catch {}
+      hapticSuccess();
       toast.success('Nota registrada');
     }
     catch { setError('No se ha guardado la nota. El texto se conserva para que puedas reintentarlo.'); }

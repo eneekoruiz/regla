@@ -1,57 +1,76 @@
 import type { ReactNode } from 'react';
-import { Clock, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import { DropMascot } from '../Mascot/DropMascot';
 
 export interface PastCatchupAction {
   label: string;
-  icon: ReactNode;
+  icon?: ReactNode;
   onClick: () => void;
 }
 
-/**
- * Shared "you might have missed something" banner used on the diary hero for three
- * cases: a likely-missed period a month ago, yesterday left unlogged, and any other
- * past day left unlogged. Also reused (with `onDismiss`) as the floating check-in
- * pop-up shown once per day on today's view, so the markup, accessibility
- * attributes and styling only need to be correct in one place.
- */
-export function PastCatchupBanner({ tone, badge, title, sub, actions, onDismiss }: {
-  tone?: 'gold' | 'urgent';
-  badge: ReactNode;
-  title: string;
-  sub: string;
+export interface PastCatchupNotice {
+  /** Identifica el tipo de aviso (también para recordar si se cerró hoy). */
+  id: 'missed-period' | 'yesterday' | 'past-day';
+  tone: 'urgent' | 'gold' | 'calm';
+  /** Lo que falta, en pocas palabras ("Ayer quedó sin registrar"). */
+  message: string;
+  /** La pregunta que lo resuelve ("¿Qué tal fue?"). */
+  detail: string;
+  /** Como mucho dos respuestas de un toque; la primera es la principal. */
   actions: PastCatchupAction[];
-  onDismiss?: () => void;
-}) {
-  const goldStyle = tone === 'gold' ? { background: 'var(--gold-soft)', borderColor: 'var(--gold)', color: 'var(--gold)' } : undefined;
+  /** Enlace secundario, por ejemplo para hablarlo con el Confidente. */
+  link?: PastCatchupAction;
+}
+
+/**
+ * Recordatorio compacto de "ponte al día": una sola línea discreta sobre la
+ * tarjeta principal, con la voz del Confidente, que se resuelve con un toque
+ * y se puede cerrar hasta mañana. Deliberadamente más ligero que el registro
+ * de hoy, que es lo principal de la pantalla.
+ */
+export function PastCatchupBanner({ notice, onDismiss }: { notice: PastCatchupNotice; onDismiss?: () => void }) {
+  const textId = `catchup-${notice.id}-text`;
   return (
-    <div className={`past-catchup-banner${tone === 'urgent' ? ' is-urgent' : ''}`} style={goldStyle} role="region" aria-label="Aviso de registro pasado">
-      {onDismiss && (
-        <button type="button" className="past-catchup-dismiss" onClick={onDismiss} aria-label="Cerrar aviso">
-          <X size={15} aria-hidden="true" />
-        </button>
-      )}
-      <div className="past-catchup-body">
-        <div className="past-catchup-badge" style={tone === 'gold' ? { color: 'var(--gold)' } : undefined}>
-          <Clock size={13} aria-hidden="true" />
-          <span>{badge}</span>
-        </div>
-        <p className="past-catchup-title" style={tone === 'gold' ? { color: 'var(--gold)' } : undefined}>{title}</p>
-        <p className="past-catchup-sub" style={tone === 'gold' ? { opacity: 0.9 } : undefined}>{sub}</p>
-      </div>
+    <motion.section
+      className={`past-catchup-banner is-${notice.tone}`}
+      role="region"
+      aria-labelledby={textId}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -6 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 32, delay: 0.15 }}
+    >
+      <span className="past-catchup-avatar" aria-hidden="true">
+        <DropMascot size={15} mood="calm" />
+      </span>
+      <p className="past-catchup-text" id={textId}>
+        <strong>{notice.message}</strong> <span>{notice.detail}</span>
+      </p>
       <div className="past-catchup-actions">
-        {actions.map((action, index) => (
+        {notice.actions.map((action, index) => (
           <button
             key={action.label}
             type="button"
-            className={`aura-button sm${index === 0 ? ' primary' : ''}`}
-            style={tone === 'gold' && index === 0 ? { background: 'var(--gold)', color: '#fff', borderColor: 'var(--gold)' } : undefined}
+            className={`past-catchup-action${index === 0 ? ' is-primary' : ''}`}
             onClick={action.onClick}
           >
             {action.icon}
             {action.label}
           </button>
         ))}
+        {notice.link && (
+          <button type="button" className="past-catchup-link" onClick={notice.link.onClick} aria-label={notice.link.label}>
+            {notice.link.icon}
+            <span className="past-catchup-link-label">{notice.link.label}</span>
+          </button>
+        )}
       </div>
-    </div>
+      {onDismiss && (
+        <button type="button" className="past-catchup-dismiss" onClick={onDismiss} aria-label="Cerrar aviso hasta mañana">
+          <X size={14} aria-hidden="true" />
+        </button>
+      )}
+    </motion.section>
   );
 }

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
-import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Clock, Download, Droplets, Heart, Leaf, NotebookPen, Pill, RotateCcw, Sparkles, Thermometer, WifiOff, X } from 'lucide-react';
+import { ArrowRight, BarChart3, CalendarDays, CheckCircle2, ChevronDown, CircleAlert, Download, Leaf, Pill, RotateCcw, Thermometer, WifiOff, X } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 import { DropMascot } from './components/Mascot/DropMascot';
 import { AuthProvider } from './context/AuthContext';
@@ -11,18 +11,21 @@ import { ToastContainer } from './components/UI/ToastContainer';
 import { CycleProvider } from './context/CycleContext';
 import { useCycle } from './hooks/useCycle';
 import { usePwaInstall } from './hooks/usePwaInstall';
+import { useYesterdayCatchup } from './hooks/useYesterdayCatchup';
 import { AuthScreens } from './components/Auth/AuthScreens';
 import { Header } from './components/Layout/Header';
 import type { AppView } from './components/Layout/Header';
 import { MobileContainer } from './components/Layout/MobileContainer';
 import { HeroStatus } from './components/Layout/HeroStatus';
+import { QuickLogBar } from './components/Layout/QuickLogBar';
+import { FutureForecastCard } from './components/Cards/FutureForecastCard';
 import { ErrorBoundary } from './components/Layout/ErrorBoundary';
 import { HorizontalTimeline } from './components/Timeline/HorizontalTimeline';
 import { WellnessTipCard } from './components/Cards/WellnessTipCard';
 import { BiomarkersCard } from './components/Cards/BiomarkersCard';
 import { QuizHistory } from './components/Cards/QuizHistory';
 import { HEALTH_QUIZZES } from './data/healthQuizzes';
-import { formatDateKey, parseDateKey } from './utils/cycleCalculator';
+import { parseDateKey } from './utils/cycleCalculator';
 import { clearReportedStorageError, getDataStorageKey, hasReportedStorageError } from './utils/storage';
 import type { CyclePhase } from './types/cycle';
 import type { ChatQuizKey } from './services/aiAgent';
@@ -30,8 +33,6 @@ import type { QuizAnswer } from './components/Chat/chatHistory';
 import type { QuizResult } from './types/quiz';
 import { generateDailyWellnessAdvice } from './services/wellnessAgent';
 import { calculateUpcomingMilestones, detectCycleRecovery } from './services/predictiveEngine';
-
-
 import { PeriodFlowModal } from './components/Modals/PeriodFlowModal';
 import { DailyLogBottomSheet } from './components/Modals/DailyLogBottomSheet';
 import { IntimacyModal } from './components/Modals/IntimacyModal';
@@ -46,7 +47,7 @@ function resilientLazy<T extends React.ComponentType<any>>(factory: () => Promis
       const key = 'aura_chunk_reload_attempt';
       const lastReload = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
       if (!lastReload || Date.now() - Number(lastReload) > 10000) {
-        try { sessionStorage.setItem(key, String(Date.now())); } catch {}
+        try { sessionStorage.setItem(key, String(Date.now())); } catch { /* Sin sesión se recarga igualmente una vez. */ }
         window.location.reload();
       }
       throw error;
@@ -68,6 +69,13 @@ const PwaInstallModal = resilientLazy(() => import('./components/Modals/PwaInsta
 const PastCycleRecoveryModal = resilientLazy(() => import('./components/Modals/PastCycleRecoveryModal').then(m => ({ default: m.PastCycleRecoveryModal })));
 const CycleRecoveryBottomSheet = resilientLazy(() => import('./components/Modals/CycleRecoveryBottomSheet').then(m => ({ default: m.CycleRecoveryBottomSheet })));
 
+const VIEW_HEADINGS: Record<AppView, { title: string; subtitle: string }> = {
+  diary: { title: 'Mi diario', subtitle: 'Tu espacio de salud y bienestar.' },
+  calendar: { title: 'Calendario', subtitle: 'Tus registros y las fechas que vienen.' },
+  tools: { title: 'Herramientas', subtitle: 'Todo lo que necesitas para cuidar de ti.' },
+  settings: { title: 'Ajustes', subtitle: 'Personaliza tu ciclo, avisos y privacidad.' },
+};
+
 type ModalName = 'daily' | 'period' | 'intimacy' | 'legend' | 'chat' | 'profile' | 'analytics' | 'symptothermal' | 'medication' | 'care' | 'quiz' | 'install' | 'recovery';
 const Loading = () => <div className="view-loading" role="status">Cargando…</div>;
 
@@ -86,7 +94,7 @@ const ModalLoadingFallback = () => (
 
 
 function MainScreen() {
-  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod, hasEnoughData } = useCycle();
+  const { selectedDate, setSelectedDate, todayDate, logs, settings, currentDayInfo, isSettingsOpen, setIsSettingsOpen, saveQuizResult, cycleStats, recoverPeriod } = useCycle();
   const { installed, canPrompt, isIos, install } = usePwaInstall();
   const isMobile = isIos || (typeof navigator !== 'undefined' && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
@@ -103,7 +111,9 @@ function MainScreen() {
       const next = !prev;
       try {
         localStorage.setItem('aura_sidebar_collapsed', String(next));
-      } catch {}
+      } catch {
+        // La preferencia se mantiene durante esta sesión aunque no se pueda guardar.
+      }
       return next;
     });
   }, []);
@@ -119,25 +129,9 @@ function MainScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  const yesterdayKey = (() => {
-    const d = parseDateKey(todayDate);
-    d.setDate(d.getDate() - 1);
-    return formatDateKey(d);
-  })();
-  const yesterdayLog = logs[yesterdayKey];
-  const yesterdayHasLog = Boolean(
-    yesterdayLog && (
-      yesterdayLog.isPeriod ||
-      yesterdayLog.isIrregularBleeding ||
-      (yesterdayLog.symptoms && yesterdayLog.symptoms.length > 0) ||
-      yesterdayLog.notes ||
-      (yesterdayLog.intimacyLog && yesterdayLog.intimacyLog.activity !== 'none') ||
-      yesterdayLog.medications?.some(m => m.taken) ||
-      yesterdayLog.bbt !== undefined
-    )
-  );
+  const { needsCatchup } = useYesterdayCatchup();
   const isToday = selectedDate === todayDate;
-  const needsYesterdayCatchup = isToday && hasEnoughData && currentDayInfo.dayOfCycle > 0 && !yesterdayHasLog;
+  const needsYesterdayCatchup = isToday && needsCatchup;
 
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
     try {
@@ -162,15 +156,8 @@ function MainScreen() {
     ? null
     : detectCycleRecovery(cycleStats, todayDate);
 
-  // Antes había aquí un efecto que, si hoy no tenía nada registrado, abría a la
-  // fuerza el modal de registro diario 350ms después de entrar en la app. Se ha
-  // quitado: además de ser intrusivo (un modal a pantalla completa cada vez que
-  // abrías la app), si la persona lo cerraba sin tocar nada se guardaba en
-  // silencio "Día normal sin molestias" para hoy, dando un dato incorrecto y
-  // haciendo que el aviso de "todavía no has registrado tu regla" desapareciera
-  // aunque no se hubiera registrado nada de verdad. El aviso flotante y
-  // descartable de HeroStatus (today-checkin-overlay) cubre ahora este mismo
-  // caso sin ninguno de esos dos problemas.
+  // Nunca se abre a la fuerza el registro del día: los días pendientes se piden
+  // con el aviso descartable de la tarjeta principal (useCatchupNotice).
   useEffect(() => {
     if (!recovery || view !== 'diary' || modal !== null) return;
     const timer = window.setTimeout(() => setModal('recovery'), 0);
@@ -316,7 +303,7 @@ function MainScreen() {
                 aria-label="Cerrar aviso de instalación"
                 onClick={() => {
                   setShowInstallBanner(false);
-                  try { sessionStorage.setItem('aura_dismiss_install_banner', 'true'); } catch {}
+                  try { sessionStorage.setItem('aura_dismiss_install_banner', 'true'); } catch { /* El aviso queda cerrado en esta vista igualmente. */ }
                 }}
               >
                 <X size={16} aria-hidden="true" />
@@ -326,17 +313,9 @@ function MainScreen() {
         )}
         <div className="page-topline">
           <div>
-            <h1 className="page-title">
-              {view === 'diary' ? 'Mi diario' : view === 'calendar' ? 'Calendario' : view === 'tools' ? 'Herramientas' : 'Ajustes'}
-            </h1>
+            <h1 className="page-title">{VIEW_HEADINGS[view].title}</h1>
             <p className="page-subtitle">
-              {view === 'diary'
-                ? (settings.userName ? `¡Hola, ${settings.userName}!` : 'Tu espacio de salud y bienestar.')
-                : view === 'calendar'
-                  ? 'Tus registros y las fechas que vienen.'
-                  : view === 'tools'
-                    ? 'Todo lo que necesitas para cuidar de ti.'
-                    : 'Personaliza tu ciclo, avisos y privacidad.'}
+              {view === 'diary' && settings.userName ? `¡Hola, ${settings.userName}!` : VIEW_HEADINGS[view].subtitle}
             </p>
           </div>
           <span className="connection-status" role="status">
@@ -375,129 +354,25 @@ function MainScreen() {
                 onOpenLegend={() => openModal('legend')}
                 onOpenDailyModal={() => openModal('daily')}
                 onOpenRecoveryModal={() => openModal('recovery')}
-                topContent={
-                  isFuture ? (
-                    <div className="future-forecast-container">
-                      <div className="future-forecast-card" data-phase={currentDayInfo.phase}>
-                        <div className="future-forecast-icon">
-                          {currentDayInfo.isOvulationDay || (currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod) ? (
-                            <Sparkles size={18} aria-hidden="true" />
-                          ) : currentDayInfo.isPeriod ? (
-                            <Droplets size={18} aria-hidden="true" />
-                          ) : currentDayInfo.phase === 'luteal' ? (
-                            <Clock size={18} aria-hidden="true" />
-                          ) : (
-                            <Leaf size={18} aria-hidden="true" />
-                          )}
-                        </div>
-                        <div className="future-forecast-content">
-                          <h3 className="future-forecast-title">
-                            {currentDayInfo.isOvulationDay
-                              ? 'Día de ovulación estimada'
-                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
-                                ? 'Ventana de fertilidad'
-                                : currentDayInfo.isPeriod
-                                  ? currentDayInfo.dayOfCycle === 1
-                                    ? 'Se espera tu regla este día'
-                                    : `Día ${currentDayInfo.dayOfCycle} de regla estimado`
-                                  : currentDayInfo.phase === 'luteal'
-                                    ? daysToNext <= 5
-                                      ? `Tu regla llega en ${daysToNext} ${daysToNext === 1 ? 'día' : 'días'}`
-                                      : 'Fase lútea (post-ovulación)'
-                                    : 'Fase folicular'}
-                          </h3>
-                          <p className="future-forecast-desc">
-                            {currentDayInfo.isOvulationDay
-                              ? 'Máxima fertilidad del ciclo. El óvulo permanece viable entre 12 y 24 horas.'
-                              : currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
-                                ? 'Tu cuerpo se prepara para ovular. Fertilidad alta durante estos días.'
-                                : currentDayInfo.isPeriod
-                                  ? currentDayInfo.dayOfCycle === 1
-                                    ? 'Primera fecha prevista de sangrado. Ten todo preparado.'
-                                    : currentDayInfo.dayOfCycle >= periodLength
-                                      ? '¡Último día previsto! Ya casi estás, ánimo.'
-                                      : currentDayInfo.dayOfCycle >= periodLength - 1
-                                        ? 'Ya falta muy poco. Aguanta, lo estás haciendo genial.'
-                                        : 'Cuídate, hidrátate y descansa lo que necesites.'
-                                  : currentDayInfo.phase === 'luteal'
-                                    ? daysToNext <= 2
-                                      ? 'Tu regla está a la vuelta de la esquina. Asegúrate de tener tus productos listos.'
-                                      : daysToNext <= 5
-                                        ? 'Ve preparando tus productos menstruales. Es buen momento para tenerlo todo a mano.'
-                                        : daysToNext <= 8
-                                          ? 'La progesterona marca el ritmo. Es normal sentir cambios de ánimo o apetito.'
-                                          : 'Tu cuerpo se prepara para cerrar el ciclo. Un momento natural de recogimiento.'
-                                    : 'Aumento paulatino de estrógenos y maduración folicular. Te sentirás con más energía.'}
-                          </p>
-                          <span className="future-forecast-tip">
-                            {currentDayInfo.isFertileWindow && !currentDayInfo.isPeriod
-                              ? 'Etapa clave si buscas concebir o si quieres evitar embarazo.'
-                              : currentDayInfo.isPeriod
-                                ? currentDayInfo.dayOfCycle >= periodLength
-                                  ? '¡Ya casi! Mañana deberías sentirte mucho mejor.'
-                                  : 'Ve a tu ritmo, no te exijas de más.'
-                                : currentDayInfo.phase === 'luteal'
-                                  ? daysToNext <= 5
-                                    ? 'Tampones, compresas, copa… lo que uses, tenlo cerca.'
-                                    : 'Prioriza el descanso, la hidratación y la comida que te apetezca.'
-                                  : 'Aprovecha esta energía para lo que más te motive.'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null
-                }
+                onOpenChat={() => openChat()}
+                topContent={isFuture ? <FutureForecastCard day={currentDayInfo} daysToNext={daysToNext} periodLength={periodLength}/> : null}
               >
-                <div className="diary-record-inner">
-                  {isFuture ? (
-                    <p className="future-day-note">
-                      Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
-                    </p>
-                  ) : !isToday ? null : (
-                    <div className="quick-log-grid">
-                      <button
-                        type="button"
-                        className="quick-log period"
-                        aria-pressed={hasPeriod || hasIrregularBleeding}
-                        onClick={() => openModal('daily')}
-                        title="Registro de sangrado (normal, irregular o sin sangrado)"
-                      >
-                        <Droplets size={18}/>
-                        <span>{hasPeriod || hasIrregularBleeding ? 'Sangrado registrado' : 'Registro de sangrado'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="quick-log"
-                        aria-pressed={Boolean(log?.symptoms.length || log?.notes)}
-                        onClick={() => openModal('daily')}
-                        title="Síntomas y notas"
-                      >
-                        <NotebookPen size={18}/>
-                        <span>Síntomas y notas</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="quick-log"
-                        aria-pressed={hasIntimacy}
-                        onClick={() => openModal('intimacy')}
-                        title="Intimidad"
-                      >
-                        <Heart size={18}/>
-                        <span>Intimidad</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="quick-log"
-                        aria-pressed={hasMedications}
-                        onClick={() => openModal('medication')}
-                        title="Pastillas y tomas"
-                      >
-                        <Pill size={18}/>
-                        <span>Pastillas</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                {isFuture && (
+                  <p className="future-day-note">
+                    Las anotaciones de síntomas y sangrado se habilitarán automáticamente al llegar este día.
+                  </p>
+                )}
+                {isToday && (
+                  <QuickLogBar
+                    hasBleeding={hasPeriod || hasIrregularBleeding}
+                    hasNotes={Boolean(log?.symptoms.length || log?.notes)}
+                    hasIntimacy={hasIntimacy}
+                    hasMedications={hasMedications}
+                    onOpenDaily={() => openModal('daily')}
+                    onOpenIntimacy={() => openModal('intimacy')}
+                    onOpenMedication={() => openModal('medication')}
+                  />
+                )}
               </HeroStatus>
               <BiomarkersCard/>
             </div>

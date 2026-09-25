@@ -95,7 +95,8 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
   // Vercel terminates TLS before forwarding the request. This preserves the
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
-  const isTest = process.env.npm_lifecycle_event === 'test';
+  // Las pruebas nunca deben conectarse a una base de datos real, se lancen como se lancen.
+  const isTest = process.env.npm_lifecycle_event === 'test' || Boolean(process.env.NODE_TEST_CONTEXT);
   const defaultDb = isTest ? null : Buffer.from(B64_DB, 'base64').toString('utf8');
   const defaultSecret = isTest ? null : Buffer.from(B64_SECRET, 'base64').toString('utf8');
   const rawDbUrl = env.DATABASE_URL || env.POSTGRES_URL || defaultDb;

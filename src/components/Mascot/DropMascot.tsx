@@ -10,14 +10,9 @@ interface DropMascotProps extends LucideProps {
 }
 
 /**
- * La gota de la cuenta atrás, convertida en el avatar del Confidente: mismo
- * trazo, misma silueta, con la carita dentro. Pensada como sustituto directo
- * de un icono de lucide-react (`size`, `className`, etc.), para poder
- * colocarla en cualquier sitio donde hoy hay un icono genérico de chat.
- *
- * Al usarse siempre a tamaños pequeños (~20-24px) y sin texto superpuesto,
- * la carita se dibuja con la variante 'icon' (más grande, en el vientre de
- * la gota) en vez de la variante 'ring' minúscula del anillo grande.
+ * Avatar del Confidente: la gota con su carita. Sustituye directamente a un
+ * icono de lucide-react (`size`, `className`, etc.), así que puede ir en
+ * cualquier sitio donde haría falta un icono de chat.
  */
 export function DropMascot({ phase, mood, size = 24, color = 'currentColor', strokeWidth = 13, className, ...rest }: DropMascotProps) {
   const resolvedMood = mood ?? moodForPhase(phase ?? 'follicular');
@@ -35,7 +30,7 @@ export function DropMascot({ phase, mood, size = 24, color = 'currentColor', str
       {...rest}
     >
       <path d={DROP_SILHOUETTE_PATH} />
-      <MascotFaceGroup mood={resolvedMood} color={color} variant="icon" />
+      <MascotFaceGroup mood={resolvedMood} color={color} />
     </svg>
   );
 }
