@@ -5,7 +5,7 @@ Este documento convierte los límites de la revisión en una lista ejecutable. E
 ## Arquitectura preparada
 
 - Frontend React/Vite y función `/api` de Vercel en un mismo dominio.
-- La función de Vercel delega al backend Express real cuando existen `DATABASE_URL` y `JWT_SECRET`; sin ellos continúa cerrada y devuelve 503.
+- La función de Vercel delega al backend Express real cuando existen `DATABASE_URL` (o `POSTGRES_URL`) y `JWT_SECRET`; sin ellos continúa cerrada y devuelve 503. El código no incluye credenciales por defecto.
 - PostgreSQL almacena perfiles y registros por usuario. Las consultas usan el propietario autenticado y las sesiones JWT están limitadas por emisor, audiencia, algoritmo y versión de autenticación.
 - Recuperación de cuenta mediante Resend: token aleatorio de un solo uso, almacenado únicamente como SHA-256, caducidad de 30 minutos, enlace HTTPS y revocación de sesiones anteriores al cambiar contraseña.
 - `GET /api/ready` solo devuelve 200 cuando la base de datos responde y el correo de recuperación está configurado.
@@ -26,6 +26,19 @@ MAIL_FROM=Aura <no-reply@tudominio.com>
 ```
 
 El dominio del remitente debe estar verificado en Resend y el dominio web debe usar HTTPS. No reutilizar la contraseña que aparece en el `.env` local; revocarla en Neon aunque el archivo esté ignorado por Git.
+
+## Rotación tras la exposición de septiembre de 2026
+
+Entre el 5 y el 25 de septiembre de 2026, `api/index.js` y `server/app.js` incluían, codificadas en base64, la cadena de conexión de Neon (con la contraseña de `neondb_owner`) y un `JWT_SECRET` de respaldo. Siguen en el historial público de Git, así que la única solución es invalidarlos:
+
+1. **Neon** → proyecto → *Roles* → `neondb_owner` → *Reset password*. Copiar la nueva cadena de conexión (la del *pooler*).
+2. **Vercel** → proyecto `regla` → *Settings* → *Environment Variables*, en *Production* y *Preview*, marcadas como *Sensitive*:
+   - `DATABASE_URL` con la cadena nueva. Si la integración de Neon gestiona `POSTGRES_URL`, comprobar que también tenga la contraseña nueva.
+   - `JWT_SECRET` nuevo, generado con `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`. Al cambiarlo, todas las sesiones se cierran y cada persona vuelve a entrar con su contraseña.
+3. Desplegar el código sin credenciales y comprobar que `/api/health` devuelve `"authentication": "configured"` y que se puede iniciar sesión.
+4. En Neon, revisar la actividad de la base de datos desde el 5 de septiembre por si hubo accesos ajenos.
+
+Hasta completar los pasos 1 y 2, la base de datos sigue abierta a quien lea el historial del repositorio.
 
 ## Despliegue de base de datos
 

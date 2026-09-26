@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { once } from 'node:events';
+import { readFileSync } from 'node:fs';
 import api from '../../api/index.js';
 const require = createRequire(new URL('../../server/app.js', import.meta.url));
 const { createApp, databaseOptions } = require('./app');
@@ -50,6 +51,27 @@ test('unconfigured auth fails closed, recovery does not claim an email and unkno
   assert.equal(health.headers.get('cache-control'), 'no-store');
   assert.equal((await health.json()).authentication, 'unavailable');
   assert.equal((await request('/api/ready')).status, 503);
+});
+
+test('readiness reports only its state, never configuration or database errors', async t => {
+  const pool = { query: async () => { throw new Error('connection to db.internal failed for neondb_owner'); } };
+  const request = await fixture(t, { pool, initialize: true });
+  const response = await request('/api/ready');
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.deepEqual(Object.keys(body).sort(), ['database', 'recovery', 'status']);
+  assert.doesNotMatch(JSON.stringify(body), /neondb_owner|db\.internal/);
+});
+
+test('server code never embeds credentials, not even encoded', () => {
+  const connectionWithPassword = /postgres(?:ql)?:\/\/[^\s'"`:@/]+:[^\s'"`@]+@/i;
+  for (const file of ['api/index.js', 'server/app.js', 'server/index.js', 'server/migrate.js']) {
+    const source = readFileSync(new URL(`../../${file}`, import.meta.url), 'utf8');
+    assert.doesNotMatch(source, connectionWithPassword, file);
+    for (const [blob] of source.matchAll(/[A-Za-z0-9+/]{40,}={0,2}/g)) {
+      assert.doesNotMatch(Buffer.from(blob, 'base64').toString('utf8'), connectionWithPassword, `${file}: cadena codificada`);
+    }
+  }
 });
 
 test('configured recovery sends a single-use reset link without exposing account existence', async t => {

@@ -86,35 +86,28 @@ async function sendPasswordResetEmail(configuration, email, token) {
   return response.ok;
 }
 
-const B64_DB = 'cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfVGpmaVFTOElaRTFjQGVwLXlvdW5nLW1vcm5pbmctemFvbW96NDgtcG9vbGVyLmMtMi5ldS13ZXN0LTIuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJl';
-const B64_SECRET = 'OWU2ZjdhM2UyYjE0YzVkNmU3ZjgwOTFhMmIzYzRkNWU2ZjcwODE5MmEzYjRjNWQ2ZTdmODA5MWEyYjNjNGQ1';
-
 function createApp({ env = process.env, pool: suppliedPool, initialize = true, authLimit = 30 } = {}) {
   const app = express();
   app.disable('x-powered-by');
   // Vercel terminates TLS before forwarding the request. This preserves the
   // original HTTPS protocol for same-origin checks and rate-limit client IPs.
   app.set('trust proxy', 1);
-  // Las pruebas nunca deben conectarse a una base de datos real, se lancen como se lancen.
-  const isTest = process.env.npm_lifecycle_event === 'test' || Boolean(process.env.NODE_TEST_CONTEXT);
-  const defaultDb = isTest ? null : Buffer.from(B64_DB, 'base64').toString('utf8');
-  const defaultSecret = isTest ? null : Buffer.from(B64_SECRET, 'base64').toString('utf8');
-  const rawDbUrl = env.DATABASE_URL || env.POSTGRES_URL || defaultDb;
+  // Las credenciales solo llegan por el entorno. Nunca hay valores por defecto en el código:
+  // sin base de datos o sin un JWT_SECRET robusto, el acceso con cuenta queda cerrado.
+  const rawDbUrl = env.DATABASE_URL || env.POSTGRES_URL;
   const dbUrl = typeof rawDbUrl === 'string' ? rawDbUrl.trim().replace(/^["']|["']$/g, '') : rawDbUrl;
-  const secret = (env.JWT_SECRET || defaultSecret || '').trim();
+  const secret = (env.JWT_SECRET || '').trim();
   const secretReady = secret.length >= 32 && !/dev_jwt_secret|change_in_production|your_custom/i.test(secret);
+  if (dbUrl && !secretReady) console.error('JWT_SECRET is missing or weak (32+ random characters required). Account access is disabled.');
   let pool = suppliedPool;
-  let poolInitError = 'none';
   if (!pool && dbUrl && secretReady) {
-    try { pool = new Pool(databaseOptions(dbUrl)); } catch (e) {
-      poolInitError = e.message || String(e);
+    try { pool = new Pool(databaseOptions(dbUrl)); } catch {
       console.error('Pool initialization failed. Check DATABASE_URL configuration.');
     }
   }
   const configured = Boolean(pool && secretReady);
   let ready = false;
   let initialization;
-  let queryError = 'none';
   const ensureReady = async () => {
     if (!configured) return false;
     if (ready) return true;
@@ -130,7 +123,6 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
         ready = true;
         return true;
       } catch (err) {
-        queryError = err?.message || String(err);
         console.error('Database initialization failed:', err?.message || err);
         return false;
       } finally {
@@ -206,21 +198,11 @@ function createApp({ env = process.env, pool: suppliedPool, initialize = true, a
     const databaseReady = await ensureReady();
     const recoveryReady = Boolean(recoveryConfiguration(env));
     const readyForProduction = databaseReady && recoveryReady;
-      res.status(readyForProduction ? 200 : 503).json({
-        status: readyForProduction ? 'ready' : 'unavailable',
-        database: databaseReady ? 'ready' : 'unavailable',
-        recovery: recoveryReady ? 'configured' : 'unavailable',
-        debug: {
-          PoolType: typeof Pool,
-          poolInstance: !!pool,
-          secretReady,
-          secretLength: secret ? secret.length : 0,
-          secretMatchedRegex: /dev_jwt_secret|change_in_production|your_custom/i.test(secret),
-          poolInitError,
-          queryError,
-          dbUrlStart: dbUrl ? dbUrl.substring(0, 15) : 'none'
-        }
-      });
+    res.status(readyForProduction ? 200 : 503).json({
+      status: readyForProduction ? 'ready' : 'unavailable',
+      database: databaseReady ? 'ready' : 'unavailable',
+      recovery: recoveryReady ? 'configured' : 'unavailable'
+    });
   });
 
   async function requireDatabase(req, res, next) {
