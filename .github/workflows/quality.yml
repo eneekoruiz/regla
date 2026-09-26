@@ -37,7 +37,7 @@ jobs:
       - name: Análisis de SonarCloud
         # Solo cuando el repositorio tiene configurado el secreto SONAR_TOKEN (nunca en PR de Dependabot).
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
