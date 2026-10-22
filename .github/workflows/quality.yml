@@ -3,7 +3,17 @@ name: Calidad
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
 
 permissions:
   contents: read
@@ -13,9 +23,13 @@ concurrency:
   group: quality-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GIT_LFS_SKIP_SMUDGE: '1'
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -23,6 +37,7 @@ jobs:
         with:
           # SonarCloud necesita el historial completo para atribuir cada línea nueva.
           fetch-depth: 0
+          lfs: false
 
       - uses: actions/setup-node@v4
         with:
@@ -44,9 +59,11 @@ jobs:
   e2e:
     # Pruebas de extremo a extremo en el tamaño de ordenador (los cuatro tamaños se prueban en local).
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: false
 
       - uses: actions/setup-node@v4
         with:
@@ -64,4 +81,4 @@ jobs:
         with:
           name: playwright-report
           path: artifacts/
-          retention-days: 7
+          retention-days: 3
